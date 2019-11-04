@@ -32,99 +32,52 @@ double no_overlapp = 0.0001; // added to radii to avoid overlapping volumes
 // without running into unresolved libraries and include files
 void RunLoadTest() {}
 
-void G4Init(const bool do_tracking = true,
-      const bool do_pstof = true,
-	    const bool do_cemc = true,
-	    const bool do_hcalin = true,
-	    const bool do_magnet = true,
-	    const bool do_hcalout = true,
-	    const bool do_pipe = true,
-	    const bool do_plugdoor = false,
-	    const bool do_FEMC = false
-	    )
-  {
+void G4Init(
+  const bool do_tracking = true,
+  const bool do_pstof = true,
+  const bool do_cemc = true,
+  const bool do_hcalin = true,
+  const bool do_magnet = true,
+  const bool do_hcalout = true,
+  const bool do_pipe = true,
+  const bool do_plugdoor = false,
+  const bool do_FEMC = false
+  )
+{
 
   // load detector/material macros and execute Init() function
 
-  if (do_pipe)
-    {
-      gROOT->LoadMacro("G4_Pipe.C");
-      PipeInit();
-    }  
-  if (do_tracking)
-    {
-      gROOT->LoadMacro("G4_Tracking.C"); 
-      TrackingInit();
-    }
-
-  if (do_pstof) 
-    {
-      gROOT->LoadMacro("G4_PSTOF.C");
-      PSTOFInit();
-    }
-
-  if (do_cemc)
-    {
-      gROOT->LoadMacro("G4_CEmc_Spacal.C");
-      CEmcInit(72); // make it 2*2*2*3*3 so we can try other combinations
-    }
-
-  if (do_hcalin) 
-    {
-      gROOT->LoadMacro("G4_HcalIn_ref.C");
-      HCalInnerInit();
-    }
-
-  if (do_magnet)
-    {
-      gROOT->LoadMacro("G4_Magnet.C");
-      MagnetInit();
-    }
-  if (do_hcalout)
-    {
-      gROOT->LoadMacro("G4_HcalOut_ref.C");
-      HCalOuterInit();
-    }
-
-  if (do_pipe)
-    {
-      gROOT->LoadMacro("G4_PlugDoor.C");
-      PlugDoorInit();
-    }
-  if (do_FEMC)
-    {
-      gROOT->LoadMacro("G4_FEMC.C");
-      FEMCInit();
-    }
+  if (do_pipe) PipeInit();
+  if (do_tracking) TrackingInit();
+  if (do_pstof) PSTOFInit();
+  if (do_cemc) CEmcInit(72); // make it 2*2*2*3*3 so we can try other combinations
+  if (do_hcalin) HCalInnerInit();
+  if (do_magnet) MagnetInit();
+  if (do_hcalout) HCalOuterInit();
+  if (do_pipe) PlugDoorInit();
+  if (do_FEMC) FEMCInit();
 
 }
 
 
 int G4Setup(const int absorberactive = 0,
-	    const string &field ="1.5",
+      const string &field ="1.5",
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
-	    const EDecayType decayType = EDecayType::kAll,
+      const EDecayType decayType = EDecayType::kAll,
 #else
-	    const EDecayType decayType = TPythia6Decayer::kAll,
+      const EDecayType decayType = TPythia6Decayer::kAll,
 #endif
-	    const bool do_tracking = true,
-	    const bool do_pstof = true,
-	    const bool do_cemc = true,
-	    const bool do_hcalin = true,
-	    const bool do_magnet = true,
-	    const bool do_hcalout = true,
+      const bool do_tracking = true,
+      const bool do_pstof = true,
+      const bool do_cemc = true,
+      const bool do_hcalin = true,
+      const bool do_magnet = true,
+      const bool do_hcalout = true,
       const bool do_pipe = true,
       const bool do_plugdoor = false,
 //	    const bool do_plugdoor = true,
-	    const bool do_FEMC = false, 
-	    const float magfield_rescale = 1.0) {
-  
-  //---------------
-  // Load libraries
-  //---------------
-
-  gSystem->Load("libg4detectors.so");
-  gSystem->Load("libg4testbench.so");
+      const bool do_FEMC = false,
+      const float magfield_rescale = 1.0) {
 
   //---------------
   // Fun4All server
@@ -138,18 +91,18 @@ int G4Setup(const int absorberactive = 0,
 
   PHG4Reco* g4Reco = new PHG4Reco();
   g4Reco->set_rapidity_coverage(1.1); // according to drawings
-// uncomment to set QGSP_BERT_HP physics list for productions 
+// uncomment to set QGSP_BERT_HP physics list for productions
 // (default is QGSP_BERT for speed)
-  //  g4Reco->SetPhysicsList("QGSP_BERT_HP"); 
+  //  g4Reco->SetPhysicsList("QGSP_BERT_HP");
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
-  if (decayType != EDecayType::kAll) 
+  if (decayType != EDecayType::kAll)
 #else
-  if (decayType != TPythia6Decayer::kAll) 
+  if (decayType != TPythia6Decayer::kAll)
 #endif
   {
     g4Reco->set_force_decay(decayType);
   }
-  
+
   double fieldstrength;
   istringstream stringline(field);
   stringline >> fieldstrength;
@@ -164,20 +117,20 @@ int G4Setup(const int absorberactive = 0,
     g4Reco->set_field(fieldstrength); // use const soleniodal field
   }
   g4Reco->set_field_rescale(magfield_rescale);
-  
+
   double radius = 0.;
 
   //----------------------------------------
   // PIPE
   if (do_pipe) radius = Pipe(g4Reco, radius, absorberactive);
-  
+
   //----------------------------------------
   // TRACKING
   if (do_tracking) radius = Tracking(g4Reco, radius, absorberactive);
 
   //----------------------------------------
   // PSTOF
-  
+
   if (do_pstof) radius = PSTOF(g4Reco, radius, absorberactive);
 
   //----------------------------------------
@@ -185,20 +138,20 @@ int G4Setup(const int absorberactive = 0,
 //
   if (do_cemc) radius = CEmc(g4Reco, radius, 8, absorberactive);
 //  if (do_cemc) radius = CEmc_Vis(g4Reco, radius, 8, absorberactive);// for visualization substructure of SPACAL, slow to render
-  
+
   //----------------------------------------
   // HCALIN
-  
+
   if (do_hcalin) radius = HCalInner(g4Reco, radius, 4, absorberactive);
 
   //----------------------------------------
   // MAGNET
-  
+
   if (do_magnet) radius = Magnet(g4Reco, radius, 0, absorberactive);
 
   //----------------------------------------
   // HCALOUT
-  
+
   if (do_hcalout) radius = HCalOuter(g4Reco, radius, 4, absorberactive);
 
   //----------------------------------------
@@ -210,7 +163,7 @@ int G4Setup(const int absorberactive = 0,
 
   //----------------------------------------
   // BLACKHOLE
-  
+
   // swallow all particles coming out of the backend of sPHENIX
   PHG4CylinderSubsystem *blackhole = new PHG4CylinderSubsystem("BH", 1);
 blackhole->set_double_param("radius",radius + 10); // add 10 cm
@@ -262,7 +215,7 @@ void ShowerCompress(int verbosity = 0) {
   gSystem->Load("libg4eval.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
-  
+
   PHG4DstCompressReco* compress = new PHG4DstCompressReco("PHG4DstCompressReco");
   compress->AddHitContainer("G4HIT_PIPE");
   compress->AddHitContainer("G4HIT_SVTXSUPPORT");
@@ -298,8 +251,8 @@ void ShowerCompress(int verbosity = 0) {
   compress->AddTowerContainer("TOWER_RAW_FEMC");
   compress->AddTowerContainer("TOWER_CALIB_FEMC");
   se->registerSubsystem(compress);
-  
-  return; 
+
+  return;
 }
 
 void DstCompress(Fun4AllDstOutputManager* out) {

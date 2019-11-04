@@ -20,7 +20,7 @@
 #include <phhepmc/Fun4AllHepMCPileupInputManager.h>
 #include <phhepmc/Fun4AllHepMCInputManager.h>
 
-R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/tony/macros/macros/g4simulations )
+R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
@@ -37,10 +37,7 @@ R__LOAD_LIBRARY(libPHPythia6.so)
 R__LOAD_LIBRARY(libPHPythia8.so)
 #endif
 
-using namespace std;
-
-
-int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "rootfiles/G4sPHENIX" )
+int Fun4All_G4_sPHENIX_hp( const int nEvents = 5, const char *outputFile = "rootfiles/G4sPHENIX" )
 {
 
   //===============
@@ -67,27 +64,16 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "r
   bool do_hcalout = false;
   bool do_plugdoor = false;
 
-  //---------------
-  // Load libraries
-  //---------------
-
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libg4detectors.so");
-  gSystem->Load("libphhepmc.so");
-  gSystem->Load("libg4testbench.so");
-  gSystem->Load("libg4eval.so");
-  gSystem->Load("libg4intt.so");
-
   // establish the geometry and reconstruction setup
-  gROOT->SetMacroPath( "/phenix/u/hpereira/sphenix/src/tony/macros/macros/g4simulations" );
-  gROOT->LoadMacro("G4Setup_sPHENIX.C");
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
 
-  int absorberactive = 1;  // set to 1 to make all absorbers active volumes
+  // set to 1 to make all absorbers active volumes
+  int absorberactive = 1;
 
-  //  const string magfield = "1.5"; // alternatively to specify a constant magnetic field, give a float number, which will be translated to solenoidal field in T, if string use as fieldmap name (including path)
-  const std::string magfield = string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root"); // default map from the calibration database
-  const float magfield_rescale = -1.4 / 1.5;                                     // scale the map to a 1.4 T field
+  // default map from the calibration database
+  // scale the map to a 1.4 T field
+  const auto magfield = std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sPHENIX.2d.root");
+  const float magfield_rescale = -1.4 / 1.5;
 
   //---------------
   // Fun4All server
@@ -101,8 +87,8 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "r
   // Event generation
   //-----------------
 
-  // toss low multiplicity dummy events
   {
+    // toss low multiplicity dummy events
     PHG4SimpleEventGenerator *gen = new PHG4SimpleEventGenerator();
     gen->add_particles("pi+",1);
 
@@ -126,8 +112,8 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "r
     se->registerSubsystem(gen);
   }
 
-  // G4 setup
   {
+    // G4 setup
     G4Setup(
       absorberactive, magfield, EDecayType::kAll,
       do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
@@ -136,7 +122,6 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "r
 
   {
     // bbc reconstruction
-    gROOT->LoadMacro("G4_Bbc.C");
     BbcInit();
     Bbc_Reco();
   }
@@ -146,12 +131,13 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5000, const char *outputFile = "r
     Tracking_Cells();
     Tracking_Reco();
     Tracking_Eval(string(outputFile) + "_g4svtx_eval.root");
+    Tracking_Eval_hp();
   }
 
   {
     // for single particle generators we just need something which drives
     // the event loop, the Dummy Input Mgr does just that
-    Fun4AllInputManager *in = new Fun4AllDummyInputManager("JADE");
+    auto in = new Fun4AllDummyInputManager("JADE");
     se->registerInputManager(in);
   }
 
