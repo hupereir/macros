@@ -130,8 +130,8 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5, const char *outputFile = "root
     // tracking
     Tracking_Cells();
     Tracking_Reco();
-    Tracking_Eval(string(outputFile) + "_g4svtx_eval.root");
-    Tracking_Eval_hp();
+    // Tracking_Eval(string(outputFile) + "_g4svtx_eval.root");
+    Tracking_Eval_hp(string(outputFile) + "_g4svtx_eval.root");
   }
 
   {

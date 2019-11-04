@@ -619,7 +619,7 @@ void Tracking_Eval(std::string outputfile,  int verbosity = 0)
   // Tracking evaluation
   //----------------
   SvtxEvaluator* eval;
-  eval = new SvtxEvaluator("SVTXEVALUATOR", outputfile.c_str(), "SvtxTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);
+  eval = new SvtxEvaluator("SVTXEVALUATOR", outputfile, "SvtxTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);
   eval->do_cluster_eval(true);
   eval->do_g4hit_eval(true);
   eval->do_hit_eval(true);  // enable to see the hits that includes the chamber physics...
@@ -635,7 +635,7 @@ void Tracking_Eval(std::string outputfile,  int verbosity = 0)
     // make a second evaluator that records tracks fitted with primary vertex included
     // good for analysis of prompt tracks, particularly if Mvtx is not present
     SvtxEvaluator* evalp;
-    evalp = new SvtxEvaluator("SVTXEVALUATOR", string(outputfile.c_str()) + "_primary_eval.root", "PrimaryTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);    evalp->do_cluster_eval(true);
+    evalp = new SvtxEvaluator("SVTXEVALUATOR", string(outputfile) + "_primary_eval.root", "PrimaryTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);    evalp->do_cluster_eval(true);
     evalp->do_g4hit_eval(true);
     evalp->do_hit_eval(false);
     evalp->do_gpoint_eval(false);
@@ -647,11 +647,11 @@ void Tracking_Eval(std::string outputfile,  int verbosity = 0)
   return;
 }
 
-void Tracking_Eval_hp()
+void Tracking_Eval_hp(std::string outputfile)
 {
 
   auto se = Fun4AllServer::instance();
-  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
+  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP", outputfile );
   evaluator->Verbosity(0);
   se->registerSubsystem(evaluator);
 
