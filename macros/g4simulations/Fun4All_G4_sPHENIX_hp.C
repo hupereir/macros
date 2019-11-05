@@ -1,4 +1,3 @@
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllInputManager.h>
@@ -35,8 +34,8 @@ R__LOAD_LIBRARY(libg4testbench.so)
 R__LOAD_LIBRARY(libphhepmc.so)
 R__LOAD_LIBRARY(libPHPythia6.so)
 R__LOAD_LIBRARY(libPHPythia8.so)
-#endif
 
+//____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "rootfiles/G4sPHENIX" )
 {
 
