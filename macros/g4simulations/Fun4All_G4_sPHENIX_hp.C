@@ -37,13 +37,12 @@ R__LOAD_LIBRARY(libPHPythia6.so)
 R__LOAD_LIBRARY(libPHPythia8.so)
 #endif
 
-int Fun4All_G4_sPHENIX_hp( const int nEvents = 5, const char *outputFile = "rootfiles/G4sPHENIX" )
+int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "rootfiles/G4sPHENIX" )
 {
 
   //===============
   // Input options
   //===============
-
 
   //======================
   // What to run
@@ -130,7 +129,6 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 5, const char *outputFile = "root
     // tracking
     Tracking_Cells();
     Tracking_Reco();
-    // Tracking_Eval(string(outputFile) + "_g4svtx_eval.root");
     Tracking_Eval_hp(string(outputFile) + "_g4svtx_eval.root");
   }
 
