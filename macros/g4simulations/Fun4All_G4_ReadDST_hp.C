@@ -1,5 +1,6 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDstInputManager.h>
+#include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
 
 #include <trackbase/TrkrDefs.h>
@@ -17,9 +18,15 @@
 // custom evaluator
 #include <g4eval/TrackingEvaluator_hp.h>
 
+// needed to avoid warnings at readback
+R__LOAD_LIBRARY(libintt.so)
+R__LOAD_LIBRARY(libmvtx.so)
+R__LOAD_LIBRARY(liboutertracker.so)
+
+// need for home evaluator
 R__LOAD_LIBRARY(libg4eval.so)
 
-int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/dst_5k.root", const char *outputFile = "rootfiles/G4sPHENIX" )
+int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/dst_5k.root", const char *outputFile = "DST/dst_5k_eval.root" )
 {
 
   // server
@@ -28,7 +35,7 @@ int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/d
   auto rc = recoConsts::instance();
 
   // evaluation
-  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP", std::string(outputFile) + "_g4svtx_eval.root" );
+  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
   evaluator->Verbosity(0);
   se->registerSubsystem(evaluator);
 
@@ -36,6 +43,13 @@ int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/d
   auto *in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
   se->registerInputManager(in);
+
+  {
+    // output manager
+    Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
+    out->AddNode("ClusterContainer");
+    se->registerOutputManager(out);
+  }
 
   //-----------------
   // Event processing

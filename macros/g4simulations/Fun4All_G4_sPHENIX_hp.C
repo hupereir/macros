@@ -19,6 +19,9 @@
 #include <phhepmc/Fun4AllHepMCPileupInputManager.h>
 #include <phhepmc/Fun4AllHepMCInputManager.h>
 
+// custom evaluator
+#include <g4eval/TrackingEvaluator_hp.h>
+
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
@@ -36,7 +39,7 @@ R__LOAD_LIBRARY(libPHPythia6.so)
 R__LOAD_LIBRARY(libPHPythia8.so)
 
 //____________________________________________________________________
-int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "rootfiles/G4sPHENIX" )
+int Fun4All_G4_sPHENIX_hp( const int nEvents = 50, const char *outputFile = "DST/dst_eval.root" )
 {
 
   //===============
@@ -85,57 +88,61 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "ro
   // Event generation
   //-----------------
 
+  // toss low multiplicity dummy events
+  auto gen = new PHG4SimpleEventGenerator();
+  gen->add_particles("pi+",1);
+
+  gen->set_vertex_distribution_function(
+    PHG4SimpleEventGenerator::Uniform,
+    PHG4SimpleEventGenerator::Uniform,
+    PHG4SimpleEventGenerator::Uniform);
+
+  gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
+  gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
+
+  // TODO: what are vertex_size
+  gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
+  gen->set_vertex_size_parameters(0.0, 0.0);
+  gen->set_eta_range(-1.0, 1.0);
+  gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
+  gen->set_pt_range(0.1, 20.0);
+  gen->Embed(2);
+  gen->Verbosity(0);
+
+  se->registerSubsystem(gen);
+
+  // G4 setup
+  G4Setup(
+    absorberactive, magfield, EDecayType::kAll,
+    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
+    magfield_rescale);
+
+  // bbc reconstruction
+  BbcInit();
+  Bbc_Reco();
+
+  // tracking
+  Tracking_Cells();
+  Tracking_Reco();
+
+  // local evaluation
+  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
+  evaluator->Verbosity(0);
+  se->registerSubsystem(evaluator);
+
+  // for single particle generators we just need something which drives
+  // the event loop, the Dummy Input Mgr does just that
+  auto in = new Fun4AllDummyInputManager("JADE");
+  se->registerInputManager(in);
+
   {
-    // toss low multiplicity dummy events
-    PHG4SimpleEventGenerator *gen = new PHG4SimpleEventGenerator();
-    gen->add_particles("pi+",1);
-
-    gen->set_vertex_distribution_function(
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform);
-
-    gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
-    gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
-
-    // TODO: what are vertex_size
-    gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
-    gen->set_vertex_size_parameters(0.0, 0.0);
-    gen->set_eta_range(-1.0, 1.0);
-    gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
-    gen->set_pt_range(0.1, 20.0);
-    gen->Embed(2);
-    gen->Verbosity(0);
-
-    se->registerSubsystem(gen);
-  }
-
-  {
-    // G4 setup
-    G4Setup(
-      absorberactive, magfield, EDecayType::kAll,
-      do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
-      magfield_rescale);
-  }
-
-  {
-    // bbc reconstruction
-    BbcInit();
-    Bbc_Reco();
-  }
-
-  {
-    // tracking
-    Tracking_Cells();
-    Tracking_Reco();
-    Tracking_Eval_hp(string(outputFile) + "_g4svtx_eval.root");
-  }
-
-  {
-    // for single particle generators we just need something which drives
-    // the event loop, the Dummy Input Mgr does just that
-    auto in = new Fun4AllDummyInputManager("JADE");
-    se->registerInputManager(in);
+    // output manager
+    Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
+    out->AddNode("TRKR_HITSET");
+    out->AddNode("TRKR_CLUSTER");
+    out->AddNode("SvtxTrackMap");
+    out->AddNode("ClusterContainer");
+    se->registerOutputManager(out);
   }
 
   //-----------------
