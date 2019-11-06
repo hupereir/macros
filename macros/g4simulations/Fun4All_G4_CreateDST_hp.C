@@ -37,7 +37,7 @@ R__LOAD_LIBRARY(libPHPythia6.so)
 R__LOAD_LIBRARY(libPHPythia8.so)
 #endif
 
-int Fun4All_G4_CreateDST_hp( const int nEvents = 5000, const char *outputFile = "DST/dst.root" )
+int Fun4All_G4_CreateDST_hp( const int nEvents = 5, const char *outputFile = "DST/dst.root" )
 {
 
   //===============
