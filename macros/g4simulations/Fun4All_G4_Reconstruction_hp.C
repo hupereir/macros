@@ -23,8 +23,9 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile =
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(0);
+
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp() );

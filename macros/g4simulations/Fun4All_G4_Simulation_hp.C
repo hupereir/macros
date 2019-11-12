@@ -53,7 +53,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "
   se->Verbosity(0);
 
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   //-----------------
   // Event generation
