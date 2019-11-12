@@ -3,36 +3,37 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
 
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHit.h>
-
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-
-// #include <intt/InttHit.h>
-// #include <mvtx/MvtxHit.h>
-// #include <outertracker/OuterTrackerHit.h>
-
-// custom evaluator
+// own modules
+#include <g4eval/EventCounter_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
 // needed to avoid warnings at readback
+R__LOAD_LIBRARY(libg4tpc.so)
+R__LOAD_LIBRARY(libg4intt.so)
+R__LOAD_LIBRARY(libg4mvtx.so)
+R__LOAD_LIBRARY(libg4outertracker.so)
+
 R__LOAD_LIBRARY(libintt.so)
 R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(liboutertracker.so)
 
-// need for home evaluator
+// need for own evaluator
 R__LOAD_LIBRARY(libg4eval.so)
+R__LOAD_LIBRARY(libtrack_reco.so)
 
-int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/dst_5k.root", const char *outputFile = "DST/dst_5k_eval.root" )
+//_________________________________________________________________________
+int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco.root", const char *outputFile = "DST/dst_eval.root" )
 {
 
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(0);
+
   auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED", 1);
+
+  // event counter
+  se->registerSubsystem( new EventCounter_hp() );
 
   // evaluation
   auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
@@ -44,12 +45,10 @@ int Fun4All_G4_ReadDST_hp( const int nEvents = 0, const char* inputFile = "DST/d
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
-  {
-    // output manager
-    Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
-    out->AddNode("ClusterContainer");
-    se->registerOutputManager(out);
-  }
+  // output manager
+  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
+  out->AddNode("ClusterContainer");
+  se->registerOutputManager(out);
 
   //-----------------
   // Event processing
