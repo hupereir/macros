@@ -58,63 +58,82 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 //R__LOAD_LIBRARY(libg4hough.so)
 #endif
 
+#include <array>
 #include <vector>
 
 // Tracking simulation setup parameters and flag - leave them alone!
 //==============================================
 
-////////////// MVTX 
+////////////// MVTX
 const int n_maps_layer = 3;  // must be 0-3, setting it to zero removes Mvtx completely, n < 3 gives the first n layers
 
-/////////////// INTT 
-int n_intt_layer = 4;  // must be 4 or 0, setting to zero removes INTT completely
-int laddertype[4] = {PHG4InttDefs::SEGMENTATION_PHI,
-		       PHG4InttDefs::SEGMENTATION_PHI,
-		       PHG4InttDefs::SEGMENTATION_PHI,
-		       PHG4InttDefs::SEGMENTATION_PHI};
-int nladder[4] = {15,  15, 18, 18};
-double sensor_radius[4] = { 8.987, 9.545, 10.835, 11.361};  // radius of center of sensor for layer default
-double offsetphi[4] = {0.0, 0.5 * 360.0 / nladder[1] , 0.0, 0.5 * 360.0 / nladder[3]};
+/////////////// INTT
+const int n_intt_layer = 4;  // must be 4 or 0, setting to zero removes INTT completely
+const std::array<int,4> laddertype =
+{
+  PHG4InttDefs::SEGMENTATION_PHI,
+  PHG4InttDefs::SEGMENTATION_PHI,
+  PHG4InttDefs::SEGMENTATION_PHI,
+  PHG4InttDefs::SEGMENTATION_PHI
+};
+
+const std::array<int,4> nladder = {15,  15, 18, 18};
+const std::array<double,4> sensor_radius = { 8.987, 9.545, 10.835, 11.361};  // radius of center of sensor for layer default
+const std::array<double,4> offsetphi = {0.0, 0.5 * 360.0 / nladder[1] , 0.0, 0.5 * 360.0 / nladder[3]};
+
 enum enu_InttDeadMapType      // Dead map options for INTT
 {
   kInttNoDeadMap = 0,        // All channel in Intt is alive
   kIntt4PercentDeadMap = 4,  // 4% of dead/masked area (2% sensor + 2% chip) as a typical FVTX Run14 production run.
   kIntt8PercentDeadMap = 8   // 8% dead/masked area (6% sensor + 2% chip) as threshold of operational
 };
+
 enu_InttDeadMapType InttDeadMapOption = kInttNoDeadMap;  // Choose Intt deadmap here
 
-///////////////// TPC 
-int n_tpc_layer_inner = 16;
-int tpc_layer_rphi_count_inner = 1152;
-int n_tpc_layer_mid = 16;
-int n_tpc_layer_outer = 16;
-int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
+///////////////// TPC
+const int n_tpc_layer_inner = 16;
+const int tpc_layer_rphi_count_inner = 1152;
+const int n_tpc_layer_mid = 16;
+const int n_tpc_layer_outer = 16;
+const int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
 
 // setting to zero turns off OuterTracker detector
 int n_outertrack_layers = 2;
 
 // Tracking reconstruction setup parameters and flags
 //=====================================
-const int init_vertexing_min_zvtx_tracks = 2; // PHInitZvertexing parameter for reducing spurious vertices, use 2 for Pythia8 events, 5 for large multiplicity events
-const bool use_track_prop = true;   // true for normal track seeding, false to run with truth track seeding instead
-const bool g4eval_use_initial_vertex = false;   // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
-const bool use_primary_vertex = false;  // if true, refit tracks with primary vertex included - adds second node to node tree, adds second evaluator and outputs separate ntuples
+// PHInitZvertexing parameter for reducing spurious vertices, use 2 for Pythia8 events, 5 for large multiplicity events
+const int init_vertexing_min_zvtx_tracks = 2;
+
+// true for normal track seeding, false to run with truth track seeding instead
+const bool use_track_prop = false;
+
+// if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
+const bool g4eval_use_initial_vertex = false;
+
+// if true, refit tracks with primary vertex included - adds second node to node tree, adds second evaluator and outputs separate ntuples
+const bool use_primary_vertex = false;
 
 // This is the setup we have been using before PHInitZVertexing was implemented - smeared truth vertex for a single collision per event. Make it the default for now.
-std::string vmethod("avf-smoothing:1");  // only good for 1 vertex events // vmethod is a string used to set the Rave final-vertexing method:
-const bool use_truth_vertex = true;   // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
+// only good for 1 vertex events
+// vmethod is a string used to set the Rave final-vertexing method:
+const std::string vmethod("avf-smoothing:1");
 
-// This is the setup that uses PHInitZvertexing to find initial vertices, and allows for multiple collisions per event
-//const bool use_truth_vertex = false;   // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
-//std::string vmethod("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9");  // seems to handle multi-vertex events.
+// set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
+const bool use_truth_vertex = true;
 
+// // This is the setup that uses PHInitZvertexing to find initial vertices, and allows for multiple collisions per event
+// const bool use_truth_vertex = false;   // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
+// std::string vmethod("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9");  // seems to handle multi-vertex events.
+
+//_______________________________________________________
 void TrackingInit(int verbosity = 0)
-{
-}
+{}
 
+//_______________________________________________________
 double Tracking(PHG4Reco* g4Reco, double radius,
-                const int absorberactive = 0,
-                int verbosity = 0)
+  const int absorberactive = 0,
+  int verbosity = 0)
 {
   // create the three tracker subsystems
   gSystem->Load("libg4mvtx.so");
@@ -130,30 +149,31 @@ double Tracking(PHG4Reco* g4Reco, double radius,
     // New Mvtx configuration to give 2.0 mm clearance from sPHENIX beam-pipe (Walt 3 Jan 2018)
     //TODO: Add function to estimate stave tilt angle from values given by Walt (Rmin, Rmid, Rmax and sensor width)
     //TODO: Add default values in PHG4MvtxSubsystem or PHG4MvtxDetector
-    double maps_layer_radius[3] = {25.69, 33.735, 41.475};  // mm - numbers from Walt 3 Jan 2019 (Rmid)
-    double phi_tilt[3] = {0.295, 0.303, 0.298};             // radians - numbers calculated from values given by Walt 3 Jan 2019
+    std::array<double,3> maps_layer_radius = {25.69, 33.735, 41.475};  // mm - numbers from Walt 3 Jan 2019 (Rmid)
+    std::array<double,3> phi_tilt = {0.295, 0.303, 0.298};             // radians - numbers calculated from values given by Walt 3 Jan 2019
 
     // D. McGlinchey 6Aug2018 - type no longer is used, included here because I was too lazy to remove it from the code
     // Y. Corrales Morales - removed, no longer used in the code
     // int stave_type[3] = {0, 0, 0};
-    int staves_in_layer[3] = {12, 16, 20};  // Number of staves per layer in sPHENIX Mvtx
+    std::array<int,3> staves_in_layer = {12, 16, 20};  // Number of staves per layer in sPHENIX Mvtx
 
-    PHG4MvtxSubsystem* mvtx = new PHG4MvtxSubsystem("MVTX");
+    auto mvtx = new PHG4MvtxSubsystem("MVTX");
     mvtx->Verbosity(verbosity);
 
     for (int ilayer = 0; ilayer < n_maps_layer; ilayer++)
     {
       if (verbosity)
-        cout << "Create Maps layer " << ilayer << " with radius " << maps_layer_radius[ilayer] << " mm, "
-             << " pixel size 30 x 30 microns "
-             << " active pixel thickness 0.0018 microns" << endl;
+      {
+        std::cout<< "Create Maps layer " << ilayer << " with radius " << maps_layer_radius[ilayer] << " mm, "
+          << " pixel size 30 x 30 microns "
+          << " active pixel thickness 0.0018 microns" << std::endl;
+      }
       mvtx->set_double_param(ilayer,"layer_nominal_radius", maps_layer_radius[ilayer]);  // thickness in cm
       mvtx->set_int_param(ilayer, "N_staves", staves_in_layer[ilayer]);                   // uses fixed number of staves regardless of radius, if set. Otherwise, calculates optimum number of staves
-
       mvtx->set_double_param(ilayer,"phitilt", phi_tilt[ilayer]);
-
       radius = maps_layer_radius[ilayer];
     }
+
     mvtx->set_string_param(PHG4MvtxDefs::GLOBAL ,"stave_geometry_file", string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/mvtx_stave_v02.gdml"));
     // The cell size is used only during pixilization of sensor hits, but it is convemient to set it now because the geometry object needs it
     mvtx->set_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", 0.0030);          // pitch in cm
@@ -186,10 +206,10 @@ double Tracking(PHG4Reco* g4Reco, double radius,
     {
       // We want the sPHENIX layer numbers for the Intt to be from n_maps_layer to n_maps_layer+n_intt_layer - 1
       vpair.push_back(std::make_pair(n_maps_layer + i, i));  // sphxlayer=n_maps_layer+i corresponding to inttlayer=i
-      if (verbosity) cout << "Create strip tracker layer " << vpair[i].second << " as  sphenix layer  " << vpair[i].first << endl;
+      if (verbosity) std::cout<< "Create strip tracker layer " << vpair[i].second << " as  sphenix layer  " << vpair[i].first << std::endl;
     }
 
-    PHG4InttSubsystem* sitrack = new PHG4InttSubsystem("INTT", vpair);
+    auto sitrack = new PHG4InttSubsystem("INTT", vpair);
     sitrack->Verbosity(verbosity);
     sitrack->SetActive(1);
     sitrack->OverlapCheck(intt_overlapcheck);
@@ -197,16 +217,18 @@ double Tracking(PHG4Reco* g4Reco, double radius,
 
     // Set the laddertype and ladder spacing configuration
 
-    cout << "Intt has " << n_intt_layer << " layers with layer setup:" << endl;
+    std::cout<< "Intt has " << n_intt_layer << " layers with layer setup:" << std::endl;
     for(int i=0;i<n_intt_layer;i++)
-      {
-	cout << " Intt layer " << i << " laddertype " << laddertype[i] << " nladders " << nladder[i]
-	     << " sensor radius " << sensor_radius[i] << " offsetphi " << offsetphi[i] << endl;
-	sitrack->set_int_param(i, "laddertype", laddertype[i]);
-	sitrack->set_int_param(i, "nladder", nladder[i]);
-	sitrack->set_double_param(i,"sensor_radius", sensor_radius[i]);  // expecting cm
-	sitrack->set_double_param(i,"offsetphi",offsetphi[i]);  // expecting degrees
-      }
+    {
+      std::cout
+        << " Intt layer " << i << " laddertype " << laddertype[i] << " nladders " << nladder[i]
+        << " sensor radius " << sensor_radius[i] << " offsetphi " << offsetphi[i]
+        << std::endl;
+      sitrack->set_int_param(i, "laddertype", laddertype[i]);
+      sitrack->set_int_param(i, "nladder", nladder[i]);
+      sitrack->set_double_param(i,"sensor_radius", sensor_radius[i]);  // expecting cm
+      sitrack->set_double_param(i,"offsetphi",offsetphi[i]);  // expecting degrees
+    }
 
     // outer radius marker (translation back to cm)
     radius = intt_radius_max * 0.1;
@@ -217,61 +239,61 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   //================================
   gSystem->Load("libg4tpc.so");
 
-  PHG4TpcSubsystem* tpc = new PHG4TpcSubsystem("TPC");
+  auto tpc = new PHG4TpcSubsystem("TPC");
   tpc->SetActive();
   tpc->SuperDetector("TPC");
   tpc->set_double_param("steplimits", 1);
   // By default uses "sPHENIX_TPC_Gas", defined in PHG4Reco. That is 90:10 Ne:C4
 
-  if (absorberactive)
-  {
-    tpc->SetAbsorberActive();
-  }
+  if (absorberactive) tpc->SetAbsorberActive();
   tpc->OverlapCheck(overlapcheck);
 
   g4Reco->registerSubsystem(tpc);
 
   radius = 77. + 1.17;
-
   radius += no_overlapp;
 
+  // outer tracker
   if(n_outertrack_layers > 0)
-    {
-      cout << "Create OuterTrack subsystem module " << endl;
-      gSystem->Load("libg4outertracker.so");
-      
-      // Add the OuterTracker
-      double Inrad_start = 82.0;
-      double Thickness = 0.01;  // 100 microns thick
-      double Layer_spacing = 2.0;
-      double Length = 220.;
-      int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
-      int NSeg_Z = 5400; // gives about 100 micron resolution in z
-      for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
-	{
-	  int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
-	  cout << "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << endl;
-	  double Inner_rad = (double) ilayer * Layer_spacing + Inrad_start;
-	  double Outer_rad = Inner_rad + Thickness;
-	  PHG4OuterTrackerSubsystem *otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
-	  otr->Verbosity(0);
-	  otr->set_double_param(ot_layer, "ot_inner_radius", Inner_rad);
-	  otr->set_double_param(ot_layer, "ot_outer_radius", Outer_rad);
-	  otr->set_double_param(ot_layer, "ot_length", Length);
-	  otr->set_int_param(ot_layer, "layer", ilayer);
-	  otr->set_int_param(ot_layer, "ot_nseg_phi", NSeg_Phi);
-	  otr->set_int_param(ot_layer, "ot_nseg_z", NSeg_Z);
-	  
-	  g4Reco->registerSubsystem(otr);
+  {
 
-	  radius = radius + Outer_rad;
-	}
+    std::cout<< "Create OuterTrack subsystem module " << std::endl;
+    gSystem->Load("libg4outertracker.so");
+
+    // Add the OuterTracker
+    double Inrad_start = 82.0;
+    double Thickness = 0.01;  // 100 microns thick
+    double Layer_spacing = 2.0;
+    double Length = 220.;
+    int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
+    int NSeg_Z = 5400; // gives about 100 micron resolution in z
+    for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
+    {
+      int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
+      std::cout<< "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << std::endl;
+      double Inner_rad = (double) ilayer * Layer_spacing + Inrad_start;
+      double Outer_rad = Inner_rad + Thickness;
+      PHG4OuterTrackerSubsystem *otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
+      otr->Verbosity(0);
+      otr->set_double_param(ot_layer, "ot_inner_radius", Inner_rad);
+      otr->set_double_param(ot_layer, "ot_outer_radius", Outer_rad);
+      otr->set_double_param(ot_layer, "ot_length", Length);
+      otr->set_int_param(ot_layer, "layer", ilayer);
+      otr->set_int_param(ot_layer, "ot_nseg_phi", NSeg_Phi);
+      otr->set_int_param(ot_layer, "ot_nseg_z", NSeg_Z);
+
+      g4Reco->registerSubsystem(otr);
+
+      radius = radius + Outer_rad;
     }
-  
-  
+
+  }
+
+
   return radius;
 }
 
+//___________________________________________________
 void Tracking_Cells(int verbosity = 0)
 {
   // runs the cellularization of the energy deposits (g4hits)
@@ -351,16 +373,17 @@ void Tracking_Cells(int verbosity = 0)
   padplane->set_int_param("ntpc_phibins_inner", tpc_layer_rphi_count_inner);
 
   // OuterTracker
-if(n_outertrack_layers > 0)
-{
-  PHG4OuterTrackerHitReco *reco = new PHG4OuterTrackerHitReco("OuterTracker");
-  reco->Verbosity(0);
-  se->registerSubsystem(reco);
- }
+  if(n_outertrack_layers > 0)
+  {
+    PHG4OuterTrackerHitReco *reco = new PHG4OuterTrackerHitReco("OuterTracker");
+    reco->Verbosity(0);
+    se->registerSubsystem(reco);
+  }
 
   return;
 }
 
+//___________________________________________________
 void Tracking_Reco(int verbosity = 0)
 {
   // processes the TrkrHits to make clusters, then reconstruct tracks and vertices
@@ -375,7 +398,7 @@ void Tracking_Reco(int verbosity = 0)
   // Fun4All server
   //---------------
 
-  Fun4AllServer* se = Fun4AllServer::instance();
+  auto se = Fun4AllServer::instance();
 
   //-------------------------------------------
   // Digitize the hit energy into ADC
@@ -383,117 +406,111 @@ void Tracking_Reco(int verbosity = 0)
 
   // Mvtx
   //======
-  PHG4MvtxDigitizer* digimvtx = new PHG4MvtxDigitizer();
+  auto digimvtx = new PHG4MvtxDigitizer;
   digimvtx->Verbosity(0);
   // energy deposit in 25 microns = 9.6 KeV = 1000 electrons collected after recombination
   //digimvtx->set_adc_scale(0.95e-6);  // default set in code is 0.95e-06, which is 99 electrons
   se->registerSubsystem(digimvtx);
 
   if (n_intt_layer > 0)
+  {
+
+    #ifdef SVTXDEADMAP
+    if (InttDeadMapOption != kInttNoDeadMap)
     {
-
-#ifdef SVTXDEADMAP
-      if (InttDeadMapOption != kInttNoDeadMap)
-	{
-	  // Load pre-defined deadmaps
-	  PHG4SvtxDeadMapLoader* deadMapIntt = new PHG4SvtxDeadMapLoader("INTT");
-	  for (int i = 0; i < n_intt_layer; i++)
-	    {
-	      const int database_strip_type = (laddertype[i] == PHG4InttDefs::SEGMENTATION_Z) ? 0 : 1;
-	      string DeadMapConfigName = Form("LadderType%d_RndSeed%d/", database_strip_type, i);
-
-
-	      if (InttDeadMapOption == kIntt4PercentDeadMap)
-		{
-
-		  string DeadMapPath = string(getenv("CALIBRATIONROOT")) + string("/Tracking/INTT/DeadMap_4Percent/"); //4% of dead/masked area (2% sensor + 2% chip) as a typical FVTX Run14 production run.
-		  DeadMapPath +=  DeadMapConfigName;
-		  deadMapIntt->deadMapPath(n_maps_layer + i, DeadMapPath);
-
-		}
-	      else if (InttDeadMapOption == kIntt8PercentDeadMap)
-		{
-
-		  string DeadMapPath = string(getenv("CALIBRATIONROOT")) + string("/Tracking/INTT/DeadMap_8Percent/"); // 8% dead/masked area (6% sensor + 2% chip) as threshold of operational
-		  DeadMapPath +=  DeadMapConfigName;
-		  deadMapIntt->deadMapPath(n_maps_layer + i, DeadMapPath);
-
-		}
-	      else
-		{
-		  cout <<"Tracking_Reco - fatal error - invalid InttDeadMapOption = "<<InttDeadMapOption<<endl;
-		  exit(1);
-		}
-	    }
-	  //      deadMapIntt -> Verbosity(1);
-	  se->registerSubsystem(deadMapIntt);
-	}
-#endif // SVTXDEADMAP
-
-      // Intt
-      //=====
-      // these should be used for the Intt
-      /*
-	How threshold are calculated based on default FPHX settings
-	Four part information goes to the threshold calculation:
-	1. In 320 um thick silicon, the MIP e-h pair for a nominally indenting tracking is 3.87 MeV/cm * 320 um / 3.62 eV/e-h = 3.4e4 e-h pairs
-	2. From DOI: 10.1016/j.nima.2014.04.017, FPHX integrator amplifier gain is 100mV / fC. That translate MIP voltage to 550 mV.
-	3. From [FPHX Final Design Document](https://www.phenix.bnl.gov/WWW/fvtx/DetectorHardware/FPHX/FPHX2_June2009Revision.doc), the DAC0-7 setting for 8-ADC thresholds above the V_ref, as in Table 2 - Register Addresses and Defaults
-	4, From [FPHX Final Design Document](https://www.phenix.bnl.gov/WWW/fvtx/DetectorHardware/FPHX/FPHX2_June2009Revision.doc) section Front-end Program Bits, the formula to translate DAC setting to comparitor voltages.
-	The result threshold table based on FPHX default value is as following
-	| FPHX Register Address | Name            | Default value | Voltage - Vref (mV) | To electrons based on calibration | Electrons | Fraction to MIP |
-	|-----------------------|-----------------|---------------|---------------------|-----------------------------------|-----------|-----------------|
-	| 4                     | Threshold DAC 0 | 8             | 32                  | 2500                              | 2000      | 5.85E-02        |
-	| 5                     | Threshold DAC 1 | 16            | 64                  | 5000                              | 4000      | 1.17E-01        |
-	| 6                     | Threshold DAC 2 | 32            | 128                 | 10000                             | 8000      | 2.34E-01        |
-	| 7                     | Threshold DAC 3 | 48            | 192                 | 15000                             | 12000     | 3.51E-01        |
-	| 8                     | Threshold DAC 4 | 80            | 320                 | 25000                             | 20000     | 5.85E-01        |
-	| 9                     | Threshold DAC 5 | 112           | 448                 | 35000                             | 28000     | 8.18E-01        |
-	| 10                    | Threshold DAC 6 | 144           | 576                 | 45000                             | 36000     | 1.05E+00        |
-	| 11                    | Threshold DAC 7 | 176           | 704                 | 55000                             | 44000     | 1.29E+00        |
-	DAC0-7 threshold as fraction to MIP voltage are set to PHG4InttDigitizer::set_adc_scale as 3-bit ADC threshold as fractions to MIP energy deposition.
-      */
-      std::vector<double> userrange;  // 3-bit ADC threshold relative to the mip_e at each layer.
-      userrange.push_back(0.0584625322997416);
-      userrange.push_back(0.116925064599483);
-      userrange.push_back(0.233850129198966);
-      userrange.push_back(0.35077519379845);
-      userrange.push_back(0.584625322997416);
-      userrange.push_back(0.818475452196383);
-      userrange.push_back(1.05232558139535);
-      userrange.push_back(1.28617571059432);
-
-      // new containers
-      PHG4InttDigitizer* digiintt = new PHG4InttDigitizer();
-      digiintt->Verbosity(verbosity);
+      // Load pre-defined deadmaps
+      auto deadMapIntt = new PHG4SvtxDeadMapLoader("INTT");
       for (int i = 0; i < n_intt_layer; i++)
-	{
-	  digiintt->set_adc_scale(n_maps_layer + i, userrange);
-	}
-      se->registerSubsystem(digiintt);
+      {
+        const int database_strip_type = (laddertype[i] == PHG4InttDefs::SEGMENTATION_Z) ? 0 : 1;
+        string DeadMapConfigName = Form("LadderType%d_RndSeed%d/", database_strip_type, i);
+        if (InttDeadMapOption == kIntt4PercentDeadMap)
+        {
+
+          string DeadMapPath = string(getenv("CALIBRATIONROOT")) + string("/Tracking/INTT/DeadMap_4Percent/"); //4% of dead/masked area (2% sensor + 2% chip) as a typical FVTX Run14 production run.
+          DeadMapPath +=  DeadMapConfigName;
+          deadMapIntt->deadMapPath(n_maps_layer + i, DeadMapPath);
+
+        } else if (InttDeadMapOption == kIntt8PercentDeadMap) {
+
+          string DeadMapPath = string(getenv("CALIBRATIONROOT")) + string("/Tracking/INTT/DeadMap_8Percent/"); // 8% dead/masked area (6% sensor + 2% chip) as threshold of operational
+          DeadMapPath +=  DeadMapConfigName;
+          deadMapIntt->deadMapPath(n_maps_layer + i, DeadMapPath);
+
+        } else {
+          std::cout<<"Tracking_Reco - fatal error - invalid InttDeadMapOption = "<<InttDeadMapOption<<std::endl;
+          exit(1);
+        }
+
+      }
+      se->registerSubsystem(deadMapIntt);
     }
+    #endif // SVTXDEADMAP
+
+    // Intt
+    //=====
+    // these should be used for the Intt
+    /*
+    How threshold are calculated based on default FPHX settings
+    Four part information goes to the threshold calculation:
+    1. In 320 um thick silicon, the MIP e-h pair for a nominally indenting tracking is 3.87 MeV/cm * 320 um / 3.62 eV/e-h = 3.4e4 e-h pairs
+    2. From DOI: 10.1016/j.nima.2014.04.017, FPHX integrator amplifier gain is 100mV / fC. That translate MIP voltage to 550 mV.
+    3. From [FPHX Final Design Document](https://www.phenix.bnl.gov/WWW/fvtx/DetectorHardware/FPHX/FPHX2_June2009Revision.doc), the DAC0-7 setting for 8-ADC thresholds above the V_ref, as in Table 2 - Register Addresses and Defaults
+    4, From [FPHX Final Design Document](https://www.phenix.bnl.gov/WWW/fvtx/DetectorHardware/FPHX/FPHX2_June2009Revision.doc) section Front-end Program Bits, the formula to translate DAC setting to comparitor voltages.
+    The result threshold table based on FPHX default value is as following
+    | FPHX Register Address | Name            | Default value | Voltage - Vref (mV) | To electrons based on calibration | Electrons | Fraction to MIP |
+    |-----------------------|-----------------|---------------|---------------------|-----------------------------------|-----------|-----------------|
+    | 4                     | Threshold DAC 0 | 8             | 32                  | 2500                              | 2000      | 5.85E-02        |
+    | 5                     | Threshold DAC 1 | 16            | 64                  | 5000                              | 4000      | 1.17E-01        |
+    | 6                     | Threshold DAC 2 | 32            | 128                 | 10000                             | 8000      | 2.34E-01        |
+    | 7                     | Threshold DAC 3 | 48            | 192                 | 15000                             | 12000     | 3.51E-01        |
+    | 8                     | Threshold DAC 4 | 80            | 320                 | 25000                             | 20000     | 5.85E-01        |
+    | 9                     | Threshold DAC 5 | 112           | 448                 | 35000                             | 28000     | 8.18E-01        |
+    | 10                    | Threshold DAC 6 | 144           | 576                 | 45000                             | 36000     | 1.05E+00        |
+    | 11                    | Threshold DAC 7 | 176           | 704                 | 55000                             | 44000     | 1.29E+00        |
+    DAC0-7 threshold as fraction to MIP voltage are set to PHG4InttDigitizer::set_adc_scale as 3-bit ADC threshold as fractions to MIP energy deposition.
+    */
+    std::vector<double> userrange;  // 3-bit ADC threshold relative to the mip_e at each layer.
+    userrange.push_back(0.0584625322997416);
+    userrange.push_back(0.116925064599483);
+    userrange.push_back(0.233850129198966);
+    userrange.push_back(0.35077519379845);
+    userrange.push_back(0.584625322997416);
+    userrange.push_back(0.818475452196383);
+    userrange.push_back(1.05232558139535);
+    userrange.push_back(1.28617571059432);
+
+    // new containers
+    PHG4InttDigitizer* digiintt = new PHG4InttDigitizer();
+    digiintt->Verbosity(verbosity);
+    for (int i = 0; i < n_intt_layer; i++)
+    {
+      digiintt->set_adc_scale(n_maps_layer + i, userrange);
+    }
+    se->registerSubsystem(digiintt);
+  }
 
   // Tpc
   //====
-  PHG4TpcDigitizer* digitpc = new PHG4TpcDigitizer();
+  auto digitpc = new PHG4TpcDigitizer;
   digitpc->SetTpcMinLayer(n_maps_layer + n_intt_layer);
   double ENC = 670.0;  // standard
   digitpc->SetENC(ENC);
   double ADC_threshold = 4.0 * ENC;
   digitpc->SetADCThreshold(ADC_threshold);  // 4 * ENC seems OK
 
-  cout << " Tpc digitizer: Setting ENC to " << ENC << " ADC threshold to " << ADC_threshold
-       << " maps+Intt layers set to " << n_maps_layer + n_intt_layer << endl;
+  std::cout
+    << " Tpc digitizer: Setting ENC to " << ENC << " ADC threshold to " << ADC_threshold
+    << " maps+Intt layers set to " << n_maps_layer + n_intt_layer << std::endl;
 
   se->registerSubsystem(digitpc);
 
   // OuterTracker
   if(n_outertrack_layers > 0)
-    {
-      PHG4OuterTrackerDigitizer *digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
-      digi_otr->Verbosity(0);
-      se->registerSubsystem(digi_otr);
-    }
+  {
+    PHG4OuterTrackerDigitizer *digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
+    se->registerSubsystem(digi_otr);
+  }
 
 
   //-------------
@@ -515,100 +532,99 @@ void Tracking_Reco(int verbosity = 0)
   for (int i = n_maps_layer; i < n_maps_layer + n_intt_layer; i++)
   {
     if (laddertype[i - n_maps_layer] == PHG4InttDefs::SEGMENTATION_PHI)
-      inttclusterizer->set_z_clustering(i, false);
+    { inttclusterizer->set_z_clustering(i, false); }
   }
   se->registerSubsystem(inttclusterizer);
 
   // For the Tpc
   //==========
-  TpcClusterizer* tpcclusterizer = new TpcClusterizer();
-  tpcclusterizer->Verbosity(0);
+  auto tpcclusterizer = new TpcClusterizer;
+  tpcclusterizer->Verbosity(verbosity);
   se->registerSubsystem(tpcclusterizer);
 
   // For the OuterTracker
   if(n_outertrack_layers > 0)
-    {
-      OuterTrackerClusterizer *otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
-      otrclusterizer->Verbosity(0);
-      se->registerSubsystem(otrclusterizer);
-    }
+  {
+    OuterTrackerClusterizer *otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
+    otrclusterizer->Verbosity(verbosity);
+    se->registerSubsystem(otrclusterizer);
+  }
 
   //-------------
   // Tracking
   //------------
 
   if (use_track_prop)
+  {
+    // Normal track seeding and propagation
+    std::cout<< "Tracking_Reco - normal track seeding and propagation" <<std::endl;
+    if(use_truth_vertex)
     {
-      //--------------------------------------------------
-      // Normal track seeding and propagation
-      //--------------------------------------------------
 
-      if(use_truth_vertex)
-	{
-	  // We cheat to get the initial vertex for the full track reconstruction case
-	  PHInitVertexing* init_vtx  = new PHTruthVertexing("PHTruthVertexing");
-	  init_vtx->Verbosity(0);
-	  se->registerSubsystem(init_vtx);
-	}
-      else
-	{
-	  // get the initial vertex for track fitting from the MVTX hits
-	    PHInitZVertexing* init_zvtx  = new PHInitZVertexing(7, 7, "PHInitZVertexing");
-	    int seed_layer[7] = {0,1,2,3,4,5,6};
-	    init_zvtx->set_seeding_layer(seed_layer,7);
-	    // this is the minimum number of associated MVTX triplets for a vertex to be accepted as a candidate.
-	    // Suggest to use 2 for Pythia8 and 5 for Au+Au (to reduce spurious vertices).
-	    init_zvtx->set_min_zvtx_tracks(init_vertexing_min_zvtx_tracks);
-	    init_zvtx->Verbosity(0);
-	    se->registerSubsystem(init_zvtx);
-	} 
-      
-      // find seed tracks using a subset of TPC layers
-      int min_layers = 4;
-      int nlayers_seeds = 12;
-      PHHoughSeeding* track_seed = new PHHoughSeeding("PHHoughSeeding", n_maps_layer, n_intt_layer, n_gas_layer, nlayers_seeds, min_layers);
-      track_seed->Verbosity(0);
-      se->registerSubsystem(track_seed);
+      // We cheat to get the initial vertex for the full track reconstruction case
+      auto init_vtx  = new PHTruthVertexing("PHTruthVertexing");
+      init_vtx->Verbosity(verbosity);
+      se->registerSubsystem(init_vtx);
 
-      // Find all clusters associated with each seed track
-      PHGenFitTrkProp* track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer);
-      track_prop->Verbosity(0);
-      se->registerSubsystem(track_prop);
-      for(int i = 0;i<n_intt_layer;i++)
-	{
-	  // strip length is along theta
-	  track_prop->set_max_search_win_theta_intt(i, 0.200);
-	  track_prop->set_min_search_win_theta_intt(i, 0.200);
-	  track_prop->set_max_search_win_phi_intt(i, 0.0050);
-	  track_prop->set_min_search_win_phi_intt(i, 0.000);
-	}
+    } else {
+
+      // get the initial vertex for track fitting from the MVTX hits
+      PHInitZVertexing* init_zvtx  = new PHInitZVertexing(7, 7, "PHInitZVertexing");
+      int seed_layer[7] = {0,1,2,3,4,5,6};
+      init_zvtx->set_seeding_layer(seed_layer,7);
+      // this is the minimum number of associated MVTX triplets for a vertex to be accepted as a candidate.
+      // Suggest to use 2 for Pythia8 and 5 for Au+Au (to reduce spurious vertices).
+      init_zvtx->set_min_zvtx_tracks(init_vertexing_min_zvtx_tracks);
+      init_zvtx->Verbosity(verbosity);
+      se->registerSubsystem(init_zvtx);
+
     }
-  else
+
+    // find seed tracks using a subset of TPC layers
+    int min_layers = 4;
+    int nlayers_seeds = 12;
+    auto track_seed = new PHHoughSeeding("PHHoughSeeding", n_maps_layer, n_intt_layer, n_gas_layer, nlayers_seeds, min_layers);
+    track_seed->Verbosity(verbosity);
+    se->registerSubsystem(track_seed);
+
+    // Find all clusters associated with each seed track
+    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer);
+    track_prop->Verbosity(verbosity);
+    se->registerSubsystem(track_prop);
+    for(int i = 0;i<n_intt_layer;i++)
     {
-      //-------------------------------------------------------
-      // Track finding using truth information only
-      //------------------------------------------------------
-
-      PHInitVertexing* init_vtx  = new PHTruthVertexing("PHTruthVertexing");
-      init_vtx->Verbosity(0);
-      se->registerSubsystem(init_vtx);     
-
-      // For each truth particle, create a track and associate clusters with it using truth information
-      PHTruthTrackSeeding* pat_rec = new PHTruthTrackSeeding("PHTruthTrackSeeding"); 
-      pat_rec->Verbosity(0);
-      se->registerSubsystem(pat_rec);
+      // strip length is along theta
+      track_prop->set_max_search_win_theta_intt(i, 0.200);
+      track_prop->set_min_search_win_theta_intt(i, 0.200);
+      track_prop->set_max_search_win_phi_intt(i, 0.0050);
+      track_prop->set_min_search_win_phi_intt(i, 0.000);
     }
+
+  } else {
+
+    // Track finding using truth information only
+    std::cout<< "Tracking_Reco - Track finding using truth information only" <<std::endl;
+
+    auto init_vtx  = new PHTruthVertexing("PHTruthVertexing");
+    init_vtx->Verbosity(verbosity);
+    se->registerSubsystem(init_vtx);
+
+    // For each truth particle, create a track and associate clusters with it using truth information
+    auto pat_rec = new PHTruthTrackSeeding("PHTruthTrackSeeding");
+    pat_rec->Verbosity(verbosity);
+    se->registerSubsystem(pat_rec);
+
+  }
 
   //------------------------------------------------
   // Fitting of tracks using Kalman Filter
   //------------------------------------------------
+  auto kalman = new PHGenFitTrkFitter;
+  kalman->Verbosity(verbosity);
 
-
-  PHGenFitTrkFitter* kalman = new PHGenFitTrkFitter();
-  kalman->Verbosity(0);
-
+  // include primary vertex in track fit if true
   if (use_primary_vertex)
-    kalman->set_fit_primary_tracks(true);  // include primary vertex in track fit if true
+  { kalman->set_fit_primary_tracks(true); }
 
   kalman->set_vertexing_method(vmethod);
   kalman->set_use_truth_vertex(false);
@@ -618,15 +634,15 @@ void Tracking_Reco(int verbosity = 0)
   //------------------
   // Track Projections
   //------------------
-  PHGenFitTrackProjection* projection = new PHGenFitTrackProjection();
+  auto projection = new PHGenFitTrackProjection;
   projection->Verbosity(verbosity);
   se->registerSubsystem(projection);
 
   return;
 }
 
-
- void Tracking_Eval(std::string outputfile,  int verbosity = 0)
+//_____________________________________________________________________________
+void Tracking_Eval(std::string outputfile,  int verbosity = 0)
 {
   //---------------
   // Load libraries
@@ -642,13 +658,12 @@ void Tracking_Reco(int verbosity = 0)
   // Fun4All server
   //---------------
 
-  Fun4AllServer* se = Fun4AllServer::instance();
+  auto se = Fun4AllServer::instance();
 
   //----------------
   // Tracking evaluation
   //----------------
-  SvtxEvaluator* eval;
-  eval = new SvtxEvaluator("SVTXEVALUATOR", outputfile.c_str(), "SvtxTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);
+  auto eval = new SvtxEvaluator("SVTXEVALUATOR", outputfile.c_str(), "SvtxTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);
   eval->do_cluster_eval(true);
   eval->do_g4hit_eval(true);
   eval->do_hit_eval(true);  // enable to see the hits that includes the chamber physics...
@@ -663,8 +678,7 @@ void Tracking_Reco(int verbosity = 0)
   {
     // make a second evaluator that records tracks fitted with primary vertex included
     // good for analysis of prompt tracks, particularly if Mvtx is not present
-    SvtxEvaluator* evalp;
-    evalp = new SvtxEvaluator("SVTXEVALUATOR", string(outputfile.c_str()) + "_primary_eval.root", "PrimaryTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);    evalp->do_cluster_eval(true);
+    auto evalp = new SvtxEvaluator("SVTXEVALUATOR", string(outputfile.c_str()) + "_primary_eval.root", "PrimaryTrackMap", n_maps_layer, n_intt_layer, n_gas_layer);    evalp->do_cluster_eval(true);
     evalp->do_g4hit_eval(true);
     evalp->do_hit_eval(false);
     evalp->do_gpoint_eval(false);
