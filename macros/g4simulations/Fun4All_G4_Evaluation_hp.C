@@ -22,7 +22,7 @@ R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
 
 //_________________________________________________________________________
-int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco.root", const char *outputFile = "DST/dst_eval.root" )
+int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco_5k_full.root", const char *outputFile = "DST/dst_eval_5k_full.root" )
 {
 
   // server
