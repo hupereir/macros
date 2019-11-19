@@ -7,6 +7,7 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/TrackingEvaluator_hp.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
@@ -17,7 +18,7 @@ R__LOAD_LIBRARY(libg4testbench.so)
 #endif
 
 //________________________________________________________________________________________________
-int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile = "DST/dst_sim.root", const char *outputFile = "DST/dst_reco.root" )
+int Fun4All_G4_Reconstruction_hp( const int nEvents = 51, const char* inputFile = "DST/dst_sim_5k.root", const char *outputFile = "DST/dst_eval_truth_ref.root" )
 {
 
   // server
@@ -25,7 +26,7 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile =
   se->Verbosity(0);
 
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED", 1);
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp() );
@@ -37,6 +38,14 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile =
   // tracking
   Tracking_Cells();
   Tracking_Reco();
+
+  // local evaluation
+  if( true )
+  {
+    auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
+    evaluator->Verbosity(0);
+    se->registerSubsystem(evaluator);
+  }
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
