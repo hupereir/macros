@@ -55,7 +55,6 @@ R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(libtpc.so)
 R__LOAD_LIBRARY(liboutertracker.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
-//R__LOAD_LIBRARY(libg4hough.so)
 #endif
 
 #include <array>
@@ -64,10 +63,10 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 // Tracking simulation setup parameters and flag - leave them alone!
 //==============================================
 
-////////////// MVTX
+// MVTX
 const int n_maps_layer = 3;  // must be 0-3, setting it to zero removes Mvtx completely, n < 3 gives the first n layers
 
-/////////////// INTT
+// INTT
 const int n_intt_layer = 4;  // must be 4 or 0, setting to zero removes INTT completely
 const std::array<int,4> laddertype =
 {
@@ -90,14 +89,16 @@ enum enu_InttDeadMapType      // Dead map options for INTT
 
 enu_InttDeadMapType InttDeadMapOption = kInttNoDeadMap;  // Choose Intt deadmap here
 
-///////////////// TPC
+// TPC
 const int n_tpc_layer_inner = 16;
 const int tpc_layer_rphi_count_inner = 1152;
 const int n_tpc_layer_mid = 16;
 const int n_tpc_layer_outer = 16;
 const int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
 
+// outer tracker
 // setting to zero turns off OuterTracker detector
+// int n_outertrack_layers = 2;
 int n_outertrack_layers = 2;
 
 // Tracking reconstruction setup parameters and flags
@@ -106,7 +107,7 @@ int n_outertrack_layers = 2;
 const int init_vertexing_min_zvtx_tracks = 2;
 
 // true for normal track seeding, false to run with truth track seeding instead
-const bool use_track_prop = false;
+const bool use_track_prop = true;
 
 // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
 const bool g4eval_use_initial_vertex = false;
