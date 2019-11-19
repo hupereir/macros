@@ -4,6 +4,8 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
 #include <phool/recoConsts.h>
+
+// own modules
 #include <g4eval/EventCounter_hp.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
@@ -12,7 +14,7 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "DST/dst_sim.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 500, const char *outputFile = "DST/dst_sim.root" )
 {
 
   //===============
