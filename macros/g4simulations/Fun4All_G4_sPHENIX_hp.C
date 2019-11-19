@@ -19,7 +19,8 @@
 #include <phhepmc/Fun4AllHepMCPileupInputManager.h>
 #include <phhepmc/Fun4AllHepMCInputManager.h>
 
-// custom evaluator
+// own modules
+#include <g4eval/EventCounter_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
@@ -50,7 +51,6 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 50, const char *outputFile = "DST
   // What to run
   //======================
 
-  bool do_bbc = true;
   bool do_pipe = true;
 
   bool do_tracking = true;
@@ -83,10 +83,14 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 50, const char *outputFile = "DST
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
   recoConsts *rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   //-----------------
   // Event generation
   //-----------------
+
+  // event counter
+  se->registerSubsystem( new EventCounter_hp() );
 
   // toss low multiplicity dummy events
   auto gen = new PHG4SimpleEventGenerator();
