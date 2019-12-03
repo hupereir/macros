@@ -14,7 +14,7 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 500, const char *outputFile = "DST/dst_sim.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile = "DST/dst_sim_5k_low_momentum.root" )
 {
 
   //===============
@@ -81,7 +81,10 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 500, const char *outputFile = 
   gen->set_vertex_size_parameters(0.0, 0.0);
   gen->set_eta_range(-1.0, 1.0);
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
-  gen->set_pt_range(0.1, 20.0);
+
+  // gen->set_pt_range(0.1, 20.0);
+  gen->set_pt_range(0.5, 3.0);
+
   gen->Embed(2);
   gen->Verbosity(0);
   se->registerSubsystem(gen);
