@@ -2,6 +2,7 @@
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
+#include <trackreco/PHGenFitTrkFitter.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
@@ -16,13 +17,13 @@ R__LOAD_LIBRARY(libg4outertracker.so)
 R__LOAD_LIBRARY(libintt.so)
 R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(liboutertracker.so)
+R__LOAD_LIBRARY(libtrack_reco.so)
 
 // need for own evaluator
 R__LOAD_LIBRARY(libg4eval.so)
-R__LOAD_LIBRARY(libtrack_reco.so)
 
 //_________________________________________________________________________
-int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco_5k_full.root", const char *outputFile = "DST/dst_eval_5k_full.root" )
+int Fun4All_G4_Evaluation_hp( const int nEvents = 5000, const char* inputFile = "DST/dst_reco_5k_full.root", const char *outputFile = "DST/dst_eval_5k_full_notpc_noouter.root" )
 {
 
   // server
@@ -30,10 +31,29 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DS
   se->Verbosity(0);
 
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED", 1);
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp() );
+
+  // refit tracks
+  if( true )
+  {
+    auto kalman = new PHGenFitTrkFitter;
+
+    // disable tpc
+    for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
+
+    // disable outer layer
+    for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
+
+    kalman->set_vertexing_method("avf-smoothing:1");
+    kalman->set_use_truth_vertex(false);
+
+    se->registerSubsystem(kalman);
+  }
 
   // evaluation
   auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
@@ -47,7 +67,7 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DS
 
   // output manager
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
-  out->AddNode("ClusterContainer");
+  out->AddNode("Container");
   se->registerOutputManager(out);
 
   //-----------------
