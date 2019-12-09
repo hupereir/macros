@@ -18,7 +18,7 @@ R__LOAD_LIBRARY(libg4testbench.so)
 #endif
 
 //________________________________________________________________________________________________
-int Fun4All_G4_Reconstruction_hp( const int nEvents = 5000, const char* inputFile = "DST/dst_sim_5k_low_momentum.root", const char *outputFile = "DST/dst_reco_5k_low_momentum.root" )
+int Fun4All_G4_Reconstruction_hp( const int nEvents = 5000, const char* inputFile = "DST/dst_sim_5k_low_momentum.root", const char *outputFile = "DST/dst_reco_5k_truth_low_momentum.root" )
 {
 
   // server
@@ -41,11 +41,7 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 5000, const char* inputFil
 
   // local evaluation
   if( false )
-  {
-    auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
-    evaluator->Verbosity(0);
-    se->registerSubsystem(evaluator);
-  }
+  { se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" )); }
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");

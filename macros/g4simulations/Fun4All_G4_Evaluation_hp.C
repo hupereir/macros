@@ -23,7 +23,7 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 R__LOAD_LIBRARY(libg4eval.so)
 
 //_________________________________________________________________________
-int Fun4All_G4_Evaluation_hp( const int nEvents = 5000, const char* inputFile = "DST/dst_reco_5k_full.root", const char *outputFile = "DST/dst_eval_5k_full_notpc_noouter.root" )
+int Fun4All_G4_Evaluation_hp( const int nEvents = 50, const char* inputFile = "DST/dst_reco_5k_truth.root", const char *outputFile = "DST/dst_eval_truth.root" )
 {
 
   // server
@@ -34,10 +34,10 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 5000, const char* inputFile = 
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp() );
+  se->registerSubsystem(new EventCounter_hp());
 
   // refit tracks
-  if( true )
+  if( false )
   {
     auto kalman = new PHGenFitTrkFitter;
 
@@ -56,9 +56,7 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 5000, const char* inputFile = 
   }
 
   // evaluation
-  auto evaluator = new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" );
-  evaluator->Verbosity(0);
-  se->registerSubsystem(evaluator);
+  se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" ));
 
   // input manager
   auto *in = new Fun4AllDstInputManager("DSTin");
@@ -70,14 +68,10 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 5000, const char* inputFile = 
   out->AddNode("Container");
   se->registerOutputManager(out);
 
-  //-----------------
-  // Event processing
-  //-----------------
+  // process events
   se->run(nEvents);
 
-  //-----
-  // Exit
-  //-----
+  // terminate
   se->End();
   std::cout << "All done" << std::endl;
   delete se;

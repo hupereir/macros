@@ -14,17 +14,10 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile = "DST/dst_sim_5k_low_momentum.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 5, const char *outputFile = "DST/dst_sim_local.root" )
 {
 
-  //===============
-  // Input options
-  //===============
-
-  //======================
-  // What to run
-  //======================
-
+  // options
   bool do_pipe = true;
 
   bool do_pstof = false;
@@ -37,7 +30,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile =
   bool do_tracking = true;
 
   // establish the geometry and reconstruction setup
-  G4Init( do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
+  G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
 
   // set to 1 to make all absorbers active volumes
   int absorberactive = 1;
@@ -47,23 +40,17 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile =
   const auto magfield = std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sPHENIX.2d.root");
   const float magfield_rescale = -1.4 / 1.5;
 
-  //---------------
-  // Fun4All server
-  //---------------
-
+  // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(0);
 
   auto rc = recoConsts::instance();
   // rc->set_IntFlag("RANDOMSEED", 1);
 
-  //-----------------
-  // Event generation
-  //-----------------
-
   // event counter
   se->registerSubsystem( new EventCounter_hp() );
 
+  // event generation
   // toss low multiplicity dummy events
   auto gen = new PHG4SimpleEventGenerator();
   gen->add_particles("pi+",1);
@@ -82,8 +69,8 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile =
   gen->set_eta_range(-1.0, 1.0);
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-  // gen->set_pt_range(0.1, 20.0);
-  gen->set_pt_range(0.5, 3.0);
+  gen->set_pt_range(0.1, 20.0);
+  // gen->set_pt_range(0.5, 5.0);
 
   gen->Embed(2);
   gen->Verbosity(0);
@@ -105,14 +92,10 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile =
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   se->registerOutputManager(out);
 
-  //-----------------
-  // Event processing
-  //-----------------
+  // process events
   se->run(nEvents);
 
-  //-----
-  // Exit
-  //-----
+  // terminate
   se->End();
   std::cout << "All done" << std::endl;
   delete se;
