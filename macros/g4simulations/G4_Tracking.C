@@ -100,6 +100,19 @@ const int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
 // int n_outertrack_layers = 2;
 int n_outertrack_layers = 2;
 
+namespace OuterTracker
+{
+
+    // Add the OuterTracker
+    double Inrad_start = 82.0;
+    double Thickness = 0.01;  // 100 microns thick
+    double Layer_spacing = 2.0;
+    double Length = 220.;
+    int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
+    int NSeg_Z = 5400; // gives about 100 micron resolution in z
+
+}
+
 // Tracking reconstruction setup parameters and flags
 //=====================================
 // PHInitZvertexing parameter for reducing spurious vertices, use 2 for Pythia8 events, 5 for large multiplicity events
@@ -257,28 +270,20 @@ double Tracking(PHG4Reco* g4Reco, double radius,
 
     std::cout<< "Create OuterTrack subsystem module " << std::endl;
 
-    // Add the OuterTracker
-    double Inrad_start = 82.0;
-    double Thickness = 0.01;  // 100 microns thick
-    double Layer_spacing = 2.0;
-    double Length = 220.;
-    int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
-    int NSeg_Z = 5400; // gives about 100 micron resolution in z
-
     for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
     {
       int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
       std::cout<< "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << std::endl;
-      double Inner_rad = (double) ilayer * Layer_spacing + Inrad_start;
-      double Outer_rad = Inner_rad + Thickness;
+      double Inner_rad = OuterTracker::Layer_spacing*ilayer + OuterTracker::Inrad_start;
+      double Outer_rad = Inner_rad + OuterTracker::Thickness;
       auto otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
       otr->Verbosity(0);
       otr->set_double_param(ot_layer, "ot_inner_radius", Inner_rad);
       otr->set_double_param(ot_layer, "ot_outer_radius", Outer_rad);
-      otr->set_double_param(ot_layer, "ot_length", Length);
+      otr->set_double_param(ot_layer, "ot_length", OuterTracker::Length);
       otr->set_int_param(ot_layer, "layer", ilayer);
-      otr->set_int_param(ot_layer, "ot_nseg_phi", NSeg_Phi);
-      otr->set_int_param(ot_layer, "ot_nseg_z", NSeg_Z);
+      otr->set_int_param(ot_layer, "ot_nseg_phi", OuterTracker::NSeg_Phi);
+      otr->set_int_param(ot_layer, "ot_nseg_z", OuterTracker::NSeg_Z);
 
       g4Reco->registerSubsystem(otr);
 
