@@ -1,5 +1,5 @@
 #pragma once
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
+
 #include "GlobalVariables.C"
 
 #include <fun4all/Fun4AllServer.h>
@@ -55,7 +55,6 @@ R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(libtpc.so)
 R__LOAD_LIBRARY(liboutertracker.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
-#endif
 
 #include <array>
 #include <vector>
@@ -137,7 +136,6 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   int verbosity = 0)
 {
   // create the three tracker subsystems
-  gSystem->Load("libg4mvtx.so");
 
   if (n_maps_layer > 0)
   {
@@ -238,7 +236,6 @@ double Tracking(PHG4Reco* g4Reco, double radius,
 
   // The Tpc - always present!
   //================================
-  gSystem->Load("libg4tpc.so");
 
   auto tpc = new PHG4TpcSubsystem("TPC");
   tpc->SetActive();
@@ -259,7 +256,6 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   {
 
     std::cout<< "Create OuterTrack subsystem module " << std::endl;
-    gSystem->Load("libg4outertracker.so");
 
     // Add the OuterTracker
     double Inrad_start = 82.0;
@@ -268,13 +264,14 @@ double Tracking(PHG4Reco* g4Reco, double radius,
     double Length = 220.;
     int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
     int NSeg_Z = 5400; // gives about 100 micron resolution in z
+
     for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
     {
       int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
       std::cout<< "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << std::endl;
       double Inner_rad = (double) ilayer * Layer_spacing + Inrad_start;
       double Outer_rad = Inner_rad + Thickness;
-      PHG4OuterTrackerSubsystem *otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
+      auto otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
       otr->Verbosity(0);
       otr->set_double_param(ot_layer, "ot_inner_radius", Inner_rad);
       otr->set_double_param(ot_layer, "ot_outer_radius", Outer_rad);
@@ -301,24 +298,10 @@ void Tracking_Cells(int verbosity = 0)
   // into detector hits (TrkrHits)
 
   //---------------
-  // Load libraries
-  //---------------
-
-  gSystem->Load("libtrack_io.so");
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libg4detectors.so");
-  gSystem->Load("libg4tpc.so");
-  gSystem->Load("libg4intt.so");
-  gSystem->Load("libg4mvtx.so");
-  gSystem->Load("libtpc.so");
-  gSystem->Load("libintt.so");
-  gSystem->Load("libmvtx.so");
-
-  //---------------
   // Fun4All server
   //---------------
 
-  Fun4AllServer* se = Fun4AllServer::instance();
+  auto se = Fun4AllServer::instance();
 
   // Mvtx hit reco
   //===========
@@ -326,7 +309,7 @@ void Tracking_Cells(int verbosity = 0)
   if (n_maps_layer > 0)
   {
     // new storage containers
-    PHG4MvtxHitReco* maps_hits = new PHG4MvtxHitReco("MVTX");
+    auto maps_hits = new PHG4MvtxHitReco("MVTX");
     maps_hits->Verbosity(verbosity);
     for (int ilayer = 0; ilayer < n_maps_layer; ilayer++)
     {
@@ -341,7 +324,7 @@ void Tracking_Cells(int verbosity = 0)
   if (n_intt_layer > 0)
   {
     // new storage containers
-    PHG4InttHitReco* reco = new PHG4InttHitReco();
+    auto reco = new PHG4InttHitReco;
     // The timing windows are hard-coded in the INTT ladder model, they can be overridden here
     //reco->set_double_param("tmax",80.0);
     //reco->set_double_param("tmin",-20.0);
@@ -388,12 +371,6 @@ void Tracking_Cells(int verbosity = 0)
 void Tracking_Reco(int verbosity = 0)
 {
   // processes the TrkrHits to make clusters, then reconstruct tracks and vertices
-
-  //---------------
-  // Load libraries
-  //---------------
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libtrack_reco.so");
 
   //---------------
   // Fun4All server
@@ -471,24 +448,26 @@ void Tracking_Reco(int verbosity = 0)
     | 11                    | Threshold DAC 7 | 176           | 704                 | 55000                             | 44000     | 1.29E+00        |
     DAC0-7 threshold as fraction to MIP voltage are set to PHG4InttDigitizer::set_adc_scale as 3-bit ADC threshold as fractions to MIP energy deposition.
     */
-    std::vector<double> userrange;  // 3-bit ADC threshold relative to the mip_e at each layer.
-    userrange.push_back(0.0584625322997416);
-    userrange.push_back(0.116925064599483);
-    userrange.push_back(0.233850129198966);
-    userrange.push_back(0.35077519379845);
-    userrange.push_back(0.584625322997416);
-    userrange.push_back(0.818475452196383);
-    userrange.push_back(1.05232558139535);
-    userrange.push_back(1.28617571059432);
+      // 3-bit ADC threshold relative to the mip_e at each layer.
+    std::vector<double> userrange =
+    {
+      0.0584625322997416,
+      0.116925064599483,
+      0.233850129198966,
+      0.35077519379845,
+      0.584625322997416,
+      0.818475452196383,
+      1.05232558139535,
+      1.28617571059432
+    };
 
     // new containers
-    PHG4InttDigitizer* digiintt = new PHG4InttDigitizer();
+    auto digiintt = new PHG4InttDigitizer();
     digiintt->Verbosity(verbosity);
     for (int i = 0; i < n_intt_layer; i++)
-    {
-      digiintt->set_adc_scale(n_maps_layer + i, userrange);
-    }
+    { digiintt->set_adc_scale(n_maps_layer + i, userrange); }
     se->registerSubsystem(digiintt);
+
   }
 
   // Tpc
@@ -509,7 +488,7 @@ void Tracking_Reco(int verbosity = 0)
   // OuterTracker
   if(n_outertrack_layers > 0)
   {
-    PHG4OuterTrackerDigitizer *digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
+    auto digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
     se->registerSubsystem(digi_otr);
   }
 
@@ -520,13 +499,13 @@ void Tracking_Reco(int verbosity = 0)
 
   // For the Mvtx layers
   //================
-  MvtxClusterizer* mvtxclusterizer = new MvtxClusterizer("MvtxClusterizer");
+  auto mvtxclusterizer = new MvtxClusterizer("MvtxClusterizer");
   mvtxclusterizer->Verbosity(verbosity);
   se->registerSubsystem(mvtxclusterizer);
 
   // For the Intt layers
   //===============
-  InttClusterizer* inttclusterizer = new InttClusterizer("InttClusterizer", n_maps_layer, n_maps_layer + n_intt_layer - 1);
+  auto inttclusterizer = new InttClusterizer("InttClusterizer", n_maps_layer, n_maps_layer + n_intt_layer - 1);
   inttclusterizer->Verbosity(verbosity);
   // no Z clustering for Intt type 1 layers (we DO want Z clustering for type 0 layers)
   // turning off phi clustering for type 0 layers is not necessary, there is only one strip per sensor in phi
@@ -546,7 +525,7 @@ void Tracking_Reco(int verbosity = 0)
   // For the OuterTracker
   if(n_outertrack_layers > 0)
   {
-    OuterTrackerClusterizer *otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
+    auto otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
     otrclusterizer->Verbosity(verbosity);
     se->registerSubsystem(otrclusterizer);
   }
@@ -623,6 +602,15 @@ void Tracking_Reco(int verbosity = 0)
   auto kalman = new PHGenFitTrkFitter;
   kalman->Verbosity(verbosity);
 
+  if( true )
+  {
+    // disable tpc
+    std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
+    for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
+  }
+
   // include primary vertex in track fit if true
   if (use_primary_vertex)
   { kalman->set_fit_primary_tracks(true); }
@@ -645,15 +633,6 @@ void Tracking_Reco(int verbosity = 0)
 //_____________________________________________________________________________
 void Tracking_Eval(std::string outputfile,  int verbosity = 0)
 {
-  //---------------
-  // Load libraries
-  //---------------
-
-  gSystem->Load("libg4eval.so");
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libg4detectors.so");
-  gSystem->Load("libtrack_reco.so");
-
 
   //---------------
   // Fun4All server
