@@ -16,20 +16,30 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 R__LOAD_LIBRARY(libfun4all.so)
 
 //____________________________________________________________________
-int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "DST/dst_eval_500_full_beta2.root" )
+int Fun4All_G4_sPHENIX_hp(
+  const int nEvents = 1000,
+  const char *outputFile = "DST/dst_eval_1k_full_notpc_nz11k.root",
+  const int n_layers = 2,
+  const int nSeg_phi = 10000,
+  const int nSeg_z = 10800
+  )
 {
 
   // options
-  bool do_pipe = true;
+  const bool do_pipe = true;
+  const bool do_pstof = false;
+  const bool do_cemc = false;
+  const bool do_hcalin = false;
+  const bool do_magnet = false;
+  const bool do_hcalout = false;
+  const bool do_plugdoor = false;
 
-  bool do_pstof = false;
-  bool do_cemc = false;
-  bool do_hcalin = false;
-  bool do_magnet = false;
-  bool do_hcalout = false;
-  bool do_plugdoor = false;
+  const bool do_tracking = true;
 
-  bool do_tracking = true;
+  // customize outer tracker segmentation
+  n_outertrack_layers = n_layers;
+  OuterTracker::NSeg_Phi = nSeg_phi;
+  OuterTracker::NSeg_Z = nSeg_z;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
@@ -71,7 +81,7 @@ int Fun4All_G4_sPHENIX_hp( const int nEvents = 500, const char *outputFile = "DS
   gen->set_eta_range(-1.0, 1.0);
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-  gen->set_pt_range(0.1, 20.0);
+  gen->set_pt_range(6.0, 20.0);
   // gen->set_pt_range(0.5, 5.0);
 
   gen->Embed(2);
