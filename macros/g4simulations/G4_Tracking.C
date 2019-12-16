@@ -67,7 +67,7 @@ const int n_maps_layer = 3;  // must be 0-3, setting it to zero removes Mvtx com
 
 // INTT
 const int n_intt_layer = 4;  // must be 4 or 0, setting to zero removes INTT completely
-const std::array<int,4> laddertype =
+constexpr std::array<int,4> laddertype =
 {
   PHG4InttDefs::SEGMENTATION_PHI,
   PHG4InttDefs::SEGMENTATION_PHI,
@@ -75,9 +75,9 @@ const std::array<int,4> laddertype =
   PHG4InttDefs::SEGMENTATION_PHI
 };
 
-const std::array<int,4> nladder = {15,  15, 18, 18};
-const std::array<double,4> sensor_radius = { 8.987, 9.545, 10.835, 11.361};  // radius of center of sensor for layer default
-const std::array<double,4> offsetphi = {0.0, 0.5 * 360.0 / nladder[1] , 0.0, 0.5 * 360.0 / nladder[3]};
+constexpr std::array<int,4> nladder = {15,  15, 18, 18};
+constexpr std::array<double,4> sensor_radius = { 8.987, 9.545, 10.835, 11.361};  // radius of center of sensor for layer default
+constexpr std::array<double,4> offsetphi = {0.0, 0.5 * 360.0 / nladder[1] , 0.0, 0.5 * 360.0 / nladder[3]};
 
 enum enu_InttDeadMapType      // Dead map options for INTT
 {
@@ -102,15 +102,12 @@ int n_outertrack_layers = 2;
 
 namespace OuterTracker
 {
-
-    // Add the OuterTracker
     double Inrad_start = 82.0;
     double Thickness = 0.01;  // 100 microns thick
     double Layer_spacing = 2.0;
     double Length = 220.;
     int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
     int NSeg_Z = 5400; // gives about 100 micron resolution in z
-
 }
 
 // Tracking reconstruction setup parameters and flags
@@ -268,7 +265,10 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   if(n_outertrack_layers > 0)
   {
 
-    std::cout<< "Create OuterTrack subsystem module " << std::endl;
+    std::cout << "Tracking - Create OuterTrack subsystem module " << std::endl;
+    std::cout << "Tracking - n_outertrack_layers = " << n_outertrack_layers << std::endl;
+    std::cout << "Tracking - NSeg_Phi = " << OuterTracker::NSeg_Phi << std::endl;
+    std::cout << "Tracking - NSeg_Z = " << OuterTracker::NSeg_Z << std::endl;
 
     for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
     {
