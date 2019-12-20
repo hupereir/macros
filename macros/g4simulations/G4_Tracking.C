@@ -116,7 +116,10 @@ namespace OuterTracker
 const int init_vertexing_min_zvtx_tracks = 2;
 
 // true for normal track seeding, false to run with truth track seeding instead
-const bool use_track_prop = true;
+namespace TrackingParameters
+{
+  bool use_track_prop = true;
+}
 
 // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
 const bool g4eval_use_initial_vertex = false;
@@ -539,7 +542,7 @@ void Tracking_Reco(int verbosity = 0)
   // Tracking
   //------------
 
-  if (use_track_prop)
+  if (TrackingParameters::use_track_prop)
   {
     // Normal track seeding and propagation
     std::cout<< "Tracking_Reco - normal track seeding and propagation" <<std::endl;

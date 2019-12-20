@@ -15,7 +15,7 @@ R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_Upsilon_hp( const int nEvents = 50, const char *outputFile = "DST/dst_sim_upsilon.root" )
+int Fun4All_G4_Simulation_Upsilon_hp( const int nEvents = 5000, const char *outputFile = "DST/dst_sim_5k_upsilon.root" )
 {
 
   // options
@@ -55,8 +55,8 @@ int Fun4All_G4_Simulation_Upsilon_hp( const int nEvents = 50, const char *output
   // toss low multiplicity dummy events
   auto gen = new PHG4ParticleGeneratorVectorMeson();
   gen->set_mass( 9.4603 );
-  gen->set_width( 54.02 );
-  gen->set_decay_types( "e+", "e-" );
+  gen->set_width( 54.02e-6 );
+  gen->add_decay_particles( "e+", "e-", 0 );
 
   gen->set_vertex_distribution_function(
     PHG4ParticleGeneratorVectorMeson::Uniform,

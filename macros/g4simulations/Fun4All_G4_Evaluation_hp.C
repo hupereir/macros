@@ -23,7 +23,7 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 R__LOAD_LIBRARY(libg4eval.so)
 
 //_________________________________________________________________________
-int Fun4All_G4_Evaluation_hp( const int nEvents = 50, const char* inputFile = "DST/dst_reco_5k_truth.root", const char *outputFile = "DST/dst_eval_truth.root" )
+int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_eval_1k_truth_notpc_nominal.root", const char *outputFile = "DST/dst_eval_1k_truth_notpc_noouter.root" )
 {
 
   // server
@@ -37,7 +37,7 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 50, const char* inputFile = "D
   se->registerSubsystem(new EventCounter_hp());
 
   // refit tracks
-  if( false )
+  if( true )
   {
     auto kalman = new PHGenFitTrkFitter;
 
