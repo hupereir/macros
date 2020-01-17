@@ -33,6 +33,7 @@
 #include <intt/InttClusterizer.h>
 #include <mvtx/MvtxClusterizer.h>
 #include <tpc/TpcClusterizer.h>
+#include <tpc/TpcMisaligner_hp.h>
 #include <outertracker/OuterTrackerClusterizer.h>
 
 #include <trackreco/PHGenFitTrkFitter.h>
@@ -95,6 +96,12 @@ const int n_tpc_layer_mid = 16;
 const int n_tpc_layer_outer = 16;
 const int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
 
+namespace Tpc
+{
+  bool enable_tpc_distortions = false;
+  bool misalign_tpc_clusters = false;
+}
+
 // outer tracker
 // setting to zero turns off OuterTracker detector
 // int n_outertrack_layers = 2;
@@ -119,6 +126,9 @@ const int init_vertexing_min_zvtx_tracks = 2;
 namespace TrackingParameters
 {
   bool use_track_prop = true;
+  bool disable_tpc_layers = true;
+  bool disable_outertracker_layers = false;
+  bool use_single_outertracker_layer = false;
 }
 
 // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
@@ -355,6 +365,7 @@ void Tracking_Cells(int verbosity = 0)
   // defaults are 0.12 and 0.15, they can be changed here to get a different resolution
   edrift->set_double_param("added_smear_trans",0.12);
   edrift->set_double_param("added_smear_long",0.15);
+  edrift->set_use_distortions( Tpc::enable_tpc_distortions );
   edrift->registerPadPlane(padplane);
   se->registerSubsystem(edrift);
 
@@ -605,18 +616,41 @@ void Tracking_Reco(int verbosity = 0)
   }
 
   //------------------------------------------------
+  // misalign TPC clusters to account for distortions
+  if( Tpc::misalign_tpc_clusters )
+  {
+    auto misaligner = new TpcMisaligner_hp;
+    misaligner->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
+    se->registerSubsystem(misaligner);
+  }
+
+  //------------------------------------------------
   // Fitting of tracks using Kalman Filter
   //------------------------------------------------
   auto kalman = new PHGenFitTrkFitter;
   kalman->Verbosity(verbosity);
 
-  if( true )
-  {
-    // disable tpc
+  // disable tpc
+  if( TrackingParameters::disable_tpc_layers ) {
     std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
     for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
+  }
+
+  if( TrackingParameters::disable_outertracker_layers )
+  {
+
+    // disable outer tracker layers
+    std::cout << "Tracking_reco - Disabling Outer layers from kalman filter" << std::endl;
+    for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
+
+  } else if( TrackingParameters::use_single_outertracker_layer ) {
+
+    // disable the second outer tracker layer
+    std::cout << "Tracking_reco - Disabling the second Oute layers from kalman filter" << std::endl;
+    kalman->disable_layer( 56 );
+
   }
 
   // include primary vertex in track fit if true
