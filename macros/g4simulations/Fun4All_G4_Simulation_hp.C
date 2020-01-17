@@ -17,7 +17,7 @@ R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile = "DST/dst_sim_5k_nphi1k.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "DST/dst_sim.root" )
 {
 
   // options
@@ -32,9 +32,19 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 5000, const char *outputFile =
 
   bool do_tracking = true;
 
+  // customize TPC
+  Tpc::enable_tpc_distortions = false;
+  Tpc::misalign_tpc_clusters = false;
+
+  // customize track finding
+  TrackingParameters::use_track_prop = false;
+  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::disable_outertracker_layers = false;
+  TrackingParameters::use_single_outertracker_layer = false;
+
   // customize outer tracker segmentation
   n_outertrack_layers = 2;
-  OuterTracker::NSeg_Phi = 1000;
+  OuterTracker::NSeg_Phi = 10000;
   OuterTracker::NSeg_Z = 5400;
 
   // establish the geometry and reconstruction setup
