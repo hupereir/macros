@@ -23,7 +23,11 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 R__LOAD_LIBRARY(libg4eval.so)
 
 //_________________________________________________________________________
-int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_eval_1k_truth_notpc_nominal.root", const char *outputFile = "DST/dst_eval_1k_truth_notpc_noouter.root" )
+// int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root", const char *outputFile = "DST/dst_eval_5k_truth_notpc_nphi1k-2.root" )
+int Fun4All_G4_Evaluation_hp(
+    const int nEvents = 30,
+    const char* inputFile = "HIJING/G4Hits_sHijing_0-6.6fm_00000_00100.root",
+    const char *outputFile = "DST/dst_eval_hijing_00000_00100-test.root" )
 {
 
   // server
@@ -34,10 +38,14 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DS
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem(new EventCounter_hp());
+  se->registerSubsystem(new EventCounter_hp("EVENTCOUNTER_HP",1));
 
   // refit tracks
-  if( true )
+  /*
+  should move back to G4_tracking (semarate method)
+  and use the same configuration flags
+  */
+  if( false )
   {
     auto kalman = new PHGenFitTrkFitter;
 
@@ -47,7 +55,7 @@ int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DS
     for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
 
     // disable outer layer
-    for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
+    // for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
 
     kalman->set_vertexing_method("avf-smoothing:1");
     kalman->set_use_truth_vertex(false);
