@@ -121,6 +121,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // tracking
   Tracking_Cells();
+  Tracking_Clus();
   Tracking_Reco();
 
   // local evaluation
