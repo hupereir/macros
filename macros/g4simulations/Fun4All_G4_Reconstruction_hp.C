@@ -17,12 +17,12 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile = "DST/dst_sim_5k_nphi1k.root", const char *outputFile = "DST/dst_reco_5k_full_notpc_nphi1k.root" )
+int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile = "DST/dst_sim_5k_nphi1k.root", const char *outputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root" )
 {
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(10);
+  se->Verbosity(0);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
