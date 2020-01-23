@@ -632,7 +632,7 @@ void Tracking_Reco(int verbosity = 0)
   } else if( TrackingParameters::use_single_outertracker_layer ) {
 
     // disable the second outer tracker layer
-    std::cout << "Tracking_reco - Disabling the second Oute layers from kalman filter" << std::endl;
+    std::cout << "Tracking_reco - Disabling the second Outer layers from kalman filter" << std::endl;
     kalman->disable_layer( 56 );
 
   }
