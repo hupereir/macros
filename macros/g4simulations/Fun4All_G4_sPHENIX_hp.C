@@ -17,8 +17,8 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
-  const char *outputFile = "DST/dst_eval_flat_full_notpc_nominal_highpt.root",
+  const int nEvents = 5000,
+  const char *outputFile = "DST/dst_eval_5k_realistic_truth.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
   )
@@ -35,7 +35,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   const bool do_tracking = true;
 
-  // customize tpc clusterizing
+  // customize tpc
   Tpc::enable_tpc_distortions = false;
   Tpc::misalign_tpc_clusters = false;
 
@@ -45,10 +45,10 @@ int Fun4All_G4_sPHENIX_hp(
   OuterTracker::NSeg_Z = nSeg_z;
 
   // customize track finding
-  TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::use_track_prop = false;
+  TrackingParameters::disable_tpc_layers = false;
   TrackingParameters::disable_outertracker_layers = false;
-  TrackingParameters::use_single_outertracker_layer = true;
+  TrackingParameters::use_single_outertracker_layer = false;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
@@ -91,19 +91,14 @@ int Fun4All_G4_sPHENIX_hp(
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
 //   gen->set_pt_range(0.5, 20.0);
-  gen->set_pt_range(6.0, 20.0);
+//   gen->set_pt_range(6.0, 20.0);
 //   gen->set_pt_range(0.5, 5.0);
 
-//   // use specific distribution to generate pt
-//   // values from "http://arxiv.org/abs/nucl-ex/0308006"
-//   const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
-//   const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
-//   gen->set_pt_range(pt_bins,yield_int);
-
-//   // these second set makes the simulations crash, at least locally
-//   const std::vector<double> pt_bins = {{0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10}};
-//   const std::vector<double> yield_int = {{1.77, 1, 0.601, 0.36, 0.222, 0.144, 0.0897, 0.0596, 0.0462, 0.033, 0.0238, 0.0171, 0.0125, 0.00905, 0.0066, 0.00485, 0.00357, 0.00264, 0.00331, 0.00185, 0.00104, 0.000594, 0.000343, 0.00019, 0.000153, 8.43e-05, 3.17e-05, 3.13e-05, 1.39e-05, 6.45e-06, 3.5e-06, 1.76e-06, 1.14e-06, 6.37e-07, 5.83e-07, 2.09e-07, 1.35e-07}};
-//   gen->set_pt_range(pt_bins,yield_int);
+  // use specific distribution to generate pt
+  // values from "http://arxiv.org/abs/nucl-ex/0308006"
+  const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
+  const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
+  gen->set_pt_range(pt_bins,yield_int);
 
   gen->Embed(2);
   gen->Verbosity(0);
