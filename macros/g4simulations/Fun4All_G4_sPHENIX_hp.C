@@ -17,8 +17,8 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 5000,
-  const char *outputFile = "DST/dst_eval_5k_realistic_truth.root",
+  const int nEvents = 100,
+  const char *outputFile = "DST/dst_eval.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
   )
@@ -45,10 +45,10 @@ int Fun4All_G4_sPHENIX_hp(
   OuterTracker::NSeg_Z = nSeg_z;
 
   // customize track finding
-  TrackingParameters::use_track_prop = false;
-  TrackingParameters::disable_tpc_layers = false;
+  TrackingParameters::use_track_prop = true;
+  TrackingParameters::disable_tpc_layers = true;
   TrackingParameters::disable_outertracker_layers = false;
-  TrackingParameters::use_single_outertracker_layer = false;
+  TrackingParameters::use_single_outertracker_layer = true;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
@@ -75,6 +75,7 @@ int Fun4All_G4_sPHENIX_hp(
   // toss low multiplicity dummy events
   auto gen = new PHG4SimpleEventGenerator();
   gen->add_particles("pi+",1);
+  gen->add_particles("pi-",1);
 
   gen->set_vertex_distribution_function(
     PHG4SimpleEventGenerator::Uniform,
