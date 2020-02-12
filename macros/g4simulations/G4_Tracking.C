@@ -98,18 +98,15 @@ namespace Tpc
 }
 
 // outer tracker
-// setting to zero turns off OuterTracker detector
-// int n_outertrack_layers = 2;
-int n_outertrack_layers = 2;
-
 namespace OuterTracker
 {
-    double Inrad_start = 82.0;
-    double Thickness = 0.01;  // 100 microns thick
-    double Layer_spacing = 2.0;
-    double Length = 220.;
-    int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
-    int NSeg_Z = 5400; // gives about 100 micron resolution in z
+  int n_outertrack_layers = 2;
+  double Inrad_start = 82.0;
+  double Thickness = 0.01;  // 100 microns thick
+  double Layer_spacing = 2.0;
+  double Length = 220.;
+  int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
+  int NSeg_Z = 5400; // gives about 100 micron resolution in z
 }
 
 // Tracking reconstruction setup parameters and flags
@@ -248,15 +245,15 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   radius += no_overlapp;
 
   // outer tracker
-  if(n_outertrack_layers > 0)
+  if(OuterTracker::n_outertrack_layers > 0)
   {
 
     std::cout << "Tracking - Create OuterTrack subsystem module " << std::endl;
-    std::cout << "Tracking - n_outertrack_layers = " << n_outertrack_layers << std::endl;
+    std::cout << "Tracking - n_outertrack_layers = " << OuterTracker::n_outertrack_layers << std::endl;
     std::cout << "Tracking - NSeg_Phi = " << OuterTracker::NSeg_Phi << std::endl;
     std::cout << "Tracking - NSeg_Z = " << OuterTracker::NSeg_Z << std::endl;
 
-    for(int ilayer = 0; ilayer < n_outertrack_layers; ++ilayer)
+    for(int ilayer = 0; ilayer < OuterTracker::n_outertrack_layers; ++ilayer)
     {
       int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
       std::cout<< "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << std::endl;
@@ -349,7 +346,7 @@ void Tracking_Cells(int verbosity = 0)
   padplane->set_int_param("ntpc_phibins_inner", tpc_layer_rphi_count_inner);
 
   // OuterTracker
-  if(n_outertrack_layers > 0)
+  if(OuterTracker::n_outertrack_layers > 0)
   {
     PHG4OuterTrackerHitReco *reco = new PHG4OuterTrackerHitReco("OuterTracker");
     reco->Verbosity(0);
@@ -477,7 +474,7 @@ void Tracking_Clus(int verbosity = 0)
   se->registerSubsystem(digitpc);
 
   // OuterTracker
-  if(n_outertrack_layers > 0)
+  if(OuterTracker::n_outertrack_layers > 0)
   {
     auto digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
     se->registerSubsystem(digi_otr);
@@ -514,7 +511,7 @@ void Tracking_Clus(int verbosity = 0)
   se->registerSubsystem(tpcclusterizer);
 
   // For the OuterTracker
-  if(n_outertrack_layers > 0)
+  if(OuterTracker::n_outertrack_layers > 0)
   {
     auto otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
     otrclusterizer->Verbosity(verbosity);
