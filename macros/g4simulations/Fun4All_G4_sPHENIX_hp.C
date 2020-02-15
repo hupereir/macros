@@ -40,7 +40,7 @@ int Fun4All_G4_sPHENIX_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // customize outer tracker segmentation
-  n_outertrack_layers = 2;
+  OuterTracker::n_outertrack_layers = 2;
   OuterTracker::NSeg_Phi = nSeg_phi;
   OuterTracker::NSeg_Z = nSeg_z;
 
