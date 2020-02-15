@@ -17,7 +17,12 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_SimEvaluation_hp( const int nEvents = 1, const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Geant4-10.05.p01/fm_0-12/FTFP_BERT_HP/G4Hits_sHijing_0-12fm_00000_00050.root" )
+int Fun4All_G4_SimEvaluation_hp( const int nEvents = 50,
+const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Geant4-10.05.p01/fm_0-12/FTFP_BERT_HP/G4Hits_sHijing_0-12fm_00000_00050.root",
+// const char* inputFile = "DST/dst_sim.root",
+const char* outputFile = "SpaceCharge/spacechargemap_%05i.root",
+const int offset = 0
+)
 {
 
   // server
@@ -32,7 +37,11 @@ int Fun4All_G4_SimEvaluation_hp( const int nEvents = 1, const char* inputFile = 
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
-  se->registerSubsystem( new SpaceChargeEvaluator_hp( "SPACECHARGEEVALUATOR_HP" ) );
+
+  auto spaceChargeEvaluator_hp = new SpaceChargeEvaluator_hp;
+  spaceChargeEvaluator_hp->set_basefilename( outputFile );
+  spaceChargeEvaluator_hp->set_offset(offset);
+  se->registerSubsystem( spaceChargeEvaluator_hp );
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
