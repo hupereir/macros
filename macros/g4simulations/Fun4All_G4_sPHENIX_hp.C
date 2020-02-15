@@ -47,8 +47,8 @@ int Fun4All_G4_sPHENIX_hp(
   // customize track finding
   TrackingParameters::use_track_prop = true;
   TrackingParameters::disable_tpc_layers = true;
-  TrackingParameters::disable_outertracker_layers = false;
-  TrackingParameters::use_single_outertracker_layer = true;
+  TrackingParameters::disable_outertracker_layers = true;
+  TrackingParameters::use_single_outertracker_layer = false;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
@@ -130,7 +130,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("Container");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events

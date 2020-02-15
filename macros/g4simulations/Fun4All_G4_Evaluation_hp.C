@@ -73,7 +73,7 @@ int Fun4All_G4_Evaluation_hp(
 
   // output manager
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
-  out->AddNode("Container");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
