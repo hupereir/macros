@@ -43,7 +43,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "
   TrackingParameters::use_single_outertracker_layer = false;
 
   // customize outer tracker segmentation
-  n_outertrack_layers = 2;
+  OuterTracker::n_outertrack_layers = 2;
   OuterTracker::NSeg_Phi = 10000;
   OuterTracker::NSeg_Z = 5400;
 
