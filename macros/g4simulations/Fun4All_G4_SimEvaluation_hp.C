@@ -6,7 +6,7 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
-#include <g4eval/SpaceChargeEvaluator_hp.h>
+#include <g4eval/SimEvaluator_hp.h>
 
 // R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
@@ -19,9 +19,7 @@ R__LOAD_LIBRARY(libg4testbench.so)
 //________________________________________________________________________________________________
 int Fun4All_G4_SimEvaluation_hp( const int nEvents = 50,
 const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Geant4-10.05.p01/fm_0-12/FTFP_BERT_HP/G4Hits_sHijing_0-12fm_00000_00050.root",
-// const char* inputFile = "DST/dst_sim.root",
-const char* outputFile = "SpaceCharge/spacechargemap_%05i.root",
-const int offset = 0
+const char* outputFile = "DST/dst_eval.root"
 )
 {
 
@@ -37,16 +35,18 @@ const int offset = 0
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
-
-  auto spaceChargeEvaluator_hp = new SpaceChargeEvaluator_hp;
-  spaceChargeEvaluator_hp->set_basefilename( outputFile );
-  spaceChargeEvaluator_hp->set_offset(offset);
-  se->registerSubsystem( spaceChargeEvaluator_hp );
+  se->registerSubsystem( new SimEvaluator_hp );
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
   se->registerInputManager(in);
+
+  // output manager
+  /* all the nodes from DST and RUN are saved to the output */
+  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("SimEvaluator_hp::Container");
+  se->registerOutputManager(out);
 
   // process events
   se->run(nEvents);
