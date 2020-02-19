@@ -7,6 +7,8 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/SimEvaluator_hp.h>
+
 
 #include <array>
 
@@ -17,7 +19,7 @@ R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "DST/dst_sim.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = "DST/dst_sim.root" )
 {
 
   // options
@@ -105,6 +107,9 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 10, const char *outputFile = "
     absorberactive, magfield, EDecayType::kAll,
     do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
     magfield_rescale);
+
+  // sim evaluator
+  se->registerSubsystem( new SimEvaluator_hp );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
