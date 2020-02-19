@@ -8,17 +8,31 @@
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
-// R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
-R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
+R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile = "DST/dst_sim_5k_nphi1k.root", const char *outputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root" )
+int Fun4All_G4_Reconstruction_hp(
+  const int nEvents = 0,
+  const char* inputFile = "DST/dst_sim_5k_nphi1k.root",
+  const char *outputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root" )
 {
+
+  // customize tpc
+  Tpc::enable_tpc_distortions = false;
+  Tpc::misalign_tpc_clusters = false;
+
+  // customize outer tracker
+  OuterTracker::n_outertrack_layers = 0;
+
+  // customize track finding
+  TrackingParameters::use_track_prop = true;
+  TrackingParameters::disable_tpc_layers = false;
+  TrackingParameters::disable_outertracker_layers = false;
+  TrackingParameters::use_single_outertracker_layer = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -27,11 +41,8 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile =
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
 
-  // customize tracking options
-  TrackingParameters::use_track_prop = false;
-
   // event counter
-  se->registerSubsystem( new EventCounter_hp() );
+  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
 
   // bbc reconstruction
   BbcInit();
@@ -39,6 +50,7 @@ int Fun4All_G4_Reconstruction_hp( const int nEvents = 0, const char* inputFile =
 
   // tracking
   Tracking_Cells();
+  Tracking_Clus();
   Tracking_Reco();
 
   // local evaluation
