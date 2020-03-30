@@ -16,9 +16,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
-  const char* inputFile = "DST/dst_sim_5k_nphi1k.root",
-  const char *outputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root" )
+  const int nEvents = 10,
+  const char* inputFile = "DST/dst_sim.root",
+  const char *outputFile = "DST/dst_eval.root" )
 {
 
   // customize tpc
@@ -26,7 +26,7 @@ int Fun4All_G4_Reconstruction_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // customize outer tracker
-  OuterTracker::n_outertrack_layers = 0;
+  OuterTracker::n_outertrack_layers = 2;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -42,7 +42,7 @@ int Fun4All_G4_Reconstruction_hp(
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 10 ) );
 
   // bbc reconstruction
   BbcInit();
@@ -54,8 +54,8 @@ int Fun4All_G4_Reconstruction_hp(
   Tracking_Reco();
 
   // local evaluation
-  if( false )
-  { se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" )); }
+  if( true )
+  { se->registerSubsystem(new TrackingEvaluator_hp); }
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -64,7 +64,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
-  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   se->registerOutputManager(out);
 
   // process events

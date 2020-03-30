@@ -16,8 +16,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Clustering_hp(
-  const int nEvents = 0,
-  const char* inputFile = "DST/dst_sim.root",
+  const int nEvents = 1,
+  // const char* inputFile = "DST/dst_sim.root",
+  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Geant4-10.05.p01/fm_0-12/FTFP_BERT_HP/G4Hits_sHijing_0-12fm_00000_00050.root",
   const char *outputFile = "DST/dst_clusters.root" )
 {
 
@@ -30,7 +31,7 @@ int Fun4All_G4_Clustering_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity(1);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
@@ -60,6 +61,7 @@ int Fun4All_G4_Clustering_hp(
   se->run(nEvents);
 
   // terminate
+  se->PrintTimer();
   se->End();
   std::cout << "All done" << std::endl;
   delete se;

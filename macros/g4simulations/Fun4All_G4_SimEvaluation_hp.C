@@ -17,8 +17,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_SimEvaluation_hp( const int nEvents = 50,
+int Fun4All_G4_SimEvaluation_hp( const int nEvents = 0,
 const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Geant4-10.05.p01/fm_0-12/FTFP_BERT_HP/G4Hits_sHijing_0-12fm_00000_00050.root",
+// const char* inputFile = "DST/dst_sim.root",
 const char* outputFile = "DST/dst_eval.root"
 )
 {

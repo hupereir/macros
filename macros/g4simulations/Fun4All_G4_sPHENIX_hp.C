@@ -8,6 +8,7 @@
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
+#include <trackreco/PHSpaceChargeReconstruction.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
@@ -17,7 +18,7 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 10,
   const char *outputFile = "DST/dst_eval.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
@@ -45,7 +46,7 @@ int Fun4All_G4_sPHENIX_hp(
   OuterTracker::NSeg_Z = nSeg_z;
 
   // customize track finding
-  TrackingParameters::use_track_prop = true;
+  TrackingParameters::use_track_prop = false;
   TrackingParameters::disable_tpc_layers = true;
   TrackingParameters::disable_outertracker_layers = true;
   TrackingParameters::use_single_outertracker_layer = false;
@@ -66,7 +67,7 @@ int Fun4All_G4_sPHENIX_hp(
   se->Verbosity(0);
 
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED", 1);
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 10 ) );
@@ -90,10 +91,6 @@ int Fun4All_G4_sPHENIX_hp(
   gen->set_vertex_size_parameters(0.0, 0.0);
   gen->set_eta_range(-1.0, 1.0);
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
-
-//   gen->set_pt_range(0.5, 20.0);
-//   gen->set_pt_range(6.0, 20.0);
-//   gen->set_pt_range(0.5, 5.0);
 
   // use specific distribution to generate pt
   // values from "http://arxiv.org/abs/nucl-ex/0308006"
@@ -123,13 +120,19 @@ int Fun4All_G4_sPHENIX_hp(
   // local evaluation
   se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" ));
 
+//   // space charge reconstruction
+//   auto spaceChargeReconstruction = new PHSpaceChargeReconstruction();
+//   spaceChargeReconstruction->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
+//   spaceChargeReconstruction->set_grid_dimensions(1, 12, 1);
+//   se->registerSubsystem( spaceChargeReconstruction );
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
   se->registerInputManager(in);
 
   // output manager
-  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
