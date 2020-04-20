@@ -4,6 +4,8 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
 #include <phool/recoConsts.h>
+#include <qa_modules/QAG4SimulationMvtx.h>
+#include <qa_modules/QAHistManagerDef.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
@@ -17,6 +19,7 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 #include "G4_Bbc.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
@@ -129,6 +132,9 @@ int Fun4All_G4_sPHENIX_hp(
   se->registerSubsystem(new SimEvaluator_hp);
   se->registerSubsystem(new TrackingEvaluator_hp);
 
+  // QA modules
+  se->registerSubsystem( new QAG4SimulationMvtx );
+
 //   // space charge reconstruction
 //   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
 //   spaceChargeReconstruction->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
@@ -148,6 +154,10 @@ int Fun4All_G4_sPHENIX_hp(
 
   // process events
   se->run(nEvents);
+
+  // QA
+  const char *qaFile= "QA/qa_output.root",
+  QAHistManagerDef::saveQARootFile(qaFile);
 
   // terminate
   se->End();
