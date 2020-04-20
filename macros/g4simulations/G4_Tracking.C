@@ -149,8 +149,8 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   const int absorberactive = 0,
   int verbosity = 0)
 {
-  // create the three tracker subsystems
 
+  // mvtx
   if (n_maps_layer > 0)
   {
     bool maps_overlapcheck = false;  // set to true if you want to check for overlaps
@@ -568,7 +568,7 @@ void Tracking_Reco(int verbosity = 0)
     se->registerSubsystem(track_seed);
 
     // Find all clusters associated with each seed track
-    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer);
+    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, OuterTracker::n_outertrack_layers);
     track_prop->Verbosity(verbosity);
     se->registerSubsystem(track_prop);
     for(int i = 0;i<n_intt_layer;i++)
@@ -599,11 +599,7 @@ void Tracking_Reco(int verbosity = 0)
   //------------------------------------------------
   // misalign TPC clusters to account for distortions
   if( Tpc::misalign_tpc_clusters )
-  {
-    auto misaligner = new TpcMisaligner_hp;
-    misaligner->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
-    se->registerSubsystem(misaligner);
-  }
+  { se->registerSubsystem(new TpcMisaligner_hp); }
 
   //------------------------------------------------
   // Fitting of tracks using Kalman Filter

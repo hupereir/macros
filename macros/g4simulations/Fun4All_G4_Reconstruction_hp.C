@@ -16,9 +16,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 10,
-  const char* inputFile = "DST/dst_sim.root",
-  const char *outputFile = "DST/dst_eval.root" )
+  const int nEvents = 0,
+  const char* inputFile = "DST/dst_reco_crash.root",
+  const char *outputFile = "DST/dst_eval_crash.root" )
 {
 
   // customize tpc
@@ -30,7 +30,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = false;
+  TrackingParameters::disable_tpc_layers = true;
   TrackingParameters::disable_outertracker_layers = false;
   TrackingParameters::use_single_outertracker_layer = false;
 
@@ -42,15 +42,15 @@ int Fun4All_G4_Reconstruction_hp(
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
 
   // bbc reconstruction
-  BbcInit();
-  Bbc_Reco();
+  // BbcInit();
+  // Bbc_Reco();
 
   // tracking
-  Tracking_Cells();
-  Tracking_Clus();
+  // Tracking_Cells();
+  // Tracking_Clus();
   Tracking_Reco();
 
   // local evaluation
@@ -68,6 +68,7 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerOutputManager(out);
 
   // process events
+  se->skip(328);
   se->run(nEvents);
 
   // terminate

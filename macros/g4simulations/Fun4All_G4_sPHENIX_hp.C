@@ -7,8 +7,10 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
-#include <trackreco/PHSpaceChargeReconstruction.h>
+#include <tpccalib/TpcSpaceChargeReconstruction.h>
+#include <trackreco/PHTruthClustering_hp.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
@@ -18,7 +20,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
+//   const int nEvents = 5000,
+//   const char *outputFile = "DST/dst_eval_5k_realistic_full_nominal_new.root",
+  const int nEvents = 1000,
   const char *outputFile = "DST/dst_eval.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
@@ -46,9 +50,9 @@ int Fun4All_G4_sPHENIX_hp(
   OuterTracker::NSeg_Z = nSeg_z;
 
   // customize track finding
-  TrackingParameters::use_track_prop = false;
-  TrackingParameters::disable_tpc_layers = true;
-  TrackingParameters::disable_outertracker_layers = true;
+  TrackingParameters::use_track_prop = true;
+  TrackingParameters::disable_tpc_layers = false;
+  TrackingParameters::disable_outertracker_layers = false;
   TrackingParameters::use_single_outertracker_layer = false;
 
   // establish the geometry and reconstruction setup
@@ -64,13 +68,13 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  // se->Verbosity(1);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // event generation
   // toss low multiplicity dummy events
@@ -115,13 +119,18 @@ int Fun4All_G4_sPHENIX_hp(
   // tracking
   Tracking_Cells();
   Tracking_Clus();
+
+  // replace clusters by truth information
+  // se->registerSubsystem( new PHTruthClustering_hp );
+
   Tracking_Reco();
 
   // local evaluation
-  se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" ));
+  se->registerSubsystem(new SimEvaluator_hp);
+  se->registerSubsystem(new TrackingEvaluator_hp);
 
 //   // space charge reconstruction
-//   auto spaceChargeReconstruction = new PHSpaceChargeReconstruction();
+//   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
 //   spaceChargeReconstruction->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
 //   spaceChargeReconstruction->set_grid_dimensions(1, 12, 1);
 //   se->registerSubsystem( spaceChargeReconstruction );
@@ -133,6 +142,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("SimEvaluator_hp::Container");
   out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
@@ -141,6 +151,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // terminate
   se->End();
+  se->PrintTimer();
+
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);
