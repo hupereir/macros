@@ -25,7 +25,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_sPHENIX_hp(
 //   const int nEvents = 5000,
 //   const char *outputFile = "DST/dst_eval_5k_realistic_full_nominal_new.root",
-  const int nEvents = 1000,
+  const int nEvents = 10,
   const char *outputFile = "DST/dst_eval.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
@@ -156,7 +156,7 @@ int Fun4All_G4_sPHENIX_hp(
   se->run(nEvents);
 
   // QA
-  const char *qaFile= "QA/qa_output.root",
+  const char *qaFile= "QA/qa_output.root";
   QAHistManagerDef::saveQARootFile(qaFile);
 
   // terminate
