@@ -3,9 +3,13 @@
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
+#include <qa_modules/QAG4SimulationMvtx.h>
+#include <qa_modules/QAG4SimulationIntt.h>
+#include <qa_modules/QAHistManagerDef.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
 R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
@@ -13,12 +17,14 @@ R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations 
 #include "G4_Bbc.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 0,
-  const char* inputFile = "DST/dst_reco_crash.root",
-  const char *outputFile = "DST/dst_eval_crash.root" )
+  const char* inputFile = "DST/dst_sim_2k_realistic_full_nominal.root",
+  const char *outputFile = "DST/dst_eval_2k_realistic_full_nominal_new3.root" )
+//   const char *outputFile = "DST/dst_eval_2k_realistic_full_notpc_noouter_new.root" )
 {
 
   // customize tpc
@@ -30,32 +36,37 @@ int Fun4All_G4_Reconstruction_hp(
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::disable_tpc_layers = false;
   TrackingParameters::disable_outertracker_layers = false;
   TrackingParameters::use_single_outertracker_layer = false;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
-
-  // bbc reconstruction
-  // BbcInit();
-  // Bbc_Reco();
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // tracking
   // Tracking_Cells();
-  // Tracking_Clus();
+  Tracking_Clus();
   Tracking_Reco();
 
   // local evaluation
-  if( true )
-  { se->registerSubsystem(new TrackingEvaluator_hp); }
+  se->registerSubsystem(new SimEvaluator_hp);
+
+  auto trackingEvaluator = new TrackingEvaluator_hp;
+  trackingEvaluator->set_flags(
+    TrackingEvaluator_hp::EvalEvent|
+    TrackingEvaluator_hp::EvalClusters|
+    TrackingEvaluator_hp::EvalTracks);
+  se->registerSubsystem(trackingEvaluator);
+
+  // QA modules
+  se->registerSubsystem( new QAG4SimulationMvtx );
+  se->registerSubsystem( new QAG4SimulationIntt );
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -65,13 +76,19 @@ int Fun4All_G4_Reconstruction_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("SimEvaluator_hp::Container");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
-  se->skip(328);
   se->run(nEvents);
 
+  // QA
+  const char *qaFile= "QA/qa_output.root";
+  QAHistManagerDef::saveQARootFile(qaFile);
+
   // terminate
+  se->PrintTimer();
   se->End();
   std::cout << "All done" << std::endl;
   delete se;

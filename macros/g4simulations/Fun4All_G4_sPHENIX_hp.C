@@ -25,8 +25,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_sPHENIX_hp(
 //   const int nEvents = 5000,
 //   const char *outputFile = "DST/dst_eval_5k_realistic_full_nominal_new.root",
-  const int nEvents = 500,
-  const char *outputFile = "DST/dst_eval.root",
+  const int nEvents = 2000,
+  const char *outputFile = "DST/dst_sim.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
   )
@@ -71,7 +71,6 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
@@ -126,7 +125,7 @@ int Fun4All_G4_sPHENIX_hp(
   // replace clusters by truth information
   // se->registerSubsystem( new PHTruthClustering_hp );
 
-  Tracking_Reco();
+  // Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
@@ -140,6 +139,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // QA modules
   se->registerSubsystem( new QAG4SimulationMvtx );
+  se->registerSubsystem( new QAG4SimulationIntt );
 
 //   // space charge reconstruction
 //   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
@@ -154,16 +154,16 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
+  // out->AddNode("SimEvaluator_hp::Container");
+  // out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
   se->run(nEvents);
 
-  // QA
-  const char *qaFile= "QA/qa_output.root";
-  QAHistManagerDef::saveQARootFile(qaFile);
+//   // QA
+//   const char *qaFile= "QA/qa_output.root";
+//   QAHistManagerDef::saveQARootFile(qaFile);
 
   // terminate
   se->End();
