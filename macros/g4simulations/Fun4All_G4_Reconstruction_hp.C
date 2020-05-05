@@ -22,9 +22,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 0,
-  const char* inputFile = "DST/dst_sim_2k_realistic_full_nominal.root",
-  const char *outputFile = "DST/dst_eval_2k_realistic_full_nominal_new3.root" )
-//   const char *outputFile = "DST/dst_eval_2k_realistic_full_notpc_noouter_new.root" )
+  const char* inputFile = "DST/dst_sim_2k_flat_full_nominal_new.root",
+  const char *outputFile = "DST/dst_eval_2k_flat_full_nominal_old.root" )
 {
 
   // customize tpc

@@ -4,6 +4,7 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
 #include <phool/recoConsts.h>
+#include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
 #include <qa_modules/QAHistManagerDef.h>
 
@@ -23,10 +24,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-//   const int nEvents = 5000,
-//   const char *outputFile = "DST/dst_eval_5k_realistic_full_nominal_new.root",
   const int nEvents = 2000,
-  const char *outputFile = "DST/dst_sim.root",
+  const char *outputFile = "DST/dst_sim_2k_flat_full_nominal_new.root",
   const int nSeg_phi = 10000,
   const int nSeg_z = 5400
   )
@@ -42,6 +41,7 @@ int Fun4All_G4_sPHENIX_hp(
   const bool do_plugdoor = false;
 
   const bool do_tracking = true;
+  const bool do_QA = false;
 
   // customize tpc
   Tpc::enable_tpc_distortions = false;
@@ -98,11 +98,14 @@ int Fun4All_G4_sPHENIX_hp(
   gen->set_eta_range(-1.0, 1.0);
   gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-  // use specific distribution to generate pt
-  // values from "http://arxiv.org/abs/nucl-ex/0308006"
-  const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
-  const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
-  gen->set_pt_range(pt_bins,yield_int);
+//   // use specific distribution to generate pt
+//   // values from "http://arxiv.org/abs/nucl-ex/0308006"
+//   const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
+//   const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
+//   gen->set_pt_range(pt_bins,yield_int);
+
+  // flat pt distribution
+  gen->set_pt_range(0.5, 20.0);
 
   gen->Embed(2);
   gen->Verbosity(0);
@@ -138,8 +141,11 @@ int Fun4All_G4_sPHENIX_hp(
   se->registerSubsystem(trackingEvaluator);
 
   // QA modules
-  se->registerSubsystem( new QAG4SimulationMvtx );
-  se->registerSubsystem( new QAG4SimulationIntt );
+  if( do_QA )
+  {
+    se->registerSubsystem( new QAG4SimulationMvtx );
+    se->registerSubsystem( new QAG4SimulationIntt );
+  }
 
 //   // space charge reconstruction
 //   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
@@ -153,6 +159,7 @@ int Fun4All_G4_sPHENIX_hp(
   se->registerInputManager(in);
 
   // output manager
+  /* save all nodes */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   // out->AddNode("SimEvaluator_hp::Container");
   // out->AddNode("TrackingEvaluator_hp::Container");
@@ -161,9 +168,12 @@ int Fun4All_G4_sPHENIX_hp(
   // process events
   se->run(nEvents);
 
-//   // QA
-//   const char *qaFile= "QA/qa_output.root";
-//   QAHistManagerDef::saveQARootFile(qaFile);
+  // QA
+  if( do_QA )
+  {
+    const std::string qaFile= "QA/qa_output.root";
+    QAHistManagerDef::saveQARootFile(qaFile.c_str());
+  }
 
   // terminate
   se->End();
