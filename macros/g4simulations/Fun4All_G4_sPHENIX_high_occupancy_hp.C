@@ -23,11 +23,9 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
-int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
-  const char *outputFile = "DST/dst_sim_2k_flat_full_nominal_new.root",
-  const int nSeg_phi = 10000,
-  const int nSeg_z = 5400
+int Fun4All_G4_sPHENIX_high_occupancy_hp(
+  const int nEvents = 5,
+  const char *outputFile = "DST/dst_sim_high_occupancy.root"
   )
 {
 
@@ -49,8 +47,6 @@ int Fun4All_G4_sPHENIX_hp(
 
   // customize outer tracker segmentation
   OuterTracker::n_outertrack_layers = 2;
-  OuterTracker::NSeg_Phi = nSeg_phi;
-  OuterTracker::NSeg_Z = nSeg_z;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -78,24 +74,26 @@ int Fun4All_G4_sPHENIX_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
+  // event generation    
+  // 10.1103/PhysRevC.83.024913 : 0-10%AuAu 200 GeV dNch_deta = 609.
+  static const double target_dNch_deta = 609;
+  
+  // eta range
+  static const double deta_dphi = .5;
+  static const double eta_start = .2;
+  
+  //number particle  per 1/4 batch
+  static const int n_pion = int(target_dNch_deta * deta_dphi * deta_dphi / 4);
+  
   {
-    // event generation
-    // toss low multiplicity dummy events
+    // background
     auto gen = new PHG4SimpleEventGenerator;
-    gen->add_particles("pi+",1);
-    gen->add_particles("pi-",1);
+    gen->add_particles("pi-",n_pion);  
+    gen->add_particles("pi+",n_pion);
     
-    gen->set_eta_range(-1.0, 1.0);
-    gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
-    
-    //   // use specific distribution to generate pt
-    //   // values from "http://arxiv.org/abs/nucl-ex/0308006"
-    //   const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
-    //   const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
-    //   gen->set_pt_range(pt_bins,yield_int);
-    
-    // flat pt distribution
-    gen->set_pt_range(0.5, 20.0);
+    gen->set_eta_range(eta_start, eta_start + deta_dphi);
+    gen->set_phi_range(0, deta_dphi);
+    gen->set_pt_range(0.1, 2);
     
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
@@ -105,10 +103,29 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
     gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
     gen->set_vertex_size_parameters(0.0, 0.0);
-    
-    gen->Embed(2);
+
+    gen->Embed(0);
     se->registerSubsystem(gen);
   }
+  
+  {
+    // signal
+    auto gen = new PHG4SimpleEventGenerator;
+    gen->add_particles("pi-",n_pion);  
+    gen->add_particles("pi+",n_pion);
+    
+    gen->set_eta_range(eta_start, eta_start + deta_dphi);
+    gen->set_phi_range(0, deta_dphi);
+    gen->set_pt_range(2, 50);
+    
+    gen->set_reuse_existing_vertex(true);
+    gen->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+    gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
+    gen->set_vertex_size_parameters(0.0, 0.0);
+
+    gen->Embed(2);
+    se->registerSubsystem(gen);
+  }    
   
   // G4 setup
   G4Setup(
