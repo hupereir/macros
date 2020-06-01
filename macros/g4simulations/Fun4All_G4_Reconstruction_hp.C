@@ -3,8 +3,9 @@
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
-#include <qa_modules/QAG4SimulationMvtx.h>
 #include <qa_modules/QAG4SimulationIntt.h>
+#include <qa_modules/QAG4SimulationMvtx.h>
+#include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAHistManagerDef.h>
 
 // own modules
@@ -22,8 +23,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 0,
-  const char* inputFile = "DST/dst_sim_2k_flat_full_nominal_new.root",
-  const char *outputFile = "DST/dst_eval_2k_flat_full_nominal_old.root" )
+  const char* inputFile = "DST/dst_sim_5k_flat_full_nominal_notilt.root",
+  const char *outputFile = "DST/dst_eval_5k_flat_full_notpc_noouter_notilt.root" )
 {
 
   // customize tpc
@@ -35,9 +36,12 @@ int Fun4All_G4_Reconstruction_hp(
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = false;
-  TrackingParameters::disable_outertracker_layers = false;
+  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::disable_outertracker_layers = true;
   TrackingParameters::use_single_outertracker_layer = false;
+
+  // qa
+  const bool do_qa = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -64,8 +68,12 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem(trackingEvaluator);
 
   // QA modules
-  se->registerSubsystem( new QAG4SimulationMvtx );
-  se->registerSubsystem( new QAG4SimulationIntt );
+  if( do_qa )
+  {
+    se->registerSubsystem( new QAG4SimulationIntt );
+    se->registerSubsystem( new QAG4SimulationMvtx );
+    se->registerSubsystem( new QAG4SimulationTracking );
+  }
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -83,8 +91,11 @@ int Fun4All_G4_Reconstruction_hp(
   se->run(nEvents);
 
   // QA
-  const char *qaFile= "QA/qa_output.root";
-  QAHistManagerDef::saveQARootFile(qaFile);
+  if( do_qa )
+  {
+    const char *qaFile= "QA/qa_output.root";
+    QAHistManagerDef::saveQARootFile(qaFile);
+  }
 
   // terminate
   se->PrintTimer();

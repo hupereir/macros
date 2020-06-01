@@ -6,6 +6,7 @@
 #include <phool/recoConsts.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
+#include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAHistManagerDef.h>
 
 // own modules
@@ -67,34 +68,36 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
 
   // server
   auto se = Fun4AllServer::instance();
+  se->Verbosity(1);
 
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+  // auto rc = recoConsts::instance();
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  // event generation    
+  // event generation
   // 10.1103/PhysRevC.83.024913 : 0-10%AuAu 200 GeV dNch_deta = 609.
   static const double target_dNch_deta = 609;
-  
+
   // eta range
   static const double deta_dphi = .5;
   static const double eta_start = .2;
-  
+
   //number particle  per 1/4 batch
   static const int n_pion = int(target_dNch_deta * deta_dphi * deta_dphi / 4);
-  
+  std::cout << "Fun4All_G4_sPHENIX_high_occupancy_hp - n_pion: " << n_pion << std::endl;
+
   {
     // background
     auto gen = new PHG4SimpleEventGenerator;
-    gen->add_particles("pi-",n_pion);  
+    gen->add_particles("pi-",n_pion);
     gen->add_particles("pi+",n_pion);
-    
+
     gen->set_eta_range(eta_start, eta_start + deta_dphi);
     gen->set_phi_range(0, deta_dphi);
     gen->set_pt_range(0.1, 2);
-    
+
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
       PHG4SimpleEventGenerator::Uniform,
@@ -107,17 +110,17 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
     gen->Embed(0);
     se->registerSubsystem(gen);
   }
-  
+
   {
     // signal
     auto gen = new PHG4SimpleEventGenerator;
-    gen->add_particles("pi-",n_pion);  
+    gen->add_particles("pi-",n_pion);
     gen->add_particles("pi+",n_pion);
-    
+
     gen->set_eta_range(eta_start, eta_start + deta_dphi);
     gen->set_phi_range(0, deta_dphi);
     gen->set_pt_range(2, 50);
-    
+
     gen->set_reuse_existing_vertex(true);
     gen->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
     gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
@@ -125,8 +128,8 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
 
     gen->Embed(2);
     se->registerSubsystem(gen);
-  }    
-  
+  }
+
   // G4 setup
   G4Setup(
     absorberactive, magfield, EDecayType::kAll,
@@ -159,15 +162,10 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   // QA modules
   if( do_QA )
   {
-    se->registerSubsystem( new QAG4SimulationMvtx );
     se->registerSubsystem( new QAG4SimulationIntt );
+    se->registerSubsystem( new QAG4SimulationMvtx );
+    se->registerSubsystem( new QAG4SimulationTracking );
   }
-
-//   // space charge reconstruction
-//   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
-//   spaceChargeReconstruction->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
-//   spaceChargeReconstruction->set_grid_dimensions(1, 12, 1);
-//   se->registerSubsystem( spaceChargeReconstruction );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that

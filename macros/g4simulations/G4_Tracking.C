@@ -117,7 +117,8 @@ const int init_vertexing_min_zvtx_tracks = 2;
 namespace TrackingParameters
 {
   bool use_track_prop = true;
-  bool disable_tpc_layers = true;
+  bool disable_mvtx_layers = false;
+  bool disable_tpc_layers = false;
   bool disable_outertracker_layers = false;
   bool use_single_outertracker_layer = false;
 }
@@ -607,8 +608,16 @@ void Tracking_Reco(int verbosity = 0)
   auto kalman = new PHGenFitTrkFitter;
   kalman->Verbosity(verbosity);
 
+  // disable mvtx
+  if( TrackingParameters::disable_mvtx_layers ) 
+  {
+    std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
+    for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
+  }
+  
   // disable tpc
-  if( TrackingParameters::disable_tpc_layers ) {
+  if( TrackingParameters::disable_tpc_layers ) 
+  {
     std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
     for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
