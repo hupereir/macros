@@ -13,10 +13,19 @@
 
 #include <g4main/PHG4Reco.h>
 
+#include <g4micromegas/PHG4MicromegasDigitizer.h>
+#include <g4micromegas/PHG4MicromegasHitReco.h>
+#include <g4micromegas/PHG4MicromegasSubsystem.h>
+
 #include <g4mvtx/PHG4MvtxDefs.h>
 #include <g4mvtx/PHG4MvtxDigitizer.h>
 #include <g4mvtx/PHG4MvtxSubsystem.h>
 #include <g4mvtx/PHG4MvtxHitReco.h>
+
+#include <g4outertracker/PHG4OuterTrackerDefs.h>
+#include <g4outertracker/PHG4OuterTrackerDigitizer.h>
+#include <g4outertracker/PHG4OuterTrackerSubsystem.h>
+#include <g4outertracker/PHG4OuterTrackerHitReco.h>
 
 #include <g4tpc/PHG4TpcDigitizer.h>
 #include <g4tpc/PHG4TpcElectronDrift.h>
@@ -24,16 +33,12 @@
 #include <g4tpc/PHG4TpcPadPlaneReadout.h>
 #include <g4tpc/PHG4TpcSubsystem.h>
 
-#include <g4outertracker/PHG4OuterTrackerDefs.h>
-#include <g4outertracker/PHG4OuterTrackerDigitizer.h>
-#include <g4outertracker/PHG4OuterTrackerSubsystem.h>
-#include <g4outertracker/PHG4OuterTrackerHitReco.h>
-
 #include <intt/InttClusterizer.h>
+#include <micromegas/MicromegasClusterizer.h>
 #include <mvtx/MvtxClusterizer.h>
+#include <outertracker/OuterTrackerClusterizer.h>
 #include <tpc/TpcClusterizer.h>
 #include <tpc/TpcMisaligner_hp.h>
-#include <outertracker/OuterTrackerClusterizer.h>
 
 #include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHGenFitTrkProp.h>
@@ -48,11 +53,13 @@
 R__LOAD_LIBRARY(libg4tpc.so)
 R__LOAD_LIBRARY(libg4intt.so)
 R__LOAD_LIBRARY(libg4mvtx.so)
+R__LOAD_LIBRARY(libg4micromegas.so)
 R__LOAD_LIBRARY(libg4outertracker.so)
 R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libintt.so)
 R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(libtpc.so)
+R__LOAD_LIBRARY(libmicromegas.so)
 R__LOAD_LIBRARY(liboutertracker.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
 
@@ -94,6 +101,12 @@ namespace Tpc
 {
   bool enable_tpc_distortions = false;
   bool misalign_tpc_clusters = false;
+}
+
+// Micromegas
+namespace Micromegas
+{
+  bool add_micromegas = true;
 }
 
 // outer tracker
@@ -244,10 +257,18 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   radius = 77. + 1.17;
   radius += no_overlapp;
 
-  // outer tracker
-  if(OuterTracker::n_outertrack_layers > 0)
+  // micromegas
+  if( Micromegas::add_micromegas )
   {
 
+    const int mm_layer = n_maps_layer + n_intt_layer + n_gas_layer;
+    auto mm = new PHG4MicromegasSubsystem( "MICROMEGAS", mm_layer );
+    mm->SetActive();
+    g4Reco->registerSubsystem(mm);
+
+  } else if(OuterTracker::n_outertrack_layers > 0) {
+
+    // outer tracker
     std::cout << "Tracking - Create OuterTrack subsystem module " << std::endl;
     std::cout << "Tracking - n_outertrack_layers = " << OuterTracker::n_outertrack_layers << std::endl;
     std::cout << "Tracking - NSeg_Phi = " << OuterTracker::NSeg_Phi << std::endl;
@@ -347,12 +368,47 @@ void Tracking_Cells(int verbosity = 0)
   padplane->set_int_param("ntpc_layers_inner", n_tpc_layer_inner);
   padplane->set_int_param("ntpc_phibins_inner", tpc_layer_rphi_count_inner);
 
-  // OuterTracker
-  if(OuterTracker::n_outertrack_layers > 0)
+  if( Micromegas::add_micromegas )
   {
-    PHG4OuterTrackerHitReco *reco = new PHG4OuterTrackerHitReco("OuterTracker");
+
+    // micromegas
+    auto reco = new PHG4MicromegasHitReco;
+    reco->Verbosity(0);
+
+    static constexpr int nsectors = 12;
+    static constexpr double radius = 82;
+    static constexpr double length = 210;
+    static constexpr double tile_length = 50;
+    static constexpr double tile_width = 25;
+
+//     // config 1: one tile at mid rapidity in front of TPC sector
+//     static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
+//     reco->set_tiles( {{{ phi0, 0, tile_width/radius, tile_length }}} );
+
+//     // config 2: 12 tiles at mid rapidity, one in front of each TPC sector
+//     static constexpr int ntiles = 12;
+//     MicromegasTile::List tiles;
+//     for( int i = 0; i < ntiles; ++i )
+//     { tiles.push_back( {{ 2.*M_PI*(0.5+i)/ntiles, 0, tile_width/radius, tile_length }} ); }
+//     reco->set_tiles( tiles );
+
+    // config 3: 4 tiles with full z coverage in front of one TPC sector
+    static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
+    static constexpr int ntiles = 4;
+    MicromegasTile::List tiles;
+    for( int i = 0; i < ntiles; ++i )
+    { tiles.push_back( {{ phi0, length*((0.5+i)/ntiles-0.5), tile_width/radius, tile_length }} ); }
+    reco->set_tiles( tiles );
+
+    se->registerSubsystem( reco );
+
+  } else if(OuterTracker::n_outertrack_layers > 0) {
+
+    // OuterTracker
+    auto reco = new PHG4OuterTrackerHitReco("OuterTracker");
     reco->Verbosity(0);
     se->registerSubsystem(reco);
+
   }
 
   return;
@@ -374,11 +430,9 @@ void Tracking_Clus(int verbosity = 0)
 
   // Mvtx
   //======
-  auto digimvtx = new PHG4MvtxDigitizer;
-  digimvtx->Verbosity(0);
   // energy deposit in 25 microns = 9.6 KeV = 1000 electrons collected after recombination
   //digimvtx->set_adc_scale(0.95e-6);  // default set in code is 0.95e-06, which is 99 electrons
-  se->registerSubsystem(digimvtx);
+  se->registerSubsystem(new PHG4MvtxDigitizer);
 
   if (n_intt_layer > 0)
   {
@@ -474,11 +528,18 @@ void Tracking_Clus(int verbosity = 0)
 
   se->registerSubsystem(digitpc);
 
-  // OuterTracker
-  if(OuterTracker::n_outertrack_layers > 0)
+
+  if(Micromegas::add_micromegas)
   {
-    auto digi_otr = new PHG4OuterTrackerDigitizer("OuterTrackerDigitizer");
-    se->registerSubsystem(digi_otr);
+
+    // Micromegas
+    se->registerSubsystem( new PHG4MicromegasDigitizer );
+
+  } else if(OuterTracker::n_outertrack_layers > 0) {
+
+    // OuterTracker
+    se->registerSubsystem( new PHG4OuterTrackerDigitizer );
+
   }
 
 
@@ -512,11 +573,17 @@ void Tracking_Clus(int verbosity = 0)
   se->registerSubsystem(tpcclusterizer);
 
   // For the OuterTracker
-  if(OuterTracker::n_outertrack_layers > 0)
+  if(Micromegas::add_micromegas)
   {
-    auto otrclusterizer = new OuterTrackerClusterizer("OuterTrackerClusterizer");
-    otrclusterizer->Verbosity(verbosity);
-    se->registerSubsystem(otrclusterizer);
+
+    // Micromegas
+    se->registerSubsystem( new MicromegasClusterizer );
+
+  } else if(OuterTracker::n_outertrack_layers > 0)
+  {
+
+    se->registerSubsystem(new OuterTrackerClusterizer);
+
   }
 
 }
@@ -609,14 +676,14 @@ void Tracking_Reco(int verbosity = 0)
   kalman->Verbosity(verbosity);
 
   // disable mvtx
-  if( TrackingParameters::disable_mvtx_layers ) 
+  if( TrackingParameters::disable_mvtx_layers )
   {
     std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
     for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
   }
-  
+
   // disable tpc
-  if( TrackingParameters::disable_tpc_layers ) 
+  if( TrackingParameters::disable_tpc_layers )
   {
     std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
     for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }

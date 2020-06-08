@@ -170,14 +170,14 @@ int G4Setup(const int absorberactive = 0,
   //----------------------------------------
   // PIPE
   if (do_pipe) radius = Pipe(g4Reco, radius, absorberactive);
-  
+
   //----------------------------------------
   // TRACKING
   if (do_tracking) radius = Tracking(g4Reco, radius, absorberactive);
 
   //----------------------------------------
   // PSTOF
-  
+
   if (do_pstof) radius = PSTOF(g4Reco, radius, absorberactive);
 
   //----------------------------------------
@@ -185,20 +185,20 @@ int G4Setup(const int absorberactive = 0,
 //
   if (do_cemc) radius = CEmc(g4Reco, radius, 8, absorberactive);
 //  if (do_cemc) radius = CEmc_Vis(g4Reco, radius, 8, absorberactive);// for visualization substructure of SPACAL, slow to render
-  
+
   //----------------------------------------
   // HCALIN
-  
+
   if (do_hcalin) radius = HCalInner(g4Reco, radius, 4, absorberactive);
 
   //----------------------------------------
   // MAGNET
-  
+
   if (do_magnet) radius = Magnet(g4Reco, radius, 0, absorberactive);
 
   //----------------------------------------
   // HCALOUT
-  
+
   if (do_hcalout) radius = HCalOuter(g4Reco, radius, 4, absorberactive);
 
   //----------------------------------------

@@ -6,10 +6,9 @@
 #include <phool/recoConsts.h>
 
 // own modules
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
 #include <trackreco/PHTruthClustering_hp.h>
 
-R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
+R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "DisplayOn.C"
@@ -32,6 +31,13 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   const bool do_tracking = true;
   const bool display_on = true;
 
+  // customize
+  // disable outer tracker
+  OuterTracker::n_outertrack_layers = 0;
+
+  // enable micromegas
+  Micromegas::add_micromegas = true;
+
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
 
@@ -49,19 +55,19 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   // G4 setup
   G4Setup(
     absorberactive, magfield, EDecayType::kAll,
-    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
+    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, false,
     magfield_rescale);
 
   if(display_on)
   {
     DisplayOn();
-    
+    // QTGui();
     // prevent macro from finishing so can see display
     int i;
     cout << "***** Enter any integer to proceed" << endl;
     cin >> i;
   }
-  
+
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);

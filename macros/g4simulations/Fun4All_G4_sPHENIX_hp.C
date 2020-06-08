@@ -15,7 +15,7 @@
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
 #include <trackreco/PHTruthClustering_hp.h>
 
-R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
+R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 
@@ -26,10 +26,6 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 2000,
   const char *outputFile = "DST/dst_eval_2k_realistic_full_zhengyun_fix3.root",
-//   const int nEvents = 10,
-//   const char *outputFile = "DST/dst_eval.root",
-  const int nSeg_phi = 10000,
-  const int nSeg_z = 5400
   )
 {
 
@@ -50,9 +46,10 @@ int Fun4All_G4_sPHENIX_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // customize outer tracker segmentation
-  OuterTracker::n_outertrack_layers = 2;
-  OuterTracker::NSeg_Phi = nSeg_phi;
-  OuterTracker::NSeg_Z = nSeg_z;
+  OuterTracker::n_outertrack_layers = 0;
+
+  // enable micromegas
+  Micromegas::add_micromegas = true;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -76,7 +73,7 @@ int Fun4All_G4_sPHENIX_hp(
   auto se = Fun4AllServer::instance();
 
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -116,7 +113,7 @@ int Fun4All_G4_sPHENIX_hp(
   // G4 setup
   G4Setup(
     absorberactive, magfield, EDecayType::kAll,
-    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor,
+    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, false,
     magfield_rescale);
 
   // bbc reconstruction
@@ -161,7 +158,6 @@ int Fun4All_G4_sPHENIX_hp(
   se->registerInputManager(in);
 
   // output manager
-  /* save all nodes */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   // out->AddNode("SimEvaluator_hp::Container");
   // out->AddNode("TrackingEvaluator_hp::Container");

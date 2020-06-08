@@ -22,9 +22,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
-  const char* inputFile = "DST/dst_sim_5k_flat_full_nominal_notilt.root",
-  const char *outputFile = "DST/dst_eval_5k_flat_full_notpc_noouter_notilt.root" )
+  const int nEvents = 10,
+  const char* inputFile = "DST/dst_sim.root",
+  const char *outputFile = "DST/dst_eval.root" )
 {
 
   // customize tpc
@@ -32,7 +32,10 @@ int Fun4All_G4_Reconstruction_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // customize outer tracker
-  OuterTracker::n_outertrack_layers = 2;
+  OuterTracker::n_outertrack_layers = 0;
+
+  // enable micromegas
+  Micromegas::add_micromegas = true;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -53,9 +56,9 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // tracking
-  // Tracking_Cells();
+  Tracking_Cells();
   Tracking_Clus();
-  Tracking_Reco();
+  // Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
