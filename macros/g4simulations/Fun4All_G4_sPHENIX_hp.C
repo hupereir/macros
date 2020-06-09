@@ -25,7 +25,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 2000,
-  const char *outputFile = "DST/dst_eval_2k_realistic_full_zhengyun_fix3.root",
+  const char *outputFile = "DST/dst_eval.root"
   )
 {
 
@@ -42,11 +42,7 @@ int Fun4All_G4_sPHENIX_hp(
   const bool do_QA = false;
 
   // customize tpc
-  Tpc::enable_tpc_distortions = false;
   Tpc::misalign_tpc_clusters = false;
-
-  // customize outer tracker segmentation
-  OuterTracker::n_outertrack_layers = 0;
 
   // enable micromegas
   Micromegas::add_micromegas = true;
@@ -55,8 +51,6 @@ int Fun4All_G4_sPHENIX_hp(
   TrackingParameters::use_track_prop = true;
   TrackingParameters::disable_mvtx_layers = false;
   TrackingParameters::disable_tpc_layers = false;
-  TrackingParameters::disable_outertracker_layers = false;
-  TrackingParameters::use_single_outertracker_layer = false;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);

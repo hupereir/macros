@@ -22,11 +22,6 @@
 #include <g4mvtx/PHG4MvtxSubsystem.h>
 #include <g4mvtx/PHG4MvtxHitReco.h>
 
-#include <g4outertracker/PHG4OuterTrackerDefs.h>
-#include <g4outertracker/PHG4OuterTrackerDigitizer.h>
-#include <g4outertracker/PHG4OuterTrackerSubsystem.h>
-#include <g4outertracker/PHG4OuterTrackerHitReco.h>
-
 #include <g4tpc/PHG4TpcDigitizer.h>
 #include <g4tpc/PHG4TpcElectronDrift.h>
 #include <g4tpc/PHG4TpcPadPlane.h>
@@ -36,7 +31,6 @@
 #include <intt/InttClusterizer.h>
 #include <micromegas/MicromegasClusterizer.h>
 #include <mvtx/MvtxClusterizer.h>
-#include <outertracker/OuterTrackerClusterizer.h>
 #include <tpc/TpcClusterizer.h>
 #include <tpc/TpcMisaligner_hp.h>
 
@@ -54,13 +48,11 @@ R__LOAD_LIBRARY(libg4tpc.so)
 R__LOAD_LIBRARY(libg4intt.so)
 R__LOAD_LIBRARY(libg4mvtx.so)
 R__LOAD_LIBRARY(libg4micromegas.so)
-R__LOAD_LIBRARY(libg4outertracker.so)
 R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libintt.so)
 R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(libtpc.so)
 R__LOAD_LIBRARY(libmicromegas.so)
-R__LOAD_LIBRARY(liboutertracker.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
 
 #include <array>
@@ -99,7 +91,6 @@ const int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
 
 namespace Tpc
 {
-  bool enable_tpc_distortions = false;
   bool misalign_tpc_clusters = false;
 }
 
@@ -107,18 +98,7 @@ namespace Tpc
 namespace Micromegas
 {
   bool add_micromegas = true;
-}
-
-// outer tracker
-namespace OuterTracker
-{
-  int n_outertrack_layers = 2;
-  double Inrad_start = 82.0;
-  double Thickness = 0.01;  // 100 microns thick
-  double Layer_spacing = 2.0;
-  double Length = 220.;
-  int NSeg_Phi = 10000;   // gives about 100 micron resolution in r*phi
-  int NSeg_Z = 5400; // gives about 100 micron resolution in z
+  constexpr int n_micromegas_layer = 2;
 }
 
 // Tracking reconstruction setup parameters and flags
@@ -132,8 +112,6 @@ namespace TrackingParameters
   bool use_track_prop = true;
   bool disable_mvtx_layers = false;
   bool disable_tpc_layers = false;
-  bool disable_outertracker_layers = false;
-  bool use_single_outertracker_layer = false;
 }
 
 // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
@@ -260,40 +238,10 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   // micromegas
   if( Micromegas::add_micromegas )
   {
-
     const int mm_layer = n_maps_layer + n_intt_layer + n_gas_layer;
     auto mm = new PHG4MicromegasSubsystem( "MICROMEGAS", mm_layer );
     mm->SetActive();
     g4Reco->registerSubsystem(mm);
-
-  } else if(OuterTracker::n_outertrack_layers > 0) {
-
-    // outer tracker
-    std::cout << "Tracking - Create OuterTrack subsystem module " << std::endl;
-    std::cout << "Tracking - n_outertrack_layers = " << OuterTracker::n_outertrack_layers << std::endl;
-    std::cout << "Tracking - NSeg_Phi = " << OuterTracker::NSeg_Phi << std::endl;
-    std::cout << "Tracking - NSeg_Z = " << OuterTracker::NSeg_Z << std::endl;
-
-    for(int ilayer = 0; ilayer < OuterTracker::n_outertrack_layers; ++ilayer)
-    {
-      int ot_layer = ilayer + n_maps_layer + n_intt_layer + n_gas_layer;
-      std::cout<< "Creating and registering layer " << ilayer << " of OuterTracker " << " which is layer " << ot_layer << " of sPHENIX" << std::endl;
-      double Inner_rad = OuterTracker::Layer_spacing*ilayer + OuterTracker::Inrad_start;
-      double Outer_rad = Inner_rad + OuterTracker::Thickness;
-      auto otr = new PHG4OuterTrackerSubsystem("OuterTracker", ot_layer);
-      otr->Verbosity(0);
-      otr->set_double_param(ot_layer, "ot_inner_radius", Inner_rad);
-      otr->set_double_param(ot_layer, "ot_outer_radius", Outer_rad);
-      otr->set_double_param(ot_layer, "ot_length", OuterTracker::Length);
-      otr->set_int_param(ot_layer, "layer", ilayer);
-      otr->set_int_param(ot_layer, "ot_nseg_phi", OuterTracker::NSeg_Phi);
-      otr->set_int_param(ot_layer, "ot_nseg_z", OuterTracker::NSeg_Z);
-
-      g4Reco->registerSubsystem(otr);
-
-      radius = radius + Outer_rad;
-    }
-
   }
 
 
@@ -358,7 +306,6 @@ void Tracking_Cells(int verbosity = 0)
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
   //edrift->set_double_param("added_smear_trans",0.085);
   //edrift->set_double_param("added_smear_long",0.105);
-  edrift->set_use_distortions( Tpc::enable_tpc_distortions );
   edrift->registerPadPlane(padplane);
   se->registerSubsystem(edrift);
 
@@ -401,14 +348,6 @@ void Tracking_Cells(int verbosity = 0)
     reco->set_tiles( tiles );
 
     se->registerSubsystem( reco );
-
-  } else if(OuterTracker::n_outertrack_layers > 0) {
-
-    // OuterTracker
-    auto reco = new PHG4OuterTrackerHitReco("OuterTracker");
-    reco->Verbosity(0);
-    se->registerSubsystem(reco);
-
   }
 
   return;
@@ -528,18 +467,10 @@ void Tracking_Clus(int verbosity = 0)
 
   se->registerSubsystem(digitpc);
 
-
+  // Micromegas
   if(Micromegas::add_micromegas)
   {
-
-    // Micromegas
     se->registerSubsystem( new PHG4MicromegasDigitizer );
-
-  } else if(OuterTracker::n_outertrack_layers > 0) {
-
-    // OuterTracker
-    se->registerSubsystem( new PHG4OuterTrackerDigitizer );
-
   }
 
 
@@ -572,18 +503,10 @@ void Tracking_Clus(int verbosity = 0)
   tpcclusterizer->Verbosity(verbosity);
   se->registerSubsystem(tpcclusterizer);
 
-  // For the OuterTracker
+  // Micromegas
   if(Micromegas::add_micromegas)
   {
-
-    // Micromegas
     se->registerSubsystem( new MicromegasClusterizer );
-
-  } else if(OuterTracker::n_outertrack_layers > 0)
-  {
-
-    se->registerSubsystem(new OuterTrackerClusterizer);
-
   }
 
 }
@@ -636,7 +559,7 @@ void Tracking_Reco(int verbosity = 0)
     se->registerSubsystem(track_seed);
 
     // Find all clusters associated with each seed track
-    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, OuterTracker::n_outertrack_layers);
+    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, Micromegas::n_micromegas_layer);
     track_prop->Verbosity(verbosity);
     se->registerSubsystem(track_prop);
     for(int i = 0;i<n_intt_layer;i++)
@@ -689,21 +612,6 @@ void Tracking_Reco(int verbosity = 0)
     for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
-  }
-
-  if( TrackingParameters::disable_outertracker_layers )
-  {
-
-    // disable outer tracker layers
-    std::cout << "Tracking_reco - Disabling Outer layers from kalman filter" << std::endl;
-    for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
-
-  } else if( TrackingParameters::use_single_outertracker_layer ) {
-
-    // disable the second outer tracker layer
-    std::cout << "Tracking_reco - Disabling the second Outer layers from kalman filter" << std::endl;
-    kalman->disable_layer( 56 );
-
   }
 
   // include primary vertex in track fit if true

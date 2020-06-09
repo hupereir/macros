@@ -22,17 +22,11 @@ int Fun4All_G4_Reconstruction_hijing_hp(
 {
 
   // customize tpc
-  Tpc::enable_tpc_distortions = false;
   Tpc::misalign_tpc_clusters = false;
-
-  // customize outer tracker
-  OuterTracker::n_outertrack_layers = 0;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
   TrackingParameters::disable_tpc_layers = true;
-  TrackingParameters::disable_outertracker_layers = true;
-  TrackingParameters::use_single_outertracker_layer = false;
 
   // server
   auto se = Fun4AllServer::instance();

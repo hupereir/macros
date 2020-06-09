@@ -23,11 +23,7 @@ int Fun4All_G4_Clustering_hp(
 {
 
   // customize tpc
-  Tpc::enable_tpc_distortions = false;
   Tpc::misalign_tpc_clusters = false;
-
-  // customize outer tracker
-  OuterTracker::n_outertrack_layers = 0;
 
   // server
   auto se = Fun4AllServer::instance();

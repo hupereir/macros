@@ -31,10 +31,6 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   const bool do_tracking = true;
   const bool display_on = true;
 
-  // customize
-  // disable outer tracker
-  OuterTracker::n_outertrack_layers = 0;
-
   // enable micromegas
   Micromegas::add_micromegas = true;
 

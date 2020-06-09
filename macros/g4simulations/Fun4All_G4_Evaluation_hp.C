@@ -12,11 +12,9 @@
 R__LOAD_LIBRARY(libg4tpc.so)
 R__LOAD_LIBRARY(libg4intt.so)
 R__LOAD_LIBRARY(libg4mvtx.so)
-R__LOAD_LIBRARY(libg4outertracker.so)
 
 R__LOAD_LIBRARY(libintt.so)
 R__LOAD_LIBRARY(libmvtx.so)
-R__LOAD_LIBRARY(liboutertracker.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
 
 // need for own evaluator
@@ -53,9 +51,6 @@ int Fun4All_G4_Evaluation_hp(
     for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
     for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
-
-    // disable outer layer
-    // for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
 
     kalman->set_vertexing_method("avf-smoothing:1");
     kalman->set_use_truth_vertex(false);

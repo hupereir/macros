@@ -34,11 +34,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = 
   bool do_tracking = true;
 
   // customize TPC
-  Tpc::enable_tpc_distortions = false;
   Tpc::misalign_tpc_clusters = false;
-
-  // customize outer tracker segmentation
-  OuterTracker::n_outertrack_layers = 0;
 
   // enable micromegas
   Micromegas::add_micromegas = true;
