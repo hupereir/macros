@@ -98,7 +98,7 @@ namespace Tpc
 namespace Micromegas
 {
   bool add_micromegas = true;
-  constexpr int n_micromegas_layer = 2;
+  int n_micromegas_layer = 2;
 }
 
 // Tracking reconstruction setup parameters and flags
@@ -332,20 +332,20 @@ void Tracking_Cells(int verbosity = 0)
 //     static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
 //     reco->set_tiles( {{{ phi0, 0, tile_width/radius, tile_length }}} );
 
-//     // config 2: 12 tiles at mid rapidity, one in front of each TPC sector
-//     static constexpr int ntiles = 12;
-//     MicromegasTile::List tiles;
-//     for( int i = 0; i < ntiles; ++i )
-//     { tiles.push_back( {{ 2.*M_PI*(0.5+i)/ntiles, 0, tile_width/radius, tile_length }} ); }
-//     reco->set_tiles( tiles );
-
-    // config 3: 4 tiles with full z coverage in front of one TPC sector
-    static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
-    static constexpr int ntiles = 4;
+    // config 2: 12 tiles at mid rapidity, one in front of each TPC sector
+    static constexpr int ntiles = 12;
     MicromegasTile::List tiles;
     for( int i = 0; i < ntiles; ++i )
-    { tiles.push_back( {{ phi0, length*((0.5+i)/ntiles-0.5), tile_width/radius, tile_length }} ); }
+    { tiles.push_back( {{ 2.*M_PI*(0.5+i)/ntiles, 0, tile_width/radius, tile_length }} ); }
     reco->set_tiles( tiles );
+
+//     // config 3: 4 tiles with full z coverage in front of one TPC sector
+//     static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
+//     static constexpr int ntiles = 4;
+//     MicromegasTile::List tiles;
+//     for( int i = 0; i < ntiles; ++i )
+//     { tiles.push_back( {{ phi0, length*((0.5+i)/ntiles-0.5), tile_width/radius, tile_length }} ); }
+//     reco->set_tiles( tiles );
 
     se->registerSubsystem( reco );
   }
