@@ -24,7 +24,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
+  const int nEvents = 10,
   const char *outputFile = "DST/dst_eval.root"
   )
 {
@@ -45,7 +45,8 @@ int Fun4All_G4_sPHENIX_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // enable micromegas
-  Micromegas::add_micromegas = true;
+  Micromegas::add_micromegas = false;
+  Micromegas::n_micromegas_layer = 0;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -67,7 +68,7 @@ int Fun4All_G4_sPHENIX_hp(
   auto se = Fun4AllServer::instance();
 
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED", 1);
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
