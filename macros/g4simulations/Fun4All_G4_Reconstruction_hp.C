@@ -35,7 +35,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::disable_tpc_layers = false;
 
   // qa
   const bool do_qa = false;
@@ -43,8 +43,8 @@ int Fun4All_G4_Reconstruction_hp(
   // server
   auto se = Fun4AllServer::instance();
 
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+//   auto rc = recoConsts::instance();
+//   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -52,7 +52,7 @@ int Fun4All_G4_Reconstruction_hp(
   // tracking
   Tracking_Cells();
   Tracking_Clus();
-  // Tracking_Reco();
+  Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
