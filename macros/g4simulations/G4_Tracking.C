@@ -114,13 +114,12 @@ const int n_micromegas_layer = 2;
 // PHInitZvertexing parameter for reducing spurious vertices, use 2 for Pythia8 events, 5 for large multiplicity events
 const int init_vertexing_min_zvtx_tracks = 2;
 
-//default seed is PHTpcTracker
-const bool use_hough_seeding = false;
-const bool use_ca_seeding  = false;
-
 // true for normal track seeding, false to run with truth track seeding instead
 namespace TrackingParameters
 {
+  //default seed is PHTpcTracker
+  bool use_hough_seeding = false;
+  bool use_ca_seeding  = false;
   bool use_track_prop = true;
   bool disable_mvtx_layers = false;
   bool disable_tpc_layers = false;
@@ -370,11 +369,6 @@ void Tracking_Cells(int verbosity = 0)
 
     se->registerSubsystem( reco );
   }
-
-    se->registerSubsystem( reco );
-
-  }
->>>>>>> upstream/master
   return;
 }
 
@@ -571,7 +565,7 @@ void Tracking_Reco(int verbosity = 0)
       se->registerSubsystem(init_zvtx);
     }
 
-    if(use_hough_seeding)
+    if(TrackingParameters::use_hough_seeding)
     {
       // find seed tracks using a subset of TPC layers
       int min_layers = 4;
@@ -579,7 +573,7 @@ void Tracking_Reco(int verbosity = 0)
       auto track_seed = new PHHoughSeeding("PHHoughSeeding", n_maps_layer, n_intt_layer, n_gas_layer, nlayers_seeds, min_layers);
       track_seed->Verbosity(0);
       se->registerSubsystem(track_seed);
-    }else if(use_ca_seeding){
+    }else if(TrackingParameters::use_ca_seeding){
       // not implemented
     }else{
       auto tracker = new PHTpcTracker("PHTpcTracker");
