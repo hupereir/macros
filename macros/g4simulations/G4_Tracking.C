@@ -97,8 +97,8 @@ namespace Tpc
 // Micromegas
 namespace Micromegas
 {
-  bool add_micromegas = true;
-  int n_micromegas_layer = 2;
+  bool enable_micromegas = true;
+  const int n_micromegas_layer = 2;
 }
 
 // Tracking reconstruction setup parameters and flags
@@ -236,7 +236,7 @@ double Tracking(PHG4Reco* g4Reco, double radius,
   radius += no_overlapp;
 
   // micromegas
-  if( Micromegas::add_micromegas )
+  if( Micromegas::enable_micromegas )
   {
     const int mm_layer = n_maps_layer + n_intt_layer + n_gas_layer;
     auto mm = new PHG4MicromegasSubsystem( "MICROMEGAS", mm_layer );
@@ -300,12 +300,18 @@ void Tracking_Cells(int verbosity = 0)
 
   PHG4TpcElectronDrift *edrift = new PHG4TpcElectronDrift();
   edrift->Detector("TPC");
-  edrift->Verbosity(0);
+  edrift->Verbosity(0);  
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
   //edrift->set_double_param("added_smear_trans",0.085);
   //edrift->set_double_param("added_smear_long",0.105);
+  
+//   edrift->set_double_param("diffusion_long", 0);
+//   edrift->set_double_param("added_smear_long",0);
+//   edrift->set_double_param("diffusion_trans", 0);
+//   edrift->set_double_param("added_smear_trans",0);
+  
   edrift->registerPadPlane(padplane);
   se->registerSubsystem(edrift);
 
@@ -315,11 +321,13 @@ void Tracking_Cells(int verbosity = 0)
   padplane->set_int_param("ntpc_layers_inner", n_tpc_layer_inner);
   padplane->set_int_param("ntpc_phibins_inner", tpc_layer_rphi_count_inner);
 
-  if( Micromegas::add_micromegas )
+  if( Micromegas::enable_micromegas )
   {
 
     // micromegas
     auto reco = new PHG4MicromegasHitReco;
+    // reco->set_int_param("micromegas_zigzag_strips", false);    
+    // reco->set_double_param("micromegas_cloud_sigma", 0.02 );
     reco->Verbosity(0);
 
     static constexpr int nsectors = 12;
@@ -468,7 +476,7 @@ void Tracking_Clus(int verbosity = 0)
   se->registerSubsystem(digitpc);
 
   // Micromegas
-  if(Micromegas::add_micromegas)
+  if(Micromegas::enable_micromegas)
   {
     se->registerSubsystem( new PHG4MicromegasDigitizer );
   }
@@ -504,7 +512,7 @@ void Tracking_Clus(int verbosity = 0)
   se->registerSubsystem(tpcclusterizer);
 
   // Micromegas
-  if(Micromegas::add_micromegas)
+  if(Micromegas::enable_micromegas)
   {
     se->registerSubsystem( new MicromegasClusterizer );
   }
@@ -559,7 +567,7 @@ void Tracking_Reco(int verbosity = 0)
     se->registerSubsystem(track_seed);
 
     // Find all clusters associated with each seed track
-    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, Micromegas::n_micromegas_layer);
+    auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, Micromegas::enable_micromegas ? Micromegas::n_micromegas_layer:0);
     track_prop->Verbosity(verbosity);
     se->registerSubsystem(track_prop);
     for(int i = 0;i<n_intt_layer;i++)

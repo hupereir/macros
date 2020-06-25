@@ -11,6 +11,7 @@
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
+#include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
 #include <trackreco/PHTruthClustering_hp.h>
@@ -24,8 +25,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
-  const char *outputFile = "DST/dst_eval.root"
+//   const int nEvents = 100,
+//   const char *outputFile = "DST/dst_eval.root"
+  const int nEvents = 1000,
+  const char *outputFile = "DST/dst_eval_1k_nodiffusion.root"
   )
 {
 
@@ -45,8 +48,7 @@ int Fun4All_G4_sPHENIX_hp(
   Tpc::misalign_tpc_clusters = false;
 
   // enable micromegas
-  Micromegas::add_micromegas = false;
-  Micromegas::n_micromegas_layer = 0;
+  Micromegas::enable_micromegas = true;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
@@ -67,8 +69,8 @@ int Fun4All_G4_sPHENIX_hp(
   // server
   auto se = Fun4AllServer::instance();
 
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+//   auto rc = recoConsts::instance();
+//   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -118,18 +120,15 @@ int Fun4All_G4_sPHENIX_hp(
   // tracking
   Tracking_Cells();
   Tracking_Clus();
-
-  // replace clusters by truth information
-  // se->registerSubsystem( new PHTruthClustering_hp );
-
-  Tracking_Reco();
+  // Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
-
+  se->registerSubsystem(new MicromegasEvaluator_hp);
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
+    // TrackingEvaluator_hp::PrintClusters|
     TrackingEvaluator_hp::EvalClusters|
     TrackingEvaluator_hp::EvalTracks);
   se->registerSubsystem(trackingEvaluator);
