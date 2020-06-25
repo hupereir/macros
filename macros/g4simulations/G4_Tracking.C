@@ -44,6 +44,9 @@
 #include <trackreco/PHGenFitTrackProjection.h>
 
 #include <trackbase/TrkrHitTruthAssoc.h>
+
+#include <phtpctracker/PHTpcTracker.h>
+
 R__LOAD_LIBRARY(libg4tpc.so)
 R__LOAD_LIBRARY(libg4intt.so)
 R__LOAD_LIBRARY(libg4mvtx.so)
@@ -54,6 +57,7 @@ R__LOAD_LIBRARY(libmvtx.so)
 R__LOAD_LIBRARY(libtpc.so)
 R__LOAD_LIBRARY(libmicromegas.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
+R__LOAD_LIBRARY(libPHTpcTracker.so)
 
 #include <array>
 #include <vector>
@@ -101,10 +105,18 @@ namespace Micromegas
   const int n_micromegas_layer = 2;
 }
 
+///////////////// Micromegas
+bool enable_micromegas = false;
+const int n_micromegas_layer = 2;
+
 // Tracking reconstruction setup parameters and flags
 //=====================================
 // PHInitZvertexing parameter for reducing spurious vertices, use 2 for Pythia8 events, 5 for large multiplicity events
 const int init_vertexing_min_zvtx_tracks = 2;
+
+//default seed is PHTpcTracker
+const bool use_hough_seeding = false;
+const bool use_ca_seeding  = false;
 
 // true for normal track seeding, false to run with truth track seeding instead
 namespace TrackingParameters
@@ -241,9 +253,10 @@ double Tracking(PHG4Reco* g4Reco, double radius,
     const int mm_layer = n_maps_layer + n_intt_layer + n_gas_layer;
     auto mm = new PHG4MicromegasSubsystem( "MICROMEGAS", mm_layer );
     mm->SetActive();
+    mm->set_double_param("mm_length", 220);
+    mm->set_double_param("mm_radius", 82);
     g4Reco->registerSubsystem(mm);
   }
-
 
   return radius;
 }
@@ -300,18 +313,18 @@ void Tracking_Cells(int verbosity = 0)
 
   PHG4TpcElectronDrift *edrift = new PHG4TpcElectronDrift();
   edrift->Detector("TPC");
-  edrift->Verbosity(0);  
+  edrift->Verbosity(0);
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
   //edrift->set_double_param("added_smear_trans",0.085);
   //edrift->set_double_param("added_smear_long",0.105);
-  
+
 //   edrift->set_double_param("diffusion_long", 0);
 //   edrift->set_double_param("added_smear_long",0);
 //   edrift->set_double_param("diffusion_trans", 0);
 //   edrift->set_double_param("added_smear_trans",0);
-  
+
   edrift->registerPadPlane(padplane);
   se->registerSubsystem(edrift);
 
@@ -326,7 +339,7 @@ void Tracking_Cells(int verbosity = 0)
 
     // micromegas
     auto reco = new PHG4MicromegasHitReco;
-    // reco->set_int_param("micromegas_zigzag_strips", false);    
+    // reco->set_int_param("micromegas_zigzag_strips", false);
     // reco->set_double_param("micromegas_cloud_sigma", 0.02 );
     reco->Verbosity(0);
 
@@ -358,6 +371,10 @@ void Tracking_Cells(int verbosity = 0)
     se->registerSubsystem( reco );
   }
 
+    se->registerSubsystem( reco );
+
+  }
+>>>>>>> upstream/master
   return;
 }
 
@@ -481,7 +498,6 @@ void Tracking_Clus(int verbosity = 0)
     se->registerSubsystem( new PHG4MicromegasDigitizer );
   }
 
-
   //-------------
   // Cluster Hits
   //-------------
@@ -539,14 +555,11 @@ void Tracking_Reco(int verbosity = 0)
     std::cout<< "Tracking_Reco - normal track seeding and propagation" <<std::endl;
     if(use_truth_vertex)
     {
-
       // We cheat to get the initial vertex for the full track reconstruction case
       auto init_vtx  = new PHTruthVertexing("PHTruthVertexing");
       init_vtx->Verbosity(verbosity);
       se->registerSubsystem(init_vtx);
-
     } else {
-
       // get the initial vertex for track fitting from the MVTX hits
       PHInitZVertexing* init_zvtx  = new PHInitZVertexing(7, 7, "PHInitZVertexing");
       int seed_layer[7] = {0,1,2,3,4,5,6};
@@ -556,15 +569,28 @@ void Tracking_Reco(int verbosity = 0)
       init_zvtx->set_min_zvtx_tracks(init_vertexing_min_zvtx_tracks);
       init_zvtx->Verbosity(verbosity);
       se->registerSubsystem(init_zvtx);
-
     }
 
-    // find seed tracks using a subset of TPC layers
-    int min_layers = 4;
-    int nlayers_seeds = 12;
-    auto track_seed = new PHHoughSeeding("PHHoughSeeding", n_maps_layer, n_intt_layer, n_gas_layer, nlayers_seeds, min_layers);
-    track_seed->Verbosity(verbosity);
-    se->registerSubsystem(track_seed);
+    if(use_hough_seeding)
+    {
+      // find seed tracks using a subset of TPC layers
+      int min_layers = 4;
+      int nlayers_seeds = 12;
+      auto track_seed = new PHHoughSeeding("PHHoughSeeding", n_maps_layer, n_intt_layer, n_gas_layer, nlayers_seeds, min_layers);
+      track_seed->Verbosity(0);
+      se->registerSubsystem(track_seed);
+    }else if(use_ca_seeding){
+      // not implemented
+    }else{
+      auto tracker = new PHTpcTracker("PHTpcTracker");
+      tracker->set_seed_finder_options( 3.0, M_PI / 8, 10, 6.0, M_PI / 8, 5, 1 ); // two-pass CA seed params
+      tracker->set_seed_finder_optimization_remove_loopers( true, 20.0, 10000.0 ); // true if loopers not needed
+      tracker->set_track_follower_optimization_helix( true ); // false for quality, true for speed
+      tracker->set_track_follower_optimization_precise_fit( false ); // true for quality, false for speed
+      tracker->enable_json_export( false ); // save event as json, filename is automatic and stamped by current time in ms
+      tracker->enable_vertexing( false ); // rave vertexing is pretty slow at large multiplicities...
+      se->registerSubsystem(tracker);
+    }
 
     // Find all clusters associated with each seed track
     auto track_prop = new PHGenFitTrkProp("PHGenFitTrkProp", n_maps_layer, n_intt_layer, n_gas_layer, Micromegas::enable_micromegas ? Micromegas::n_micromegas_layer:0);
