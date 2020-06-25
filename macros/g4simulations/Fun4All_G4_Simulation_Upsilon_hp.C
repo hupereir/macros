@@ -15,7 +15,7 @@ R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_Upsilon_hp( const int nEvents = 5000, const char *outputFile = "DST/dst_sim_5k_upsilon.root" )
+int Fun4All_G4_Simulation_Upsilon_hp( const int nEvents = 5, const char *outputFile = "DST/dst_sim.root" )
 {
 
   // options
