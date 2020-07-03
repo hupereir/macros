@@ -308,11 +308,11 @@ void Tracking_Cells(int verbosity = 0)
   //=========================
 
   PHG4TpcPadPlane *padplane = new PHG4TpcPadPlaneReadout();
-  padplane->Verbosity(0);
+  padplane->Verbosity(verbosity);
 
   PHG4TpcElectronDrift *edrift = new PHG4TpcElectronDrift();
   edrift->Detector("TPC");
-  edrift->Verbosity(0);
+  edrift->Verbosity(verbosity);
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
@@ -340,7 +340,8 @@ void Tracking_Cells(int verbosity = 0)
     auto reco = new PHG4MicromegasHitReco;
     // reco->set_int_param("micromegas_zigzag_strips", false);
     // reco->set_double_param("micromegas_cloud_sigma", 0.02 );
-    reco->Verbosity(0);
+    // reco->set_double_param("micromegas_diffusion_trans", 0 );
+    reco->Verbosity(verbosity);
 
     static constexpr int nsectors = 12;
     static constexpr double radius = 82;
@@ -476,10 +477,12 @@ void Tracking_Clus(int verbosity = 0)
   //====
   auto digitpc = new PHG4TpcDigitizer;
   digitpc->SetTpcMinLayer(n_maps_layer + n_intt_layer);
+
   double ENC = 670.0;  // standard
-  digitpc->SetENC(ENC);
   double ADC_threshold = 4.0 * ENC;
-  digitpc->SetADCThreshold(ADC_threshold);  // 4 * ENC seems OK
+  digitpc->SetENC(ENC);
+  digitpc->SetADCThreshold(ADC_threshold);
+
   std::cout
     << " Tpc digitizer: Setting ENC to " << ENC << " ADC threshold to " << ADC_threshold
     << " maps+Intt layers set to " << n_maps_layer + n_intt_layer << std::endl;
