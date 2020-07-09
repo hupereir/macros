@@ -3,6 +3,7 @@
 #include <fun4all/Fun4AllDummyInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
@@ -25,10 +26,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-//   const int nEvents = 100,
-//   const char *outputFile = "DST/dst_eval.root"
   const int nEvents = 1000,
-  const char *outputFile = "DST/dst_eval_1k_nodiffusion.root"
+  const char *outputFile = "DST/dst_eval_new.root"
   )
 {
 
@@ -69,11 +68,11 @@ int Fun4All_G4_sPHENIX_hp(
   // server
   auto se = Fun4AllServer::instance();
 
-//   auto rc = recoConsts::instance();
-//   rc->set_IntFlag("RANDOMSEED", 1);
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   {
     // event generation
@@ -120,7 +119,7 @@ int Fun4All_G4_sPHENIX_hp(
   // tracking
   Tracking_Cells();
   Tracking_Clus();
-  // Tracking_Reco();
+  Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);

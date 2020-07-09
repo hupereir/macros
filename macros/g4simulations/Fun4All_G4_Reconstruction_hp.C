@@ -22,20 +22,20 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 10,
-  const char* inputFile = "DST/dst_sim.root",
-  const char *outputFile = "DST/dst_eval.root" )
+  const int nEvents = 1000,
+  const char* inputFile = "DST/dst_eval_notpc.root",
+  const char *outputFile = "DST/dst_eval_notpc-reco.root" )
 {
 
   // customize tpc
   Tpc::misalign_tpc_clusters = false;
 
   // enable micromegas
-  Micromegas::add_micromegas = true;
+  Micromegas::enable_micromegas = true;
 
   // customize track finding
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = false;
+  TrackingParameters::disable_tpc_layers = true;
 
   // qa
   const bool do_qa = false;
@@ -43,15 +43,16 @@ int Fun4All_G4_Reconstruction_hp(
   // server
   auto se = Fun4AllServer::instance();
 
-//   auto rc = recoConsts::instance();
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RUNNUMBER", 1);
 //   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
-  // tracking
-  Tracking_Cells();
-  Tracking_Clus();
+//   // tracking
+//   Tracking_Cells();
+//   Tracking_Clus();
   Tracking_Reco();
 
   // local evaluation
@@ -85,6 +86,7 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerOutputManager(out);
 
   // process events
+  se->skip(510);
   se->run(nEvents);
 
   // QA
