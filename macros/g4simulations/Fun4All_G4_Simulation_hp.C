@@ -7,6 +7,8 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/MicromegasEvaluator_hp.h>
+#include <g4eval/TrackingEvaluator_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
 
 
@@ -19,7 +21,7 @@ R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = "DST/dst_sim.root" )
+int Fun4All_G4_Simulation_hp( const int nEvents = 2000, const char *outputFile = "DST/dst_sim_2k_realistic_micromegas.root" )
 {
 
   // options
@@ -37,7 +39,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = 
   Tpc::misalign_tpc_clusters = false;
 
   // enable micromegas
-  Micromegas::add_micromegas = true;
+  Micromegas::enable_micromegas = true;
 
   // establish the geometry and reconstruction setup
   G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
@@ -102,7 +104,7 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = 
     magfield_rescale);
 
   // digitization and clustering
-  if( false )
+  if( true )
   {
     BbcInit();
     Bbc_Reco();
@@ -112,8 +114,16 @@ int Fun4All_G4_Simulation_hp( const int nEvents = 100, const char *outputFile = 
     Tracking_Clus();
   }
 
-//   // sim evaluator
-//   se->registerSubsystem( new SimEvaluator_hp );
+  // sim evaluator
+  se->registerSubsystem( new SimEvaluator_hp );
+  se->registerSubsystem(new MicromegasEvaluator_hp);
+  auto trackingEvaluator = new TrackingEvaluator_hp;
+  trackingEvaluator->set_flags(
+    TrackingEvaluator_hp::EvalEvent|
+    // TrackingEvaluator_hp::PrintClusters|
+    TrackingEvaluator_hp::EvalClusters|
+    TrackingEvaluator_hp::EvalTracks);
+  se->registerSubsystem(trackingEvaluator);
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that

@@ -26,8 +26,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1000,
-  const char *outputFile = "DST/dst_eval_new.root"
+  const int nEvents = 1,
+  const char *outputFile = "DST/dst_eval.root"
+//   const int nEvents = 5000,
+//   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas.root"
   )
 {
 
@@ -72,7 +74,7 @@ int Fun4All_G4_sPHENIX_hp(
   rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   {
     // event generation
@@ -119,7 +121,7 @@ int Fun4All_G4_sPHENIX_hp(
   // tracking
   Tracking_Cells();
   Tracking_Clus();
-  Tracking_Reco();
+  // Tracking_Reco();
 
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
@@ -127,7 +129,7 @@ int Fun4All_G4_sPHENIX_hp(
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
-    // TrackingEvaluator_hp::PrintClusters|
+    TrackingEvaluator_hp::PrintClusters|
     TrackingEvaluator_hp::EvalClusters|
     TrackingEvaluator_hp::EvalTracks);
   se->registerSubsystem(trackingEvaluator);
