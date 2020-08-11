@@ -32,7 +32,7 @@
 #include <micromegas/MicromegasClusterizer.h>
 #include <mvtx/MvtxClusterizer.h>
 #include <tpc/TpcClusterizer.h>
-#include <tpc/TpcMisaligner_hp.h>
+// #include <tpc/TpcMisaligner_hp.h>
 
 #include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHGenFitTrkProp.h>
@@ -618,10 +618,10 @@ void Tracking_Reco(int verbosity = 0)
 
   }
 
-  //------------------------------------------------
-  // misalign TPC clusters to account for distortions
-  if( Tpc::misalign_tpc_clusters )
-  { se->registerSubsystem(new TpcMisaligner_hp); }
+//   //------------------------------------------------
+//   // misalign TPC clusters to account for distortions
+//   if( Tpc::misalign_tpc_clusters )
+//   { se->registerSubsystem(new TpcMisaligner_hp); }
 
   //------------------------------------------------
   // Fitting of tracks using Kalman Filter
