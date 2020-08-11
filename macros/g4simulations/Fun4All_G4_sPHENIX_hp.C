@@ -15,7 +15,6 @@
 #include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
-#include <trackreco/PHTruthClustering_hp.h>
 
 R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/macros/g4simulations )
 #include "G4Setup_sPHENIX.C"
@@ -122,14 +121,13 @@ int Fun4All_G4_sPHENIX_hp(
   Tracking_Cells();
   Tracking_Clus();
   // Tracking_Reco();
-
+  
   // local evaluation
   se->registerSubsystem(new SimEvaluator_hp);
-  se->registerSubsystem(new MicromegasEvaluator_hp);
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
-    TrackingEvaluator_hp::PrintClusters|
+    // TrackingEvaluator_hp::PrintClusters|
     TrackingEvaluator_hp::EvalClusters|
     TrackingEvaluator_hp::EvalTracks);
   se->registerSubsystem(trackingEvaluator);
@@ -154,8 +152,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  // out->AddNode("SimEvaluator_hp::Container");
-  // out->AddNode("TrackingEvaluator_hp::Container");
+  out->AddNode("SimEvaluator_hp::Container");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
@@ -169,6 +167,7 @@ int Fun4All_G4_sPHENIX_hp(
   }
 
   // terminate
+  se->PrintTimer();
   se->End();
   se->PrintTimer();
 

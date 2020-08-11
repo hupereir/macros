@@ -21,16 +21,16 @@ R__LOAD_LIBRARY(libtrack_reco.so)
 R__LOAD_LIBRARY(libg4eval.so)
 
 //_________________________________________________________________________
-// int Fun4All_G4_Evaluation_hp( const int nEvents = 0, const char* inputFile = "DST/dst_reco_5k_truth_notpc_nphi1k.root", const char *outputFile = "DST/dst_eval_5k_truth_notpc_nphi1k-2.root" )
 int Fun4All_G4_Evaluation_hp(
-    const int nEvents = 30,
-    const char* inputFile = "HIJING/G4Hits_sHijing_0-6.6fm_00000_00100.root",
-    const char *outputFile = "DST/dst_eval_hijing_00000_00100-test.root" )
+    const int nEvents = 0,
+    // const char* inputFile = "DST/CONDOR_Hijing_Micromegas/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
+    const char* inputFile = "DST/CONDOR_Hijing_Micromegas/Clusters_merged/Clusters_sHijing_0-12fm_merged_00000_00100.root",
+    const char *outputFile = "DST/CONDOR_Hijing_Micromegas/dst_eval_merged/dst_eval_sHijing_0-12fm_merged_00000_00100.root" )
 {
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity(1);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
@@ -59,7 +59,20 @@ int Fun4All_G4_Evaluation_hp(
   }
 
   // evaluation
-  se->registerSubsystem(new TrackingEvaluator_hp( "TRACKINGEVALUATOR_HP" ));
+  // local evaluation
+  auto simEvaluator = new SimEvaluator_hp;
+  simEvaluator->set_flags(
+    SimEvaluator_hp::EvalEvent|
+    SimEvaluator_hp::EvalVertices|
+    SimEvaluator_hp::EvalParticles );
+  se->registerSubsystem(simEvaluator);
+  
+  auto trackingEvaluator = new TrackingEvaluator_hp;
+  trackingEvaluator->set_flags(
+    TrackingEvaluator_hp::EvalEvent|
+    TrackingEvaluator_hp::EvalClusters|
+    TrackingEvaluator_hp::EvalTracks);
+  se->registerSubsystem(trackingEvaluator);
 
   // input manager
   auto *in = new Fun4AllDstInputManager("DSTin");
@@ -68,6 +81,7 @@ int Fun4All_G4_Evaluation_hp(
 
   // output manager
   Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
+  out->AddNode("SimEvaluator_hp::Container");
   out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
@@ -75,6 +89,7 @@ int Fun4All_G4_Evaluation_hp(
   se->run(nEvents);
 
   // terminate
+  se->PrintTimer();
   se->End();
   std::cout << "All done" << std::endl;
   delete se;

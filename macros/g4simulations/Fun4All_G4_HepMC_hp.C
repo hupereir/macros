@@ -3,6 +3,7 @@
 #include <fun4all/Fun4AllDummyInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
+#include <phhepmc/Fun4AllHepMCInputManager.h>
 #include <phool/recoConsts.h>
 
 // own modules
@@ -21,9 +22,10 @@ R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/
 R__LOAD_LIBRARY(libfun4all.so)
 
 //______________________________________________________________________________________
-int Fun4All_G4_Simulation_hp( 
+int Fun4All_G4_HepMC_hp( 
   const int nEvents = 100, 
-  const char *outputFile = "DST/dst_sim.root" )
+  const char *inputFile = "phpythia8_200GeVMB_hepmc.dat.gz",
+  const char* outputFile = "DST/dst_sim_hepmc.root" )
 {
 
   // options
@@ -64,73 +66,37 @@ int Fun4All_G4_Simulation_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EVENTCOUNTER_HP", 1 ) );
 
-  {
-    // event generation
-    // toss low multiplicity dummy events
-    auto gen = new PHG4SimpleEventGenerator();
-    gen->add_particles("pi+",1);
-    gen->add_particles("pi-",1);
-
-    gen->set_vertex_distribution_function(
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform);
-
-    gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
-    gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
-
-    // TODO: what are vertex_size
-    gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
-    gen->set_vertex_size_parameters(0.0, 0.0);
-    gen->set_eta_range(-1.0, 1.0);
-    gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
-
-    // gen->set_pt_range(0.5, 20.0);
-    // gen->set_pt_range(0.5, 5.0);
-
-    // use specific distribution to generate pt
-    // values from "http://arxiv.org/abs/nucl-ex/0308006"
-    const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
-    const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
-    gen->set_pt_range(pt_bins,yield_int);
-
-    gen->Embed(2);
-    gen->Verbosity(0);
-    se->registerSubsystem(gen);
-  }
-
   // G4 setup
   G4Setup(
     absorberactive, magfield, EDecayType::kAll,
     do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, false,
     magfield_rescale);
 
-  // digitization and clustering
+  // tracking
   if( true )
   {
-    BbcInit();
-    Bbc_Reco();
-
-    // tracking
     Tracking_Cells();
     Tracking_Clus();
   }
-
-  // sim evaluator
-  se->registerSubsystem( new SimEvaluator_hp );
-  se->registerSubsystem(new MicromegasEvaluator_hp);
-  auto trackingEvaluator = new TrackingEvaluator_hp;
-  trackingEvaluator->set_flags(
-    TrackingEvaluator_hp::EvalEvent|
-    // TrackingEvaluator_hp::PrintClusters|
-    TrackingEvaluator_hp::EvalClusters|
-    TrackingEvaluator_hp::EvalTracks);
-  se->registerSubsystem(trackingEvaluator);
-
+  
+  // evaluators
+  if( false )
+  {
+    se->registerSubsystem( new SimEvaluator_hp );
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalEvent|
+      // TrackingEvaluator_hp::PrintClusters|
+      TrackingEvaluator_hp::EvalClusters|
+      TrackingEvaluator_hp::EvalTracks);
+    se->registerSubsystem(trackingEvaluator);
+  }
+  
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
-  auto in = new Fun4AllDummyInputManager("JADE");
+  auto in = new Fun4AllHepMCInputManager("HepMCInput_1");
   se->registerInputManager(in);
+  in->fileopen(inputFile);
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
