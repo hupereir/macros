@@ -1,6 +1,5 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
 
@@ -10,22 +9,20 @@
 // own modules
 #include <g4eval/EventCounter_hp.h>
 
-R__ADD_INCLUDE_PATH( $SPHENIX/src/macros/macros/g4simulations )
-#include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_MergeEvents_hijing_hp( 
 const int nEvents = 0,
 const int eventOffset = 0,
-const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/1/G4Hits_sHijing_0-12fm_00000_00100.root",
+const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/2/G4Hits_sHijing_0-12fm_000000_001000.root",
 const char* outputFile = "DST/dst_g4hits_merged.root"
 )
 {
 
+  std::cout << "Fun4All_G4_MergeEvents_hijing_hp - new" << std::endl;
   std::cout << "Fun4All_G4_MergeEvents_hijing_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_G4_MergeEvents_hijing_hp - eventOffset: " << eventOffset << std::endl;
   std::cout << "Fun4All_G4_MergeEvents_hijing_hp - inputFile: " << inputFile << std::endl;
@@ -47,7 +44,7 @@ const char* outputFile = "DST/dst_g4hits_merged.root"
   in->setEventOffset(eventOffset);
   
   // load timestamps
-  const std::string filename( "timestamps.txt" );
+  const std::string filename( "timestamps_50kHz.txt" );
   std::vector<int64_t> bunchcrossings;
   std::ifstream ifstream( filename );
   std::string line;
