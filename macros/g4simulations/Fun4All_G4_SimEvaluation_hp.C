@@ -7,34 +7,41 @@
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
 
-// R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
-R__ADD_INCLUDE_PATH( /home/hpereira/sphenix/src/macros/macros/g4simulations )
-#include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
+// needed to avoid warnings at readback
+R__LOAD_LIBRARY(libg4bbc.so)
+R__LOAD_LIBRARY(libg4tpc.so)
+R__LOAD_LIBRARY(libg4intt.so)
+R__LOAD_LIBRARY(libg4mvtx.so)
 
+R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_SimEvaluation_hp( const int nEvents = 10,
-const char* inputFile = "DST/CONDOR_Hijing_Micromegas/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
-const char* outputFile = "DST/dst_eval.root"
+int Fun4All_G4_SimEvaluation_hp( 
+    const int nEvents = 0,
+    const char* inputFile = "/sphenix/user/bogui/MacrosModular/macros/macros/g4simulations/clus_only/SvtxCluHijMBPu100_Mar20_1_1000.root",
+    const char* outputFile = "DST/dst_eval.root"
 )
 {
-
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity(1);
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
-  se->registerSubsystem(new EventCounter_hp( "EventCounter_hp", 1 ));
-  se->registerSubsystem(new SimEvaluator_hp);
-  se->registerSubsystem(new TrackingEvaluator_hp);
+  se->registerSubsystem(new EventCounter_hp("EVENTCOUNTER_HP",1));
+
+  // local evaluation
+  auto simEvaluator = new SimEvaluator_hp;
+  simEvaluator->set_flags(
+    SimEvaluator_hp::EvalEvent|
+    SimEvaluator_hp::EvalVertices|
+    SimEvaluator_hp::EvalHits|
+    SimEvaluator_hp::EvalParticles );
+  se->registerSubsystem(simEvaluator);
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -42,10 +49,8 @@ const char* outputFile = "DST/dst_eval.root"
   se->registerInputManager(in);
 
   // output manager
-  /* all the nodes from DST and RUN are saved to the output */
-  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events

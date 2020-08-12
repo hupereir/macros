@@ -6,28 +6,24 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
 // needed to avoid warnings at readback
+R__LOAD_LIBRARY(libg4bbc.so)
 R__LOAD_LIBRARY(libg4tpc.so)
 R__LOAD_LIBRARY(libg4intt.so)
 R__LOAD_LIBRARY(libg4mvtx.so)
 
-R__LOAD_LIBRARY(libintt.so)
-R__LOAD_LIBRARY(libmvtx.so)
-R__LOAD_LIBRARY(libtrack_reco.so)
-
-// need for own evaluator
+R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval.so)
 
 //_________________________________________________________________________
 int Fun4All_G4_Evaluation_hp(
-    const int nEvents = 0,
-    // const char* inputFile = "DST/CONDOR_Hijing_Micromegas/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
-    const char* inputFile = "DST/CONDOR_Hijing_Micromegas/Clusters_merged/Clusters_sHijing_0-12fm_merged_00000_00100.root",
-    const char *outputFile = "DST/CONDOR_Hijing_Micromegas/dst_eval_merged/dst_eval_sHijing_0-12fm_merged_00000_00100.root" )
+    const int nEvents = 1,
+    const char* inputFile = "DST/CONDOR_Hijing_Micromegas/Clusters_sHijing_0-12fm_merged_00000_00100.root",
+    const char *outputFile = "DST/CONDOR_Hijing_Micromegas/dst_eval_sHijing_0-12fm_merged_00000_00100.root" )
 {
-
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -38,27 +34,6 @@ int Fun4All_G4_Evaluation_hp(
   // event counter
   se->registerSubsystem(new EventCounter_hp("EVENTCOUNTER_HP",1));
 
-  // refit tracks
-  /*
-  should move back to G4_tracking (semarate method)
-  and use the same configuration flags
-  */
-  if( false )
-  {
-    auto kalman = new PHGenFitTrkFitter;
-
-    // disable tpc
-    for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
-    for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
-    for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
-
-    kalman->set_vertexing_method("avf-smoothing:1");
-    kalman->set_use_truth_vertex(false);
-
-    se->registerSubsystem(kalman);
-  }
-
-  // evaluation
   // local evaluation
   auto simEvaluator = new SimEvaluator_hp;
   simEvaluator->set_flags(
@@ -75,12 +50,12 @@ int Fun4All_G4_Evaluation_hp(
   se->registerSubsystem(trackingEvaluator);
 
   // input manager
-  auto *in = new Fun4AllDstInputManager("DSTin");
+  auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
   // output manager
-  Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
+  auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile );
   out->AddNode("SimEvaluator_hp::Container");
   out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);

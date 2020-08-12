@@ -16,39 +16,42 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hijing_hp(
-  const int nEvents = 1,
-  const char *inputFile = "/sphenix/user/bogui/MacrosModular/macros/macros/g4simulations/clus_only/SvtxCluHijMBPu100_Mar20_1_1001.root",
+  const int nEvents = 10,
+  const char *inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/1/G4Hits_sHijing_0-12fm_00000_00100.root",
   const char *outputFile = "DST/dst_eval_hijing.root" )
 {
 
   // customize tpc
   Tpc::misalign_tpc_clusters = false;
+  Micromegas::enable_micromegas = true;
 
   // customize track finding
+  
   TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = true;
+  TrackingParameters::disable_tpc_layers = false;
 
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // bbc reconstruction
-  // BbcInit();
-  // Bbc_Reco();
+  BbcInit();
+  Bbc_Reco();
 
   // tracking
-  // Tracking_Cells();
-  // Tracking_Clus();
-  Tracking_Reco();
+  Tracking_Cells();
+  Tracking_Clus();
+  // Tracking_Reco();
 
-  // local evaluation
-  se->registerSubsystem(new TrackingEvaluator_hp( "TrackingEvaluator_hp" ) );
+//   // local evaluation
+//   se->registerSubsystem(new SimEvaluator_hp( "SimEvaluator_hp" ) );
+//   se->registerSubsystem(new TrackingEvaluator_hp( "TrackingEvaluator_hp" ) );
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -58,7 +61,6 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
