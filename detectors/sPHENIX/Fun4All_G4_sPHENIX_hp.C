@@ -16,68 +16,60 @@
 #include <g4eval/TrackingEvaluator_hp.h>
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
 
-R__ADD_INCLUDE_PATH( /afs/rhic.bnl.gov/phenix/users/hpereira/sphenix/src/macros/macros/g4simulations )
+// local macros
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
+#include "G4_Global.C"
+#include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
+  const int nEvents = 10,
   const char *outputFile = "DST/dst_eval.root"
+//   const int nEvents = 1000,
+//   const char *outputFile = "DST/dst_eval_1k_realistic_full_micromegas.root"
 //   const int nEvents = 5000,
 //   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas.root"
   )
 {
 
   // options
-  const bool do_pipe = true;
-  const bool do_pstof = false;
-  const bool do_cemc = false;
-  const bool do_hcalin = false;
-  const bool do_magnet = false;
-  const bool do_hcalout = false;
-  const bool do_plugdoor = false;
+  Enable::BBC = true;
+  Enable::PIPE = true;
+  Enable::PIPE_ABSORBER = true;
+  
+  // central tracking
+  Enable::MVTX = true;
+  Enable::INTT = true;
+  Enable::TPC = true;
+  Enable::TPC_ABSORBER = true;
+  Enable::MICROMEGAS = true;
+  Enable::BLACKHOLE = true;
 
-  const bool do_tracking = true;
-  const bool do_QA = false;
+  // tracking configuration
+  G4TRACKING::use_track_prop = true;
+  G4TRACKING::disable_mvtx_layers = false;
+  G4TRACKING::disable_tpc_layers = false;
 
-  // customize tpc
-  Tpc::misalign_tpc_clusters = false;
-
-  // enable micromegas
-  Micromegas::enable_micromegas = true;
-
-  // customize track finding
-  TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_mvtx_layers = false;
-  TrackingParameters::disable_tpc_layers = false;
-
-  // establish the geometry and reconstruction setup
-  G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor);
-
-  // set to 1 to make all absorbers active volumes
-  int absorberactive = 1;
-
-  // default map from the calibration database
-  // scale the map to a 1.4 T field
-  const auto magfield = std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sPHENIX.2d.root");
-  const float magfield_rescale = -1.4 / 1.5;
+  // magnet
+  G4MAGNET::magfield_rescale = -1.4 / 1.5;  
 
   // server
   auto se = Fun4AllServer::instance();
-
+  se->Verbosity(0);
+ 
+  // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",1);
+  rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
-
+  
   {
     // event generation
-    // toss low multiplicity dummy events
     auto gen = new PHG4SimpleEventGenerator;
     gen->add_particles("pi+",1);
     gen->add_particles("pi-",1);
@@ -93,7 +85,8 @@ int Fun4All_G4_sPHENIX_hp(
 
     // // flat pt distribution
     // gen->set_pt_range(0.5, 20.0);
-
+    
+    // vertex
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
       PHG4SimpleEventGenerator::Uniform,
@@ -107,43 +100,44 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(gen);
   }
 
-  // G4 setup
-  G4Setup(
-    absorberactive, magfield, EDecayType::kAll,
-    do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, false,
-    magfield_rescale);
+  // Geant4 initialization
+  G4Init();
+  G4Setup();
 
-  // bbc reconstruction
+  // BBC
   BbcInit();
   Bbc_Reco();
 
-  // tracking
-  Tracking_Cells();
-  Tracking_Clus();
-  // Tracking_Reco();
+  // cells 
+  Mvtx_Cells();
+  Intt_Cells();
+  TPC_Cells();
+  Micromegas_Cells();
+    
+  // digitizer and clustering
+  Mvtx_Clustering();
+  Intt_Clustering();
+  TPC_Clustering();
+  Micromegas_Clustering();
   
+  // tracking
+  TrackingInit();
+  Tracking_Reco();
+
   // local evaluation
-  se->registerSubsystem(new SimEvaluator_hp);
+  auto simEvaluator = new SimEvaluator_hp;
+  simEvaluator->set_flags(
+    SimEvaluator_hp::EvalEvent|
+    SimEvaluator_hp::EvalVertices|
+    SimEvaluator_hp::EvalParticles );
+  se->registerSubsystem(simEvaluator);
+  
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
-    // TrackingEvaluator_hp::PrintClusters|
     TrackingEvaluator_hp::EvalClusters|
     TrackingEvaluator_hp::EvalTracks);
   se->registerSubsystem(trackingEvaluator);
-
-  // QA modules
-  if( do_QA )
-  {
-    se->registerSubsystem( new QAG4SimulationMvtx );
-    se->registerSubsystem( new QAG4SimulationIntt );
-  }
-
-//   // space charge reconstruction
-//   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction();
-//   spaceChargeReconstruction->set_tpc_layers( n_maps_layer + n_intt_layer, n_gas_layer );
-//   spaceChargeReconstruction->set_grid_dimensions(1, 12, 1);
-//   se->registerSubsystem( spaceChargeReconstruction );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
@@ -159,15 +153,7 @@ int Fun4All_G4_sPHENIX_hp(
   // process events
   se->run(nEvents);
 
-  // QA
-  if( do_QA )
-  {
-    const std::string qaFile= "data/G4sPHENIX.root_qa.root";
-    QAHistManagerDef::saveQARootFile(qaFile.c_str());
-  }
-
   // terminate
-  se->PrintTimer();
   se->End();
   se->PrintTimer();
 
