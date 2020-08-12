@@ -53,6 +53,9 @@ namespace G4TRACKING
   std::string vmethod("avf-smoothing:1");  // only good for 1 vertex events // vmethod is a string used to set the Rave final-vertexing method:
   bool use_truth_vertex = true;            // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
 
+  bool disable_mvtx_layers = false;
+  bool disable_tpc_layers = false;
+
   // This is the setup that uses PHInitZvertexing to find initial vertices, and allows for multiple collisions per event
   //const bool use_truth_vertex = false;   // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
   //std::string vmethod("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9");  // seems to handle multi-vertex events.
@@ -164,6 +167,22 @@ void Tracking_Reco()
 
   PHGenFitTrkFitter* kalman = new PHGenFitTrkFitter();
   kalman->Verbosity(verbosity);
+
+  // disable mvtx
+  if( G4TRACKING::disable_mvtx_layers )
+  {
+    std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
+    for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
+  }
+
+  // disable tpc
+  if( G4TRACKING::disable_tpc_layers )
+  {
+    std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
+    for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
+    for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
+  }
 
   if (G4TRACKING::use_primary_vertex)
   {
