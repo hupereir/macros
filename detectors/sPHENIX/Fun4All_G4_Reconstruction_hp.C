@@ -13,66 +13,77 @@
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
-R__ADD_INCLUDE_PATH( /phenix/u/hpereira/sphenix/src/macros/macros/g4simulations )
-#include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
+#include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 1000,
-  const char* inputFile = "DST/dst_eval_notpc.root",
-  const char *outputFile = "DST/dst_eval_notpc-reco.root" )
+  const int nEvents = 1,
+  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
+  const char *outputFile = "DST/Clusters.root" )
 {
 
-  // customize tpc
-  Tpc::misalign_tpc_clusters = false;
+  // central tracking
+  Enable::MVTX = true;
+  Enable::INTT = true;
+  Enable::TPC = true;
+  Enable::TPC_ABSORBER = true;
+  Enable::MICROMEGAS = true;
 
-  // enable micromegas
-  Micromegas::enable_micromegas = true;
-
-  // customize track finding
-  TrackingParameters::use_track_prop = true;
-  TrackingParameters::disable_tpc_layers = true;
-
-  // qa
-  const bool do_qa = false;
+  // tracking configuration
+  G4TRACKING::use_track_prop = true;
+  G4TRACKING::disable_mvtx_layers = false;
+  G4TRACKING::disable_tpc_layers = false;
 
   // server
   auto se = Fun4AllServer::instance();
+  se->Verbosity(1);
 
+  // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RUNNUMBER", 1);
-//   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
-//   // tracking
-//   Tracking_Cells();
-//   Tracking_Clus();
-  Tracking_Reco();
+  // cells 
+  Mvtx_Cells();
+  Intt_Cells();
+  TPC_Cells();
+  Micromegas_Cells();
 
-  // local evaluation
-  se->registerSubsystem(new SimEvaluator_hp);
-
-  auto trackingEvaluator = new TrackingEvaluator_hp;
-  trackingEvaluator->set_flags(
-    TrackingEvaluator_hp::EvalEvent|
-    TrackingEvaluator_hp::EvalClusters|
-    TrackingEvaluator_hp::EvalTracks);
-  se->registerSubsystem(trackingEvaluator);
-
-  // QA modules
-  if( do_qa )
+  // digitizer and clustering
+  Mvtx_Clustering();
+  Intt_Clustering();
+  TPC_Clustering();
+  Micromegas_Clustering();
+  
+  if( false )
   {
-    se->registerSubsystem( new QAG4SimulationIntt );
-    se->registerSubsystem( new QAG4SimulationMvtx );
-    se->registerSubsystem( new QAG4SimulationTracking );
+    // tracking
+    TrackingInit();
+    Tracking_Reco();
   }
-
+  
+  if( false )
+  {
+    // local evaluation
+    auto simEvaluator = new SimEvaluator_hp;
+    simEvaluator->set_flags(
+      SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalVertices|
+      SimEvaluator_hp::EvalParticles );
+    se->registerSubsystem(simEvaluator);
+    
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalEvent|
+      TrackingEvaluator_hp::EvalClusters|
+      TrackingEvaluator_hp::EvalTracks);
+    se->registerSubsystem(trackingEvaluator);
+  }
+  
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
@@ -81,24 +92,14 @@ int Fun4All_G4_Reconstruction_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
-  se->skip(510);
   se->run(nEvents);
 
-  // QA
-  if( do_qa )
-  {
-    const char *qaFile= "QA/qa_output.root";
-    QAHistManagerDef::saveQARootFile(qaFile);
-  }
-
   // terminate
-  se->PrintTimer();
   se->End();
+  se->PrintTimer();
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);
