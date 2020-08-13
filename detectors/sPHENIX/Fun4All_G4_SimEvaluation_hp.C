@@ -20,7 +20,8 @@ R__LOAD_LIBRARY(libfun4all.so)
 //________________________________________________________________________________________________
 int Fun4All_G4_SimEvaluation_hp( 
     const int nEvents = 0,
-    const char* inputFile = "/sphenix/user/bogui/MacrosModular/macros/macros/g4simulations/clus_only/SvtxCluHijMBPu100_Mar20_1_1000.root",
+    // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/1/G4Hits_sHijing_0-12fm_00000_00100.root",
+    const char* inputFile = "DST/CONDOR_Hijing_Micromegas_100kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
     const char* outputFile = "DST/dst_eval.root"
 )
 {
@@ -39,7 +40,7 @@ int Fun4All_G4_SimEvaluation_hp(
   simEvaluator->set_flags(
     SimEvaluator_hp::EvalEvent|
     SimEvaluator_hp::EvalVertices|
-    SimEvaluator_hp::EvalHits|
+    // SimEvaluator_hp::EvalHits|
     SimEvaluator_hp::EvalParticles );
   se->registerSubsystem(simEvaluator);
 
@@ -58,6 +59,7 @@ int Fun4All_G4_SimEvaluation_hp(
 
   // terminate
   se->End();
+  se->PrintTimer();
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);

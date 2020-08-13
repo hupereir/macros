@@ -64,8 +64,8 @@ int Fun4All_G4_Evaluation_hp(
   se->run(nEvents);
 
   // terminate
-  se->PrintTimer();
   se->End();
+  se->PrintTimer();
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);
