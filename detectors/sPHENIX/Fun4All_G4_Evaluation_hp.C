@@ -21,8 +21,8 @@ R__LOAD_LIBRARY(libg4eval.so)
 //_________________________________________________________________________
 int Fun4All_G4_Evaluation_hp(
     const int nEvents = 1,
-    const char* inputFile = "DST/CONDOR_Hijing_Micromegas/Clusters_sHijing_0-12fm_merged_00000_00100.root",
-    const char *outputFile = "DST/CONDOR_Hijing_Micromegas/dst_eval_sHijing_0-12fm_merged_00000_00100.root" )
+    const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/Clusters_merged/Clusters_sHijing_0-12fm_merged_000000_000030.root",
+    const char *outputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/dst_eval/dst_eval_sHijing_0-12fm_merged_000000_000030.root" )
 {
   // server
   auto se = Fun4AllServer::instance();
