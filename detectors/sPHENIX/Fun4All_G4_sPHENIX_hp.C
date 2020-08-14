@@ -27,12 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
-  const char *outputFile = "DST/dst_eval.root"
-//   const int nEvents = 1000,
-//   const char *outputFile = "DST/dst_eval_1k_realistic_full_micromegas.root"
-//   const int nEvents = 5000,
-//   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas.root"
+  const int nEvents = 5000,
+  const char *outputFile = "DST/dst_eval_5k_realistic_full_micromegas-new.root"
   )
 {
 
@@ -59,7 +55,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity(1);
  
   // reco const
   auto rc = recoConsts::instance();
