@@ -22,8 +22,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_ClusterReconstruction_hp(
   const int nEvents = 1,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
-  const char* outputFile = "DST/Clusters.root" )
+  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/Clusters_merged/Clusters_sHijing_0-12fm_merged_000000_000030.root",
+  const char* outputFile = "DST/Clusters.root",
+  const char* evalFile = "DST/g4svtx_eval.root" )
 {
 
   // print inputs
@@ -45,7 +46,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // tracking configuration
   G4TRACKING::use_track_prop = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_tpc_layers = true;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -65,7 +66,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
     TPC_Cells();
     Micromegas_Cells();
   }
-  
+
   if( false )
   {
     // digitizer and clustering
@@ -74,12 +75,18 @@ int Fun4All_G4_ClusterReconstruction_hp(
     TPC_Clustering();
     Micromegas_Clustering();
   }
-  
+
   if( true )
   {
     // tracking
     TrackingInit();
     Tracking_Reco();
+  }
+
+  if( true )
+  {
+    // official evaluation
+    Tracking_Eval(evalFile);
   }
 
   if( true )
