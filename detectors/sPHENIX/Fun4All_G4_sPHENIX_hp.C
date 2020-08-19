@@ -27,21 +27,28 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 5000,
-  const char *outputFile = "DST/dst_eval_5k_realistic_full_micromegas-new.root"
+  const int nEvents = 10,
+  const char *outputFile = "DST/dst_eval.root"
+//   const int nEvents = 5000,
+//   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas-notpc.root"
   )
 {
 
   // options
-  Enable::BBC = true;
   Enable::PIPE = true;
-  Enable::PIPE_ABSORBER = true;
-  
+  Enable::BBC = true;
+  Enable::MAGNET = true;
+  Enable::PLUGDOOR = false;
+
+  // enable all absorbers
+  // this is equivalent to the old "absorberactive" flag
+  Enable::ABSORBER = true;
+
   // central tracking
   Enable::MVTX = true;
+  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
@@ -51,19 +58,19 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::disable_tpc_layers = false;
 
   // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;  
+  G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
- 
+
   // reco const
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
-  
+
   {
     // event generation
     auto gen = new PHG4SimpleEventGenerator;
@@ -81,7 +88,7 @@ int Fun4All_G4_sPHENIX_hp(
 
     // // flat pt distribution
     // gen->set_pt_range(0.5, 20.0);
-    
+
     // vertex
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
@@ -104,18 +111,18 @@ int Fun4All_G4_sPHENIX_hp(
   BbcInit();
   Bbc_Reco();
 
-  // cells 
+  // cells
   Mvtx_Cells();
   Intt_Cells();
   TPC_Cells();
   Micromegas_Cells();
-    
+
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
   Micromegas_Clustering();
-  
+
   // tracking
   TrackingInit();
   Tracking_Reco();
@@ -127,7 +134,7 @@ int Fun4All_G4_sPHENIX_hp(
     SimEvaluator_hp::EvalVertices|
     SimEvaluator_hp::EvalParticles );
   se->registerSubsystem(simEvaluator);
-  
+
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
