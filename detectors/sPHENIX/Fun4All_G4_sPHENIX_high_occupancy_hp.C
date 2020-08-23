@@ -68,9 +68,9 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
-  // reco const
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+//   // reco const
+//   auto rc = recoConsts::instance();
+//   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
