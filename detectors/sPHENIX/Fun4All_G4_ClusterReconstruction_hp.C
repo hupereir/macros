@@ -32,6 +32,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - evalFile: " << evalFile << std::endl;
 
   // central tracking
   Enable::MVTX = true;
