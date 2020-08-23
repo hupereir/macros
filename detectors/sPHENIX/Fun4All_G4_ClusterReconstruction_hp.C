@@ -3,10 +3,14 @@
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <phool/recoConsts.h>
+
+#include <qa_modules/QAG4SimulationUpsilon.h>
+#include <qa_modules/QAG4SimulationTracking.h>
+#include <qa_modules/QAG4SimulationVertex.h>
+#include <qa_modules/QAHistManagerDef.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAHistManagerDef.h>
+#include <qa_modules/QAG4SimulationTpc.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
@@ -24,7 +28,9 @@ int Fun4All_G4_ClusterReconstruction_hp(
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/Clusters_merged/Clusters_sHijing_0-12fm_merged_000000_000030.root",
   const char* outputFile = "DST/Clusters.root",
-  const char* evalFile = "DST/g4svtx_eval.root" )
+  const char* evalFile = "DST/g4svtx_eval.root",
+  const char* qaFile = "QA/qa_output.root"
+  )
 {
 
   // print inputs
@@ -33,6 +39,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - evalFile: " << evalFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - qaFile: " << qaFile << std::endl;
 
   // central tracking
   Enable::MVTX = true;
@@ -49,6 +56,11 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = true;
 
+  // local flags
+  const bool do_local_evaluation = false;
+  const bool do_evaluation = false;
+  const bool do_qa = true;
+  
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -84,13 +96,13 @@ int Fun4All_G4_ClusterReconstruction_hp(
     Tracking_Reco();
   }
 
-  if( true )
+  if( do_evaluation )
   {
     // official evaluation
     Tracking_Eval(evalFile);
   }
 
-  if( true )
+  if( do_local_evaluation )
   {
     // local evaluation
     auto simEvaluator = new SimEvaluator_hp;
@@ -106,6 +118,14 @@ int Fun4All_G4_ClusterReconstruction_hp(
       TrackingEvaluator_hp::EvalClusters|
       TrackingEvaluator_hp::EvalTracks);
     se->registerSubsystem(trackingEvaluator);
+  }
+  
+  if( do_qa ) 
+  {
+    // tracking QA
+    auto qa = new QAG4SimulationTracking();
+    qa->addEmbeddingID(0);
+    se->registerSubsystem(qa);
   }
 
   // input manager
@@ -126,6 +146,10 @@ int Fun4All_G4_ClusterReconstruction_hp(
 
   // process events
   se->run(nEvents);
+
+  // save QA histograms
+  if( do_qa ) 
+  { QAHistManagerDef::saveQARootFile(qaFile); }
 
   // terminate
   se->End();
