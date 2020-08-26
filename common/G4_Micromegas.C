@@ -37,7 +37,7 @@ namespace G4MICROMEGAS
     CONFIG_Z_ONE_SECTOR
   };
 
-  Config CONFIG = CONFIG_PHI_ONE_RING;
+  Config CONFIG = CONFIG_Z_ONE_SECTOR;
 }
 
 void MicromegasInit()
@@ -88,7 +88,7 @@ void Micromegas_Cells()
     case G4MICROMEGAS::CONFIG_MINIMAL:
     {
       // one tile at mid rapidity in front of TPC sector
-      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_MINIMAL" << std::endl; 
+      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_MINIMAL" << std::endl;
       static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
       reco->set_tiles( {{{ phi0, 0, tile_width/radius, tile_length }}} );
       break;
@@ -97,7 +97,7 @@ void Micromegas_Cells()
     case G4MICROMEGAS::CONFIG_PHI_ONE_RING:
     {
       // 12 tiles at mid rapidity, one in front of each TPC sector
-      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_PHI_ONE_RING" << std::endl; 
+      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_PHI_ONE_RING" << std::endl;
       static constexpr int ntiles = 12;
       MicromegasTile::List tiles;
       for (int i = 0; i < ntiles; ++i)
@@ -111,7 +111,7 @@ void Micromegas_Cells()
     case G4MICROMEGAS::CONFIG_Z_ONE_SECTOR:
     {
       // 4 tiles with full z coverage in front of one TPC sector
-      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_Z_ONE_SECTOR" << std::endl; 
+      std::cout << "Micromegas_Cells - Tiles configuration: CONFIG_Z_ONE_SECTOR" << std::endl;
       static constexpr double phi0 = M_PI*(0.5 + 1./nsectors);
       static constexpr int ntiles = 4;
       MicromegasTile::List tiles;
