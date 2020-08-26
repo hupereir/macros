@@ -1,10 +1,9 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
-#include <phool/recoConsts.h>
-
 #include <g4main/Fun4AllDstPileupInputManager.h>
 #include <g4main/PHG4VertexSelection.h>
+#include <phool/recoConsts.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
@@ -40,7 +39,7 @@ const char* outputFile = "DST/dst_g4hits_merged.root"
 
   // input manager
   auto in = new Fun4AllDstPileupInputManager("DSTin");
-  in->registerSubsystem( new PHG4VertexSelection() );
+  in->registerSubsystem( new PHG4VertexSelection );
   in->setEventOffset(eventOffset);
   
   // load timestamps
