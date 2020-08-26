@@ -2,6 +2,7 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
+#include <g4main/PHG4VertexSelection.h>
 #include <phool/recoConsts.h>
 
 #include <qa_modules/QAG4SimulationUpsilon.h>
@@ -27,7 +28,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   const int nEvents = 1,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/Clusters_merged/Clusters_sHijing_0-12fm_merged_000000_000030.root",
-  const char* outputFile = "DST/Clusters.root",
+  const char* outputFile = "DST/tracks.root",
   const char* evalFile = "DST/g4svtx_eval.root",
   const char* qaFile = "QA/qa_output.root"
   )
@@ -54,11 +55,11 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // tracking configuration
   G4TRACKING::use_track_prop = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
 
   // local flags
-  const bool do_local_evaluation = false;
   const bool do_evaluation = false;
+  const bool do_local_evaluation = true;
   const bool do_qa = true;
   
   // server
@@ -130,6 +131,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
+  in->registerSubsystem( new PHG4VertexSelection );
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
