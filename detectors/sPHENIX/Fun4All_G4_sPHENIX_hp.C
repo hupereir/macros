@@ -52,9 +52,13 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
+  // TPC
+  G4TPC::enable_distortions = true;
+  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeams.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  
   // tracking configuration
   G4TRACKING::use_Genfit = true;
-  G4TRACKING::use_truth_track_seeding = false;
+  G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
