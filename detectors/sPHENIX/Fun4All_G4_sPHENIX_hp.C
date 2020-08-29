@@ -85,15 +85,18 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    // use specific distribution to generate pt
-    // values from "http://arxiv.org/abs/nucl-ex/0308006"
-    const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
-    const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
-    gen->set_pt_range(pt_bins,yield_int);
-
-    // // flat pt distribution
-    // gen->set_pt_range(0.5, 20.0);
-
+    if( true )
+    {
+      // use specific distribution to generate pt
+      // values from "http://arxiv.org/abs/nucl-ex/0308006"
+      const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
+      const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
+      gen->set_pt_range(pt_bins,yield_int);
+    } else {
+      // flat pt distribution
+      gen->set_pt_range(0.5, 20.0);
+    }
+    
     // vertex
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
