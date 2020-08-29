@@ -2,7 +2,7 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDummyInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
-#include <g4main/PHG4SimpleEventGenerator.h>
+#include <g4main/PHG4ParticleGeneratorVectorMeson.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 #include <qa_modules/QAG4SimulationIntt.h>
