@@ -53,8 +53,8 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::enable_distortions = true;
-  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeams.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  G4TPC::enable_distortions = false;
+  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
   
   // tracking configuration
   G4TRACKING::use_Genfit = true;
@@ -69,9 +69,9 @@ int Fun4All_G4_sPHENIX_hp(
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
-  // reco const
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", 1);
+//   // reco const
+//   auto rc = recoConsts::instance();
+//   rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
