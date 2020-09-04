@@ -58,11 +58,6 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
-  // local flags
-  const bool do_evaluation = false;
-  const bool do_local_evaluation = true;
-  const bool do_qa = true;
-  
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -98,13 +93,13 @@ int Fun4All_G4_ClusterReconstruction_hp(
     Tracking_Reco();
   }
 
-  if( do_evaluation )
+  if( false )
   {
     // official evaluation
     Tracking_Eval(evalFile);
   }
 
-  if( do_local_evaluation )
+  if( true )
   {
     // local evaluation
     auto simEvaluator = new SimEvaluator_hp;
@@ -122,6 +117,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
     se->registerSubsystem(trackingEvaluator);
   }
   
+  const bool do_qa = false;
   if( do_qa ) 
   {
     // tracking QA
