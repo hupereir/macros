@@ -21,9 +21,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 1,
-  const int nSkipEvents = 0,
+  const int nSkipEvents = 131,
   const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
-  const char *outputFile = "DST/Clusters.root" )
+  const char *outputFile = "DST/dst_eval.root" )
 {
 
   // print inputs
@@ -39,21 +39,25 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
 
+  // TPC
+  G4TPC::enable_distortions = true;
+  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
   G4TRACKING::use_Genfit = true;
-  G4TRACKING::use_truth_track_seeding = false;
+  G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_tpc_layers = true;
 
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
   // reco const
-  auto rc = recoConsts::instance();
+  // auto rc = recoConsts::instance();
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
@@ -70,14 +74,14 @@ int Fun4All_G4_Reconstruction_hp(
   TPC_Clustering();
   Micromegas_Clustering();
 
-  if( false )
+  if( true )
   {
     // tracking
     TrackingInit();
     Tracking_Reco();
   }
 
-  if( false )
+  if( true )
   {
     // local evaluation
     auto simEvaluator = new SimEvaluator_hp;
@@ -103,6 +107,11 @@ int Fun4All_G4_Reconstruction_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  if( true )
+  {
+    out->AddNode("SimEvaluator_hp::Container");
+    out->AddNode("TrackingEvaluator_hp::Container");
+  }
   se->registerOutputManager(out);
 
   // skip events if any specified
