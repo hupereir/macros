@@ -50,7 +50,10 @@ namespace G4TPC
   
   bool enable_corrections = false;
   std::string correction_filename;
-
+  unsigned int correction_coordinates = 
+    TpcSpaceChargeCorrection_hp::COORD_PHI|
+    TpcSpaceChargeCorrection_hp::COORD_R;
+  
 }  // namespace G4TPC
 
 void TPCInit()
@@ -203,6 +206,7 @@ void TPC_Clustering()
   {
     auto tpcSpaceChargeCorrection = new TpcSpaceChargeCorrection_hp;
     tpcSpaceChargeCorrection->set_distortion_filename( G4TPC::correction_filename );
+    tpcSpaceChargeCorrection->set_coordinates( G4TPC::correction_coordinates );
     se->registerSubsystem(tpcSpaceChargeCorrection);
   }
   
