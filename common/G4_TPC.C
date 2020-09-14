@@ -16,6 +16,7 @@
 #include <g4main/PHG4Reco.h>
 
 #include <tpc/TpcClusterizer.h>
+#include <tpc/TpcSpaceChargeCorrection_hp.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -47,6 +48,9 @@ namespace G4TPC
   bool enable_distortions = false;
   std::string distortion_filename;
   
+  bool enable_corrections = false;
+  std::string correction_filename;
+
 }  // namespace G4TPC
 
 void TPCInit()
@@ -168,11 +172,11 @@ void TPC_Clustering()
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::TPC_VERBOSITY);
 
-  Fun4AllServer* se = Fun4AllServer::instance();
+  auto se = Fun4AllServer::instance();
 
   // Tpc
   //====
-  PHG4TpcDigitizer* digitpc = new PHG4TpcDigitizer();
+  auto digitpc = new PHG4TpcDigitizer;
   digitpc->SetTpcMinLayer(G4MVTX::n_maps_layer + G4INTT::n_intt_layer);
   double ENC = 670.0;  // standard
   digitpc->SetENC(ENC);
@@ -190,8 +194,17 @@ void TPC_Clustering()
 
   // For the Tpc
   //==========
-  TpcClusterizer* tpcclusterizer = new TpcClusterizer();
+  auto tpcclusterizer = new TpcClusterizer;
   tpcclusterizer->Verbosity(verbosity);
   se->registerSubsystem(tpcclusterizer);
+  
+  // space charge correction
+  if( G4TPC::enable_corrections )
+  {
+    auto tpcSpaceChargeCorrection = new TpcSpaceChargeCorrection_hp;
+    tpcSpaceChargeCorrection->set_distortion_filename( G4TPC::correction_filename );
+    se->registerSubsystem(tpcSpaceChargeCorrection);
+  }
+  
 }
 #endif

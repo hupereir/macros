@@ -27,8 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 10,
-  const char *outputFile = "DST/dst_eval.root"
+  const int nEvents = 500,
+  const char *outputFile = "DST/dst_eval_upsilon_corrected_2.root"
   )
 {
 
@@ -51,9 +51,15 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::enable_distortions = false;
+  // space charge distortions
+  G4TPC::enable_distortions = true;
   G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
-  
+
+  // space charge corrections
+  G4TPC::enable_corrections = true;
+  // G4TPC::correction_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc.root";
+
   // tracking configuration
   G4TRACKING::use_track_prop = false;
   G4TRACKING::disable_mvtx_layers = false;
