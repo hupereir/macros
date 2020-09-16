@@ -55,7 +55,7 @@ int Fun4All_G4_sPHENIX_hp(
   // TPC
   G4TPC::enable_distortions = false;
   G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
-  
+
   // tracking configuration
   G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
@@ -68,6 +68,9 @@ int Fun4All_G4_sPHENIX_hp(
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
+
+  // make sure to printout random seeds for reproducibility
+  PHRandomSeed::Verbosity(1);
 
 //   // reco const
 //   auto rc = recoConsts::instance();
@@ -96,7 +99,7 @@ int Fun4All_G4_sPHENIX_hp(
       // flat pt distribution
       gen->set_pt_range(0.5, 20.0);
     }
-    
+
     // vertex
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
