@@ -2,6 +2,7 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
