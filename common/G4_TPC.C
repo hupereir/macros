@@ -44,16 +44,21 @@ namespace G4TPC
   int n_tpc_layer_outer = 16;
   int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
   double tpc_outer_radius = 77. + 2.;
-  
+
+  // distortions
   bool enable_distortions = false;
   std::string distortion_filename;
-  
+  unsigned int distortion_coordinates =
+    PHG4TpcElectronDrift::COORD_PHI|
+    PHG4TpcElectronDrift::COORD_R;
+
+  // distortion corrections
   bool enable_corrections = false;
   std::string correction_filename;
-  unsigned int correction_coordinates = 
+  unsigned int correction_coordinates =
     TpcSpaceChargeCorrection_hp::COORD_PHI|
     TpcSpaceChargeCorrection_hp::COORD_R;
-  
+
 }  // namespace G4TPC
 
 void TPCInit()
@@ -157,11 +162,15 @@ void TPC_Cells()
   //edrift->set_double_param("added_smear_trans",0.085);
   //edrift->set_double_param("added_smear_long",0.105);
   edrift->registerPadPlane(padplane);
-  
+
   // distortions
   edrift->set_enable_distortions( G4TPC::enable_distortions );
-  if( G4TPC::enable_distortions ) edrift->set_distortion_filename( G4TPC::distortion_filename );
-  
+  if( G4TPC::enable_distortions )
+  {
+    edrift->set_distortion_filename( G4TPC::distortion_filename );
+    edrift->set_coordinates( G4TPC::distortion_coordinates );
+  }
+
   se->registerSubsystem(edrift);
 
   // The pad plane readout default is set in PHG4TpcPadPlaneReadout
@@ -200,7 +209,7 @@ void TPC_Clustering()
   auto tpcclusterizer = new TpcClusterizer;
   tpcclusterizer->Verbosity(verbosity);
   se->registerSubsystem(tpcclusterizer);
-  
+
   // space charge correction
   if( G4TPC::enable_corrections )
   {
@@ -209,6 +218,6 @@ void TPC_Clustering()
     tpcSpaceChargeCorrection->set_coordinates( G4TPC::correction_coordinates );
     se->registerSubsystem(tpcSpaceChargeCorrection);
   }
-  
+
 }
 #endif
