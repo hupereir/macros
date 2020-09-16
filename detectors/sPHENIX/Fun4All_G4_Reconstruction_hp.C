@@ -56,8 +56,12 @@ int Fun4All_G4_Reconstruction_hp(
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
+  // make sure to printout random seeds for reproducibility
+  PHRandomSeed::Verbosity(1);
+
   // reco const
   // auto rc = recoConsts::instance();
+  // rc->set_IntFlag("RANDOMSEED", 1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
