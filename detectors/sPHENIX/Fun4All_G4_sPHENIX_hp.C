@@ -27,8 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
-  const char *outputFile = "DST/dst_eval.root"
+  const int nEvents = 5000,
+  const char *outputFile = "DST/dst_eval_config3.root"
 //   const int nEvents = 5000,
 //   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas-notpc.root"
   )
@@ -54,7 +54,12 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   G4TPC::enable_distortions = false;
-  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  // G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  G4TPC::distortion_filename = "distortion_maps/output.averaged.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+
+  // Micromegas
+  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_PHI_ONE_RING;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
   G4TRACKING::use_Genfit = true;
@@ -72,9 +77,9 @@ int Fun4All_G4_sPHENIX_hp(
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
-//   // reco const
-//   auto rc = recoConsts::instance();
-//   rc->set_IntFlag("RANDOMSEED", 1);
+  // reco const
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
