@@ -84,6 +84,7 @@ namespace G4TRACKING
 
   bool disable_mvtx_layers = false;
   bool disable_tpc_layers = false;
+  bool disable_micromegas_layers = false;
 
   // This is the setup that uses PHInitZvertexing to find initial vertices, and allows for multiple collisions per event
   //std::string vmethod("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9");  // seems to handle multi-vertex events.
@@ -267,6 +268,13 @@ void Tracking_Reco()
       for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
     }
 
+    // disable micromegas
+    if( G4TRACKING::disable_micromegas_layers )
+    {
+      std::cout << "Tracking_reco - Disabling Micromegas layers from kalman filter" << std::endl;
+      for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
+    }
+  
     se->registerSubsystem(kalman);
 
     //------------------
