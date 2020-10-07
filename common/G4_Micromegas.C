@@ -132,11 +132,12 @@ void Micromegas_Cells()
       { tiles.emplace_back( phi0, length*((0.5+i)/ntiles_z-0.5), tile_width/radius, tile_length ); }
 
       // for the other sectors we put two tiles on either side of the central membrane
+      static constexpr double zoffset = 7;
       for( int i = 1; i < nsectors; ++i )
       {
         const double phi = phi0 + 2.*M_PI*i/nsectors;
-        tiles.emplace_back( phi, length*(1.5/4-0.5), tile_width/radius, tile_length );
-        tiles.emplace_back( phi, length*(2.5/4-0.5), tile_width/radius, tile_length );
+        tiles.emplace_back( phi, length*(1.5/4-0.5) - zoffset, tile_width/radius, tile_length );
+        tiles.emplace_back( phi, length*(2.5/4-0.5) + zoffset, tile_width/radius, tile_length );
       }
       reco->set_tiles( tiles );
       break;
