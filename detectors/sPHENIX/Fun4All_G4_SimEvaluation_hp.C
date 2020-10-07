@@ -6,7 +6,10 @@
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
+
+#include "G4_Tracking.C"
 
 // needed to avoid warnings at readback
 R__LOAD_LIBRARY(libg4bbc.so)
@@ -18,13 +21,23 @@ R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_SimEvaluation_hp( 
-    const int nEvents = 0,
-    // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/1/G4Hits_sHijing_0-12fm_00000_00100.root",
+int Fun4All_G4_SimEvaluation_hp(
+    const int nEvents = 1,
+    const int nSkipEvents = 0,
     const char* inputFile = "DST/CONDOR_Hijing_Micromegas_100kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
     const char* outputFile = "DST/dst_eval.root"
 )
 {
+
+  // print inputs
+  std::cout << "Fun4All_G4_SimEvaluation_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_G4_SimEvaluation_hp - nSkipEvents: " << nSkipEvents << std::endl;
+  std::cout << "Fun4All_G4_SimEvaluation_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_G4_SimEvaluation_hp - outputFile: " << outputFile << std::endl;
+
+  Enable::MICROMEGAS = true;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_MAXIMAL;
+
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -35,6 +48,9 @@ int Fun4All_G4_SimEvaluation_hp(
   // event counter
   se->registerSubsystem(new EventCounter_hp("EVENTCOUNTER_HP",1));
 
+  // need to run micromegas CELLS, in order to have a valid geometry
+  Micromegas_Cells();
+
   // local evaluation
   auto simEvaluator = new SimEvaluator_hp;
   simEvaluator->set_flags(
@@ -44,6 +60,11 @@ int Fun4All_G4_SimEvaluation_hp(
     SimEvaluator_hp::EvalParticles );
   se->registerSubsystem(simEvaluator);
 
+  // Micromegas evaluation
+  auto micromegasEvaluator = new MicromegasEvaluator_hp;
+  micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+  se->registerSubsystem(micromegasEvaluator);
+
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
@@ -52,7 +73,12 @@ int Fun4All_G4_SimEvaluation_hp(
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   out->AddNode("SimEvaluator_hp::Container");
+  out->AddNode("MicromegasEvaluator_hp::Container");
   se->registerOutputManager(out);
+
+  // skip events if any specified
+  if( nSkipEvents > 0 )
+  { se->skip( nSkipEvents ); }
 
   // process events
   se->run(nEvents);
