@@ -50,14 +50,16 @@ namespace G4TPC
   std::string distortion_filename;
   unsigned int distortion_coordinates =
     PHG4TpcElectronDrift::COORD_PHI|
-    PHG4TpcElectronDrift::COORD_R;
+    PHG4TpcElectronDrift::COORD_R|
+    PHG4TpcElectronDrift::COORD_Z;
 
   // distortion corrections
   bool enable_corrections = false;
   std::string correction_filename;
   unsigned int correction_coordinates =
     TpcSpaceChargeCorrection_hp::COORD_PHI|
-    TpcSpaceChargeCorrection_hp::COORD_R;
+    TpcSpaceChargeCorrection_hp::COORD_R|
+    TpcSpaceChargeCorrection_hp::COORD_Z;
 
 }  // namespace G4TPC
 
