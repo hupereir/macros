@@ -53,15 +53,17 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::enable_distortions = true;
-  G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
+  G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::distortion_coordinates =
+    PHG4TpcElectronDrift::COORD_PHI|
+    PHG4TpcElectronDrift::COORD_R|
+    PHG4TpcElectronDrift::COORD_Z;
 
-  // space charge corrections
-  G4TPC::enable_corrections = true;
-  // G4TPC::correction_filename = "distortion_maps_rec/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.phi_averaged.root";
-  // G4TPC::correction_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc.root";
-  G4TPC::correction_filename = "distortion_maps_rec/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.phi_averaged.root";
-  G4TPC::correction_coordinates = TpcSpaceChargeCorrection_hp::COORD_PHI;
+//   // space charge corrections
+//   G4TPC::enable_corrections = false;
+//   G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc.root";
+//   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc_truth.root";
+//   G4TPC::correction_coordinates = TpcSpaceChargeCorrection_hp::COORD_PHI;
 
   // tracking configuration
   G4TRACKING::use_track_prop = false;
@@ -75,9 +77,9 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
-//   // reco const
-//   auto rc = recoConsts::instance();
-//   rc->set_IntFlag("RANDOMSEED", 1);
+  // reco const
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -88,15 +90,15 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
     gen->set_mass( 9.4603 );
     gen->set_width( 54.02e-6 );
     gen->add_decay_particles( "e+", "e-", 0 );
-    
+
     gen->set_vertex_distribution_function(
       PHG4ParticleGeneratorVectorMeson::Uniform,
       PHG4ParticleGeneratorVectorMeson::Uniform,
       PHG4ParticleGeneratorVectorMeson::Uniform);
-    
+
     gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
     gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
-    
+
     // TODO: what are vertex_size
     gen->set_vertex_size_function(PHG4ParticleGeneratorVectorMeson::Uniform);
     gen->set_vertex_size_parameters(0.0, 0.0);
