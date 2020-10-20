@@ -43,7 +43,8 @@ int Fun4All_G4_Reconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_track_prop = true;
+  G4TRACKING::use_Genfit = true;
+  G4TRACKING::use_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 

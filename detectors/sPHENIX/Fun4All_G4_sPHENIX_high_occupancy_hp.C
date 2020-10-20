@@ -57,7 +57,8 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   Enable::BLACKHOLE = true;
 
   // tracking configuration
-  G4TRACKING::use_track_prop = true;
+  G4TRACKING::use_Genfit = true;
+  G4TRACKING::use_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
