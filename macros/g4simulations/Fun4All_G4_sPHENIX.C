@@ -133,6 +133,8 @@ int Fun4All_G4_sPHENIX(
   bool do_femc_cluster = do_femc_twr && true;
   bool do_femc_eval = do_femc_cluster && true;
 
+  bool do_epd = false;
+
   //! forward flux return plug door. Out of acceptance and off by default.
   bool do_plugdoor = false;
 
@@ -170,7 +172,7 @@ int Fun4All_G4_sPHENIX(
   gSystem->Load("libg4intt.so");
   // establish the geometry and reconstruction setup
   gROOT->LoadMacro("G4Setup_sPHENIX.C");
-  G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, do_femc, do_mvtxservice);
+  G4Init(do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe, do_plugdoor, do_femc, do_epd, do_mvtxservice);
 
   int absorberactive = 1;  // set to 1 to make all absorbers active volumes
   //  const string magfield = "1.5"; // alternatively to specify a constant magnetic field, give a float number, which will be translated to solenoidal field in T, if string use as fieldmap name (including path)
@@ -363,10 +365,10 @@ int Fun4All_G4_sPHENIX(
 
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
     G4Setup(absorberactive, magfield, EDecayType::kAll,
-            do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe,do_plugdoor, do_femc, do_mvtxservice, magfield_rescale);
+            do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe,do_plugdoor, do_femc, do_epd, do_mvtxservice, magfield_rescale);
 #else
     G4Setup(absorberactive, magfield, TPythia6Decayer::kAll,
-            do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe,do_plugdoor, do_femc, do_mvtxservice, magfield_rescale);
+            do_tracking, do_pstof, do_cemc, do_hcalin, do_magnet, do_hcalout, do_pipe,do_plugdoor, do_femc, do_epd, do_mvtxservice, magfield_rescale);
 #endif
   }
 
@@ -558,8 +560,10 @@ int Fun4All_G4_sPHENIX(
     // pile up simulation.
     // add random beam collisions following a collision diamond and rate from a HepMC stream
     Fun4AllHepMCPileupInputManager *pileup = new Fun4AllHepMCPileupInputManager("HepMCPileupInput");
+    pileup->set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
+    pileup->set_vertex_distribution_mean(0, 0, 0, 0);
+    pileup->set_vertex_distribution_width(100e-4, 100e-4, 30, 5);
     se->registerInputManager(pileup);
-
     const string pileupfile("/sphenix/sim/sim01/sHijing/sHijing_0-12fm.dat");
     //background files for p+p pileup sim
     //const string pileupfile("/gpfs/mnt/gpfs04/sphenix/user/shlim/04.InnerTrackerTaskForce/01.PythiaGen/list_pythia8_mb.dat");
@@ -598,6 +602,7 @@ int Fun4All_G4_sPHENIX(
                 /*bool*/ do_hcalin,
                 /*bool*/ do_magnet,
                 /*bool*/ do_hcalout,
+                /*bool*/ do_epd,
                 /*bool*/ do_cemc_twr,
                 /*bool*/ do_hcalin_twr,
                 /*bool*/ do_hcalout_twr);

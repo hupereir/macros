@@ -60,11 +60,13 @@ namespace INPUTREADEIC
 namespace INPUTREADHITS
 {
   string filename;
+  string listfile;
 }
 
 namespace INPUTEMBED
 {
   string filename;
+  string listfile;
 }
 
 namespace PYTHIA6
@@ -84,7 +86,7 @@ namespace SARTRE
 
 namespace PILEUP
 {
-  string pileupfile = "/sphenix/sim/sim01/sHijing/sHijing_0-12fm.dat";
+  string pileupfile = "/sphenix/sim/sim01/sphnxpro/sHijing_HepMC/sHijing_0-12fm.dat";
   double TpcDriftVelocity = 8.0 / 1000.0;
 }  // namespace PILEUP
 
@@ -103,6 +105,7 @@ namespace INPUTGENERATOR
 namespace INPUTMANAGER
 {
   Fun4AllHepMCInputManager *HepMCInputManager = nullptr;
+  Fun4AllHepMCPileupInputManager *HepMCPileupInputManager = nullptr;
 }
 
 void InputInit()
@@ -114,6 +117,12 @@ void InputInit()
     cout << "Reading Hits and Embedding into background at the same time is not supported" << endl;
     gSystem->Exit(1);
   }
+  if (Input::READHITS && (Input::PYTHIA6 || Input::PYTHIA8 || Input::SARTRE || Input::SIMPLE || Input::GUN || Input::UPSILON || Input::HEPMC))
+  {
+    cout << "Reading Hits and running G4 simultanously is not supported" << endl;
+    gSystem->Exit(1);
+  }
+
   if (Input::PYTHIA6 && Input::PYTHIA8)
   {
     cout << "Pythia6 and Pythia8 cannot be run together - might be possible but needs R&D" << endl;
@@ -160,6 +169,10 @@ void InputInit()
   if (Input::HEPMC)
   {
     INPUTMANAGER::HepMCInputManager = new Fun4AllHepMCInputManager("HEPMCin");
+  }
+  if (Input::PILEUPRATE > 0)
+  {
+    INPUTMANAGER::HepMCPileupInputManager = new Fun4AllHepMCPileupInputManager("HepMCPileupInput");
   }
 }
 
@@ -221,8 +234,20 @@ void InputManagers()
   if (Input::EMBED)
   {
     gSystem->Load("libg4dst.so");
-    Fun4AllDstInputManager *in1 = new Fun4AllNoSyncDstInputManager("DSTinEmbed");
-    in1->AddFile(INPUTEMBED::filename);  // if one use a single input file
+    Fun4AllInputManager *in1 = new Fun4AllNoSyncDstInputManager("DSTinEmbed");
+    if (!INPUTEMBED::filename.empty() && INPUTEMBED::listfile.empty())
+    {
+      in1->fileopen(INPUTEMBED::filename);
+    }
+    else if (!INPUTEMBED::listfile.empty())
+    {
+      in1->AddListFile(INPUTEMBED::listfile);
+    }
+    else
+    {
+      cout << "no filename INPUTEMBED::filename or listfile INPUTEMBED::listfile given" << endl;
+      gSystem->Exit(1);
+    }
     in1->Repeat();                       // if file(or filelist) is exhausted, start from beginning
     se->registerInputManager(in1);
   }
@@ -235,7 +260,19 @@ void InputManagers()
   else if (Input::READHITS)
   {
     Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
-    hitsin->fileopen(INPUTREADHITS::filename);
+    if (!INPUTREADHITS::filename.empty() && INPUTREADHITS::listfile.empty())
+    {
+      hitsin->fileopen(INPUTREADHITS::filename);
+    }
+    else if (!INPUTREADHITS::listfile.empty())
+    {
+      hitsin->AddListFile(INPUTREADHITS::listfile);
+    }
+    else
+    {
+      cout << "no filename INPUTREADHITS::filename or listfile INPUTREADHITS::listfile given" << endl;
+      gSystem->Exit(1);
+    }
     hitsin->Verbosity(Input::VERBOSITY);
     se->registerInputManager(hitsin);
   }
@@ -247,13 +284,13 @@ void InputManagers()
   }
   if (Input::PILEUPRATE > 0)
   {
-    Fun4AllHepMCPileupInputManager *pileup = new Fun4AllHepMCPileupInputManager("HepMCPileupInput");
-    pileup->Verbosity(Input::VERBOSITY);
-    pileup->AddFile(PILEUP::pileupfile);
-    pileup->set_collision_rate(Input::PILEUPRATE);
+    INPUTMANAGER::HepMCPileupInputManager->SignalInputManager(INPUTMANAGER::HepMCInputManager);
+    INPUTMANAGER::HepMCPileupInputManager->Verbosity(Input::VERBOSITY);
+    INPUTMANAGER::HepMCPileupInputManager->AddFile(PILEUP::pileupfile);
+    INPUTMANAGER::HepMCPileupInputManager->set_collision_rate(Input::PILEUPRATE);
     double time_window = 105.5 / PILEUP::TpcDriftVelocity;
-    pileup->set_time_window(-time_window, time_window);
-    se->registerInputManager(pileup);
+    INPUTMANAGER::HepMCPileupInputManager->set_time_window(-time_window, time_window);
+    se->registerInputManager(INPUTMANAGER::HepMCPileupInputManager);
   }
 }
 #endif

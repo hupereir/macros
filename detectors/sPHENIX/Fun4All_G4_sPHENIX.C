@@ -26,9 +26,12 @@
 
 R__LOAD_LIBRARY(libfun4all.so)
 
+// For HepMC Hijing
+// try inputFile = /sphenix/sim/sim01/sphnxpro/sHijing_HepMC/sHijing_0-12fm.dat
+
 int Fun4All_G4_sPHENIX(
     const int nEvents = 1,
-    const string &inputFile = "/sphenix/data/data02/review_2017-08-02/single_particle/spacal2d/fieldmap/G4Hits_sPHENIX_e-_eta0_8GeV-0002.root",
+    const string &inputFile = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const string &outputFile = "G4sPHENIX.root",
     const string &embed_input_file = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const int skip = 0,
@@ -55,6 +58,8 @@ int Fun4All_G4_sPHENIX(
   //===============
   // Input options
   //===============
+  // verbosity setting (applies to all input managers)
+  Input::VERBOSITY = 0;
   // First enable the input generators
   // Either:
   // read previously generated g4-hits files, in this case it opens a DST and skips
@@ -86,8 +91,7 @@ int Fun4All_G4_sPHENIX(
   //  Input::UPSILON = true;
   Input::UPSILON_VERBOSITY = 0;
 
-//  Input::HEPMC = true;
-  Input::VERBOSITY = 0;
+  //  Input::HEPMC = true;
   INPUTHEPMC::filename = inputFile;
 
   // Event pile up simulation with collision rate in Hz MB collisions.
@@ -124,6 +128,7 @@ int Fun4All_G4_sPHENIX(
     INPUTGENERATOR::SimpleEventGenerator->set_eta_range(-1, 1);
     INPUTGENERATOR::SimpleEventGenerator->set_phi_range(-M_PI, M_PI);
     INPUTGENERATOR::SimpleEventGenerator->set_pt_range(0.1, 20.);
+    INPUTGENERATOR::SimpleEventGenerator->Embed(2);
   }
   // Upsilons
   if (Input::UPSILON)
@@ -148,27 +153,34 @@ int Fun4All_G4_sPHENIX(
 
   if (Input::HEPMC)
   {
-    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_width(100e-4,100e-4,30,0);//optional collision smear in space, time
-//    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_mean(0,0,0,0);//optional collision central position shift in space, time
+    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_width(100e-4, 100e-4, 8, 0);  //optional collision smear in space, time
+                                                                                           //    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_mean(0,0,0,0);//optional collision central position shift in space, time
     // //optional choice of vertex distribution function in space, time
-    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_function(PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus);
+    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
     //! embedding ID for the event
     //! positive ID is the embedded event of interest, e.g. jetty event from pythia
     //! negative IDs are backgrounds, .e.g out of time pile up collisions
     //! Usually, ID = 0 means the primary Au+Au collision background
     //INPUTMANAGER::HepMCInputManager->set_embedding_id(2);
+    if (Input::PILEUPRATE > 0)
+    {
+      // Copy vertex settings from foreground hepmc input
+      INPUTMANAGER::HepMCPileupInputManager->CopyHelperSettings(INPUTMANAGER::HepMCInputManager);
+      // and then modify the ones you want to be different
+      // INPUTMANAGER::HepMCPileupInputManager->set_vertex_distribution_width(100e-4,100e-4,8,0);
+    }
   }
   // register all input generators with Fun4All
   InputRegister();
 
-// set up production relatedstuff
-//   Enable::PRODUCTION = true;
+  // set up production relatedstuff
+  //   Enable::PRODUCTION = true;
 
   //======================
   // Write the DST
   //======================
 
-//  Enable::DSTOUT = true;
+  //  Enable::DSTOUT = true;
   Enable::DSTOUT_COMPRESS = false;
   DstOut::OutputDir = outdir;
   DstOut::OutputFile = outputFile;
@@ -215,9 +227,9 @@ int Fun4All_G4_sPHENIX(
   Enable::TRACKING_TRACK = true;
   Enable::TRACKING_EVAL = Enable::TRACKING_TRACK && true;
 
-//  cemc electronics + thin layer of W-epoxy to get albedo from cemc 
-//  into the tracking, cannot run together with CEMC
-//  Enable::CEMCALBEDO = true;
+  //  cemc electronics + thin layer of W-epoxy to get albedo from cemc
+  //  into the tracking, cannot run together with CEMC
+  //  Enable::CEMCALBEDO = true;
 
   Enable::CEMC = true;
   Enable::CEMC_ABSORBER = true;
@@ -250,6 +262,8 @@ int Fun4All_G4_sPHENIX(
   Enable::FEMC_TOWER = Enable::FEMC_CELL && true;
   Enable::FEMC_CLUSTER = Enable::FEMC_TOWER && true;
   Enable::FEMC_EVAL = Enable::FEMC_CLUSTER && true;
+
+  Enable::EPD = false;
 
   //! forward flux return plug door. Out of acceptance and off by default.
   //Enable::PLUGDOOR = true;
@@ -457,6 +471,23 @@ int Fun4All_G4_sPHENIX(
   //-----------------
   // Event processing
   //-----------------
+  if (Enable::DISPLAY)
+  {
+    DisplayOn();
+
+    gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
+    gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+
+    cout << "-------------------------------------------------" << endl;
+    cout << "You are in event display mode. Run one event with" << endl;
+    cout << "se->run(1)" << endl;
+    cout << "Run Geant4 command with following examples" << endl;
+    gROOT->ProcessLine("displaycmd()");
+
+    return 0;
+  }
+
+// if we use a negative number of events we go back to the command line here
   if (nEvents < 0)
   {
     return 0;
@@ -469,14 +500,6 @@ int Fun4All_G4_sPHENIX(
     return 0;
   }
 
-  if (Enable::DISPLAY)
-  {
-    DisplayOn();
-    // prevent macro from finishing so can see display
-    int i;
-    cout << "***** Enter any integer to proceed" << endl;
-    cin >> i;
-  }
 
   se->skip(skip);
   se->run(nEvents);

@@ -15,6 +15,7 @@
 #include "G4_Jets.C"
 #include "G4_Production.C"
 
+#include <TROOT.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <fun4all/Fun4AllOutputManager.h>
 #include <fun4all/Fun4AllServer.h>
@@ -25,7 +26,7 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 int Fun4All_G4_EICDetector(
     const int nEvents = 1,
-    const string &inputFile = "/sphenix/data/data02/review_2017-08-02/single_particle/spacal2d/fieldmap/G4Hits_sPHENIX_e-_eta0_8GeV-0002.root",
+    const string &inputFile = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const string &outputFile = "G4EICDetector.root",
     const string &embed_input_file = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const int skip = 0,
@@ -127,6 +128,7 @@ int Fun4All_G4_EICDetector(
     INPUTGENERATOR::SimpleEventGenerator->set_eta_range(-3, 3);
     INPUTGENERATOR::SimpleEventGenerator->set_phi_range(-M_PI, M_PI);
     INPUTGENERATOR::SimpleEventGenerator->set_pt_range(0.1, 20.);
+    INPUTGENERATOR::SimpleEventGenerator->Embed(2);
   }
   // Upsilons
   if (Input::UPSILON)
@@ -185,6 +187,9 @@ int Fun4All_G4_EICDetector(
   //Option to convert DST to human command readable TTree for quick poke around the outputs
   //Enable::DSTREADER = true;
 
+  // turn the display on (default off)
+  Enable::DISPLAY = false;
+
   //======================
   // What to run
   //======================
@@ -208,6 +213,7 @@ int Fun4All_G4_EICDetector(
   // mvtx/tpc tracker
   Enable::MVTX = true;
   Enable::TPC = true;
+//  Enable::TPC_ENDCAP = true;
 
   Enable::TRACKING = true;
   Enable::TRACKING_EVAL = Enable::TRACKING && true;
@@ -478,6 +484,22 @@ int Fun4All_G4_EICDetector(
   //-----------------
   // Event processing
   //-----------------
+  if (Enable::DISPLAY)
+  {
+    DisplayOn();
+
+    gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
+    gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+
+    cout <<"-------------------------------------------------"<<endl;
+    cout <<"You are in event display mode. Run one event with"<<endl;
+    cout <<"se->run(1)"<<endl;
+    cout <<"Run Geant4 command with following examples"<<endl;
+    gROOT->ProcessLine("displaycmd()");
+
+    return 0;
+  }
+// if we use a negative number of events we go back to the command line here
   if (nEvents < 0)
   {
     return 0;

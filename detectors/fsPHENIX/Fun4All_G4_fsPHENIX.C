@@ -32,7 +32,7 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 int Fun4All_G4_fsPHENIX(
     const int nEvents = 2,
-    const string &inputFile = "/sphenix/sim/sim01/production/2016-07-21/single_particle/spacal2d/fieldmap/G4Hits_sPHENIX_e-_eta0_8GeV-0002.root",
+    const string &inputFile = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/fsPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const string &outputFile = "G4fsPHENIX.root",
     const string &embed_input_file = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/fsPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",
     const int skip = 0,
@@ -57,6 +57,8 @@ int Fun4All_G4_fsPHENIX(
   //===============
   // Input options
   //===============
+  // verbosity setting (applies to all input managers)
+  Input::VERBOSITY = 0;
   // Either:
   // read previously generated g4-hits files, in this case it opens a DST and skips
   // the simulations step completely. The G4Setup macro is only loaded to get information
@@ -84,9 +86,11 @@ int Fun4All_G4_fsPHENIX(
   //  Input::GUN = true;
   //Input::GUN_VERBOSITY = 0;
 
-  //  Input::HEPMC = true;
-  //Input::VERBOSITY = 0;
+//  Input::HEPMC = true;
   INPUTHEPMC::filename = inputFile;
+
+  // Event pile up simulation with collision rate in Hz MB collisions.
+  Input::PILEUPRATE = 100e3;
 
   //-----------------
   // Initialize the selected Input/Event generation
@@ -118,6 +122,7 @@ int Fun4All_G4_fsPHENIX(
     INPUTGENERATOR::SimpleEventGenerator->set_eta_range(-1, 3);
     INPUTGENERATOR::SimpleEventGenerator->set_phi_range(-M_PI, M_PI);
     INPUTGENERATOR::SimpleEventGenerator->set_pt_range(0.5, 50.);
+    INPUTGENERATOR::SimpleEventGenerator->Embed(2);
   }
   // Upsilons
   if (Input::UPSILON)
@@ -142,22 +147,29 @@ int Fun4All_G4_fsPHENIX(
 
   if (Input::HEPMC)
   {
-    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_width(100e-4,100e-4,30,0);//optional collision smear in space, time
-//    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_mean(0,0,0,0);//optional collision central position shift in space, time
+    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_width(100e-4, 100e-4, 8, 0);  //optional collision smear in space, time
+                                                                                           //    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_mean(0,0,0,0);//optional collision central position shift in space, time
     // //optional choice of vertex distribution function in space, time
-    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_function(PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus,PHHepMCGenHelper::Gaus);
+    INPUTMANAGER::HepMCInputManager->set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
     //! embedding ID for the event
     //! positive ID is the embedded event of interest, e.g. jetty event from pythia
     //! negative IDs are backgrounds, .e.g out of time pile up collisions
     //! Usually, ID = 0 means the primary Au+Au collision background
     //INPUTMANAGER::HepMCInputManager->set_embedding_id(2);
+    if (Input::PILEUPRATE > 0)
+    {
+      // Copy vertex settings from foreground hepmc input
+      INPUTMANAGER::HepMCPileupInputManager->CopyHelperSettings(INPUTMANAGER::HepMCInputManager);
+      // and then modify the ones you want to be different
+      // INPUTMANAGER::HepMCPileupInputManager->set_vertex_distribution_width(100e-4,100e-4,8,0);
+    }
   }
 
   // register all input generators with Fun4All
   InputRegister();
 
-// set up production relatedstuff
-//   Enable::PRODUCTION = true;
+  // set up production relatedstuff
+  //   Enable::PRODUCTION = true;
 
   //======================
   // Write the DST
@@ -468,6 +480,23 @@ int Fun4All_G4_fsPHENIX(
   //-----------------
   // Event processing
   //-----------------
+  if (Enable::DISPLAY)
+  {
+    DisplayOn();
+
+    gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
+    gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+
+    cout << "-------------------------------------------------" << endl;
+    cout << "You are in event display mode. Run one event with" << endl;
+    cout << "se->run(1)" << endl;
+    cout << "Run Geant4 command with following examples" << endl;
+    gROOT->ProcessLine("displaycmd()");
+
+    return 0;
+  }
+
+// if we use a negative number of events we go back to the command line here
   if (nEvents < 0)
   {
     return 0;
@@ -478,15 +507,6 @@ int Fun4All_G4_fsPHENIX(
     cout << "using 0 for number of events is a bad idea when using particle generators" << endl;
     cout << "it will run forever, so I just return without running anything" << endl;
     return 0;
-  }
-
-  if (Enable::DISPLAY)
-  {
-    DisplayOn();
-    // prevent macro from finishing so can see display
-    int i;
-    cout << "***** Enter any integer to proceed" << endl;
-    cin >> i;
   }
 
   se->skip(skip);
