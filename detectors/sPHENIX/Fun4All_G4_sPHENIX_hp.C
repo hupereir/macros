@@ -27,8 +27,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 5000,
-  const char *outputFile = "DST/dst_eval_config3.root"
+  const int nEvents = 10,
+  const char *outputFile = "DST/dst_eval.root"
+//   const int nEvents = 1000,
+//   const char *outputFile = "DST/dst_eval_1k_realistic_truth_distortions_rphiz.root"
 //   const int nEvents = 5000,
 //   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas-notpc.root"
   )
@@ -53,19 +55,20 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::enable_distortions = false;
-  // G4TPC::distortion_filename = "distortion_maps/BeamXingNBeamsx10.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root";
-  G4TPC::distortion_filename = "distortion_maps/output.averaged.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::enable_distortions = true;
+  G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  // G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R;
+  G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
 
   // Micromegas
-  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_PHI_ONE_RING;
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_MAXIMAL;
 
   // tracking configuration
   G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_micromegas_layers = false;
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
