@@ -15,6 +15,7 @@
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
+#include "G4_Magnet.C"
 #include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
