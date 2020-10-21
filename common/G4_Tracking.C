@@ -82,7 +82,6 @@ namespace G4TRACKING
   // This is the setup we have been using before PHInitZVertexing was implemented - smeared truth vertex for a single collision per event. Make it the default for now.
   std::string vmethod("avf-smoothing:1");  // only good for 1 vertex events // vmethod is a string used to set the Rave final-vertexing method:
 
-  bool use_truth_vertex = true;            // set to false to get initial vertex from MVTX hits using PHInitZVertexing, true for using smeared truth vertex
   bool disable_mvtx_layers = false;
   bool disable_tpc_layers = false;
 
@@ -250,7 +249,7 @@ void Tracking_Reco()
       kalman->set_fit_primary_tracks(true);  // include primary vertex in track fit if true
     }
     kalman->set_vertexing_method(G4TRACKING::vmethod);
-    kalman->set_use_truth_vertex(G4TRACKING::use_truth_vertex);
+    kalman->set_use_truth_vertex(false);
 
     // disable mvtx
     if( G4TRACKING::disable_mvtx_layers )
@@ -258,7 +257,7 @@ void Tracking_Reco()
       std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
       for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
     }
-    
+
     // disable tpc
     if( G4TRACKING::disable_tpc_layers )
     {
@@ -350,25 +349,25 @@ void Tracking_Reco()
     geom->setMagField(G4MAGNET::magfield);
     geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
     se->registerSubsystem(geom);
-    
+
     /// Always run PHActsSourceLinks and PHActsTracks first, to convert TrkRClusters and SvtxTracks to the Acts equivalent
     PHActsSourceLinks *sl = new PHActsSourceLinks();
     sl->Verbosity(0);
     sl->setMagField(G4MAGNET::magfield);
     sl->setMagFieldRescale(G4MAGNET::magfield_rescale);
     se->registerSubsystem(sl);
-    
+
     PHActsTracks *actsTracks = new PHActsTracks();
     actsTracks->Verbosity(0);
     se->registerSubsystem(actsTracks);
-    
+
     PHActsTrkFitter *actsFit = new PHActsTrkFitter();
     actsFit->Verbosity(0);
     actsFit->doTimeAnalysis(false);
     se->registerSubsystem(actsFit);
-      
-#endif   
-    
+
+#endif
+
   }
 
   return;
