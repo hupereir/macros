@@ -54,19 +54,19 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // space charge distortions
   G4TPC::enable_distortions = true;
   G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  G4TPC::distortion_coordinates =
-    PHG4TpcElectronDrift::COORD_PHI|
-    PHG4TpcElectronDrift::COORD_R|
-    PHG4TpcElectronDrift::COORD_Z;
+  G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
 
-//   // space charge corrections
-//   G4TPC::enable_corrections = false;
-//   G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc.root";
-//   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_drphi_full_Hijing_Micromegas_50kHz_truth_notpc_truth.root";
-//   G4TPC::correction_coordinates = TpcSpaceChargeCorrection_hp::COORD_PHI;
+  // space charge corrections
+  G4TPC::enable_corrections = true;
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth.root";
+  G4TPC::correction_coordinates = TpcSpaceChargeCorrection_hp::COORD_PHI|TpcSpaceChargeCorrection_hp::COORD_R|TpcSpaceChargeCorrection_hp::COORD_Z;
+
+  // micromegas configuration
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_track_prop = false;
+  G4TRACKING::use_Genfit = true;
+  G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
