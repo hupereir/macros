@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
+  const int nEvents = 1000,
   const char *outputFile = "DST/dst_eval.root"
 //   const int nEvents = 1000,
 //   const char *outputFile = "DST/dst_eval_1k_realistic_truth_distortions_rphiz.root"
@@ -55,7 +55,7 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::enable_distortions = true;
+  G4TPC::enable_distortions = false;
   G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
   // G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R;
   G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
