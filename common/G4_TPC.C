@@ -1,10 +1,10 @@
 #ifndef MACRO_G4TPC_C
 #define MACRO_G4TPC_C
 
-#include "GlobalVariables.C"
+#include <GlobalVariables.C>
 
-#include "G4_Intt.C"
-#include "G4_Mvtx.C"
+#include <G4_Intt.C>
+#include <G4_Mvtx.C>
 
 #include <g4tpc/PHG4TpcDigitizer.h>
 #include <g4tpc/PHG4TpcElectronDrift.h>
@@ -46,8 +46,8 @@ namespace G4TPC
   double tpc_outer_radius = 77. + 2.;
 
   // distortions
-  bool enable_distortions = false;
-  std::string distortion_filename;
+  bool ENABLE_DISTORTIONS = false;
+  std::string distortion_filename = "fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
   unsigned int distortion_coordinates =
     PHG4TpcElectronDrift::COORD_PHI|
     PHG4TpcElectronDrift::COORD_R|
@@ -122,17 +122,17 @@ double TPC(PHG4Reco* g4Reco,
   tpc->set_double_param("steplimits", 1);  // 1cm steps
 
   if (AbsorberActive)
-  {
-    tpc->SetAbsorberActive();
-  }
+    {
+      tpc->SetAbsorberActive();
+    }
   tpc->OverlapCheck(OverlapCheck);
 
   g4Reco->registerSubsystem(tpc);
 
   if (Enable::TPC_ENDCAP)
-  {
-    TPC_Endcaps(g4Reco);
-  }
+    {
+      TPC_Endcaps(g4Reco);
+    }
 
   radius = G4TPC::tpc_outer_radius;
 
@@ -158,11 +158,16 @@ void TPC_Cells()
   PHG4TpcElectronDrift* edrift = new PHG4TpcElectronDrift();
   edrift->Detector("TPC");
   edrift->Verbosity(verbosity);
+  edrift->set_enable_distortions( G4TPC::ENABLE_DISTORTIONS);
+  if( G4TPC::ENABLE_DISTORTIONS )
+    {
+      edrift->set_distortion_filename( G4TPC::distortion_filename );
+      edrift->set_coordinates( G4TPC::distortion_coordinates );
+    }
+
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
-  //edrift->set_double_param("added_smear_trans",0.085);
-  //edrift->set_double_param("added_smear_long",0.105);
   edrift->registerPadPlane(padplane);
 
   // distortions
