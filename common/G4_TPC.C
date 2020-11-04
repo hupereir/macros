@@ -54,7 +54,7 @@ namespace G4TPC
     PHG4TpcElectronDrift::COORD_Z;
 
   // distortion corrections
-  bool enable_corrections = false;
+  bool ENABLE_CORRECTIONS = false;
   std::string correction_filename;
   unsigned int correction_coordinates =
     TpcSpaceChargeCorrection_hp::COORD_PHI|
@@ -158,7 +158,7 @@ void TPC_Cells()
   PHG4TpcElectronDrift* edrift = new PHG4TpcElectronDrift();
   edrift->Detector("TPC");
   edrift->Verbosity(verbosity);
-  edrift->set_enable_distortions( G4TPC::ENABLE_DISTORTIONS);
+  edrift->set_enable_distortions(G4TPC::ENABLE_DISTORTIONS);
   if( G4TPC::ENABLE_DISTORTIONS )
     {
       edrift->set_distortion_filename( G4TPC::distortion_filename );
@@ -169,15 +169,6 @@ void TPC_Cells()
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
   edrift->registerPadPlane(padplane);
-
-  // distortions
-  edrift->set_enable_distortions( G4TPC::enable_distortions );
-  if( G4TPC::enable_distortions )
-  {
-    edrift->set_distortion_filename( G4TPC::distortion_filename );
-    edrift->set_coordinates( G4TPC::distortion_coordinates );
-  }
-
   se->registerSubsystem(edrift);
 
   // The pad plane readout default is set in PHG4TpcPadPlaneReadout
@@ -218,7 +209,7 @@ void TPC_Clustering()
   se->registerSubsystem(tpcclusterizer);
 
   // space charge correction
-  if( G4TPC::enable_corrections )
+  if( G4TPC::ENABLE_CORRECTIONS )
   {
     auto tpcSpaceChargeCorrection = new TpcSpaceChargeCorrection_hp;
     tpcSpaceChargeCorrection->set_distortion_filename( G4TPC::correction_filename );
