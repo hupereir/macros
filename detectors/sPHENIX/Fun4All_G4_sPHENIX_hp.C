@@ -17,6 +17,7 @@
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 // local macros
+
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
@@ -27,7 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1000,
+  const int nEvents = 10,
   const char *outputFile = "DST/dst_eval.root"
 //   const int nEvents = 1000,
 //   const char *outputFile = "DST/dst_eval_1k_realistic_truth_distortions_rphiz.root"
@@ -55,10 +56,13 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::enable_distortions = false;
+  G4TPC::ENABLE_DISTORTIONS = false;
   G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  // G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R;
   G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
+
+  G4TPC::ENABLE_CORRECTIONS = false;
+  G4TPC::correction_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::correction_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
 
   // Micromegas
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_MAXIMAL;
