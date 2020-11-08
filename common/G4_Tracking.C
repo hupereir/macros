@@ -36,6 +36,7 @@
 #include <trackreco/PHActsVertexFinder.h>
 #include <trackreco/PHActsVertexFitter.h>
 #include <trackreco/PHTpcResiduals.h>
+#include <trackreco/PHActsTrackProjection.h>
 #endif
 
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -297,6 +298,13 @@ void Tracking_Reco()
 
     se->registerSubsystem(kalman);
 
+    //------------------
+    // Track Projections
+    //------------------
+    PHGenFitTrackProjection* projection = new PHGenFitTrackProjection();
+    projection->Verbosity(verbosity);
+    se->registerSubsystem(projection);
+
   }
 
   // Acts tracking chain (starts from TPC track seeds)
@@ -396,24 +404,24 @@ void Tracking_Reco()
 
       /// Geometry must be built before any Acts modules
       MakeActsGeometry* geom = new MakeActsGeometry();
-      geom->Verbosity(0);
+      geom->Verbosity(verbosity);
       geom->setMagField(G4MAGNET::magfield);
       geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
       se->registerSubsystem(geom);
 
       /// Always run PHActsSourceLinks and PHActsTracks first, to convert TrkRClusters and SvtxTracks to the Acts equivalent
       PHActsSourceLinks* sl = new PHActsSourceLinks();
-      sl->Verbosity(0);
+      sl->Verbosity(verbosity);
       sl->setMagField(G4MAGNET::magfield);
       sl->setMagFieldRescale(G4MAGNET::magfield_rescale);
       se->registerSubsystem(sl);
 
       PHActsTracks* actsTracks = new PHActsTracks();
-      actsTracks->Verbosity(0);
+      actsTracks->Verbosity(verbosity);
       se->registerSubsystem(actsTracks);
 
       PHActsTrkFitter* actsFit = new PHActsTrkFitter();
-      actsFit->Verbosity(0);
+      actsFit->Verbosity(verbosity);
       actsFit->doTimeAnalysis(false);
       /// If running with distortions, fit only the silicon+MMs first
       actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
@@ -423,21 +431,17 @@ void Tracking_Reco()
 	{
 	  /// run tpc residual determination with silicon+MM track fit
 	  PHTpcResiduals *residuals = new PHTpcResiduals();
-	  residuals->Verbosity(0);
+	  residuals->Verbosity(verbosity);
 	  se->registerSubsystem(residuals);
-
 	}
+
+      PHActsTrackProjection* actsProj = new PHActsTrackProjection();
+      actsProj->Verbosity(verbosity);
+      se->registerSubsystem(actsProj);
 #endif
     }
 
-  //------------------
-  // Track Projections
-  //------------------
-  PHGenFitTrackProjection* projection = new PHGenFitTrackProjection();
-  projection->Verbosity(verbosity);
-  se->registerSubsystem(projection);
-
-  return;
+    return;
 }
 
 void Tracking_Eval(const std::string& outputfile)
