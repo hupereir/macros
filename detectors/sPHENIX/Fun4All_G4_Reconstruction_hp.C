@@ -43,7 +43,7 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::MICROMEGAS = true;
 
   // TPC
-  G4TPC::enable_distortions = true;
+  G4TPC::ENABLE_DISTORTIONS = true;
   G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
   G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
 
@@ -105,7 +105,7 @@ int Fun4All_G4_Reconstruction_hp(
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits | MicromegasEvaluator_hp::EvalHits );
     se->registerSubsystem(micromegasEvaluator);
   }
 
@@ -131,10 +131,19 @@ int Fun4All_G4_Reconstruction_hp(
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   if( true )
   {
+    // add evaluation nodes
     out->AddNode("MicromegasEvaluator_hp::Container");
     out->AddNode("SimEvaluator_hp::Container");
     out->AddNode("TrackingEvaluator_hp::Container");
   }
+
+  if( true )
+  {
+    // add cluster and tracks nodes
+    out->AddNode( "TRKR_CLUSTER" );
+    out->AddNode( "SvtxTrackMap" );
+  }
+
   se->registerOutputManager(out);
 
   // skip events if any specified
