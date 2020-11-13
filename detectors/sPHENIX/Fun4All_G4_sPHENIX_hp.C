@@ -57,6 +57,9 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   G4TPC::ENABLE_DISTORTIONS = false;
+
+  std::cout << "Fun4All_G4_sPHENIX_hp - distortion filename: " << G4TPC::distortion_filename << std::endl;
+
   G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
   G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
 
