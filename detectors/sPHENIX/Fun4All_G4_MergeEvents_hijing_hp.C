@@ -14,9 +14,9 @@ R__LOAD_LIBRARY(libg4testbench.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_MergeEvents_hijing_hp(
-const int nEvents = 0,
+const int nEvents = 100,
 const int eventOffset = 0,
-const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/2/G4Hits_sHijing_0-12fm_000000_001000.root",
+const char* inputFile = "/sphenix/sim/sim01/sphnxpro/Micromegas/3/G4Hits_sHijing_0-12fm_000000_001000.root",
 const char* outputFile = "DST/dst_g4hits_merged.root"
 )
 {
@@ -59,10 +59,6 @@ const char* outputFile = "DST/dst_g4hits_merged.root"
 
   std::cout << "Fun4All_G4_MergeEvents_hijing_hp - loaded " << bunchcrossings.size() << " bunchcrossings." << std::endl;
   in->setBunchCrossingList(bunchcrossings);
-  // set max trigger rate to 20kHz.
-  /* This results in a 15kHz effective rate when convoluted with the verex distribution */
-  /* this should give about 300 full events per 1000 single hijing events, at 50kHz */
-  in->setMaxTriggerRate( 20e3 );
 
   // open file
   in->fileopen(inputFile);
