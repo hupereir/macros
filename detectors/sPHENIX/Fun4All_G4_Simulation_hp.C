@@ -111,13 +111,16 @@ int Fun4All_G4_Simulation_hp(
   Bbc_Reco();
 
   // local evaluation
-  auto simEvaluator = new SimEvaluator_hp;
-  simEvaluator->set_flags(
-    SimEvaluator_hp::EvalEvent|
-    SimEvaluator_hp::EvalVertices|
-    SimEvaluator_hp::EvalParticles );
-  se->registerSubsystem(simEvaluator);
-
+  if( false )
+  {
+    auto simEvaluator = new SimEvaluator_hp;
+    simEvaluator->set_flags(
+      SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalVertices|
+      SimEvaluator_hp::EvalParticles );
+    se->registerSubsystem(simEvaluator);
+  }
+  
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
