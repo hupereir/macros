@@ -22,10 +22,11 @@ R__LOAD_LIBRARY(libfun4all.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_SimEvaluation_hp(
-    const int nEvents = 1,
+    const int nEvents = 0,
     const int nSkipEvents = 0,
-    const char* inputFile = "DST/CONDOR_Hijing_Micromegas_100kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_00000_00100.root",
-    const char* outputFile = "DST/dst_eval.root"
+    // const char* inputFile = "/phenix/u/hpereira/sphenix/work/g4simulations/DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/3/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
+    const char* inputFile = "/sphenix/data/data02/sphnxpro/MDC1/sHijing_HepMC/PileUp/data/DST_BBC_G4HIT_sHijing_0_12fm-0000000001-00000.root",
+    const char* outputFile = "DST/dst_simeval.root"
 )
 {
 
@@ -60,10 +61,10 @@ int Fun4All_G4_SimEvaluation_hp(
     SimEvaluator_hp::EvalParticles );
   se->registerSubsystem(simEvaluator);
 
-  // Micromegas evaluation
-  auto micromegasEvaluator = new MicromegasEvaluator_hp;
-  micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
-  se->registerSubsystem(micromegasEvaluator);
+//   // Micromegas evaluation
+//   auto micromegasEvaluator = new MicromegasEvaluator_hp;
+//   micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+//   se->registerSubsystem(micromegasEvaluator);
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
