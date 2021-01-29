@@ -12,6 +12,7 @@
 #include <G4_HIJetReco.C>
 #include <G4_Input.C>
 #include <G4_Jets.C>
+#include <G4_KFParticle.C>
 #include <G4_ParticleFlow.C>
 #include <G4_Production.C>
 #include <G4_TopoClusterReco.C>
@@ -91,10 +92,16 @@ int Fun4All_G4_sPHENIX(
   //  Input::GUN_NUMBER = 3; // if you need 3 of them
   // Input::GUN_VERBOSITY = 1;
 
+  //D0 generator
+  //Input::DZERO = false;
+  //Input::DZERO_VERBOSITY = 0;
+  //Lambda_c generator //Not ready yet
+  //Input::LAMBDAC = false;
+  //Input::LAMBDAC_VERBOSITY = 0;
   // Upsilon generator
-  //  Input::UPSILON = true;
-  // Input::UPSILON_NUMBER = 3; // if you need 3 of them
-  // Input::UPSILON_VERBOSITY = 0;
+  //Input::UPSILON = true;
+  //Input::UPSILON_NUMBER = 3; // if you need 3 of them
+  //Input::UPSILON_VERBOSITY = 0;
 
   //  Input::HEPMC = true;
   INPUTHEPMC::filename = inputFile;
@@ -190,7 +197,7 @@ int Fun4All_G4_sPHENIX(
   // Write the DST
   //======================
 
-  //  Enable::DSTOUT = true;
+  //Enable::DSTOUT = true;
   Enable::DSTOUT_COMPRESS = false;
   DstOut::OutputDir = outdir;
   DstOut::OutputFile = outputFile;
@@ -278,8 +285,7 @@ int Fun4All_G4_sPHENIX(
   // forward EMC
   //Enable::FEMC = true;
   Enable::FEMC_ABSORBER = true;
-  Enable::FEMC_CELL = Enable::FEMC && true;
-  Enable::FEMC_TOWER = Enable::FEMC_CELL && true;
+  Enable::FEMC_TOWER = Enable::FEMC && true;
   Enable::FEMC_CLUSTER = Enable::FEMC_TOWER && true;
   Enable::FEMC_EVAL = Enable::FEMC_CLUSTER and Enable::QA && true;
 
@@ -290,7 +296,11 @@ int Fun4All_G4_sPHENIX(
   Enable::PLUGDOOR_ABSORBER = true;
 
   Enable::GLOBAL_RECO = true;
-  //  Enable::GLOBAL_FASTSIM = true;
+  //Enable::GLOBAL_FASTSIM = true;
+  //Enable::KFPARTICLE = true;
+  //Enable::KFPARTICLE_VERBOSITY = 1;
+  //Enable::KFPARTICLE_TRUTH_MATCH = true;
+  //Enable::KFPARTICLE_SAVE_NTUPLE = true;
 
   Enable::CALOTRIGGER = Enable::CEMC_TOWER && Enable::HCALIN_TOWER && Enable::HCALOUT_TOWER && false;
 
@@ -304,7 +314,7 @@ int Fun4All_G4_sPHENIX(
   Enable::HIJETS = false && Enable::JETS && Enable::CEMC_TOWER && Enable::HCALIN_TOWER && Enable::HCALOUT_TOWER;
 
   // 3-D topoCluster reconstruction, potentially in all calorimeter layers
-  Enable::TOPOCLUSTER = true && Enable::CEMC_TOWER && Enable::HCALIN_TOWER && Enable::HCALOUT_TOWER;
+  Enable::TOPOCLUSTER = false && Enable::CEMC_TOWER && Enable::HCALIN_TOWER && Enable::HCALOUT_TOWER;
   // particle flow jet reconstruction - needs topoClusters!
   Enable::PARTICLEFLOW = true && Enable::TOPOCLUSTER;
 
@@ -366,8 +376,6 @@ int Fun4All_G4_sPHENIX(
 
   if (Enable::HCALOUT_CELL) HCALOuter_Cells();
 
-  if (Enable::FEMC_CELL) FEMC_Cells();
-
   //-----------------------------
   // CEMC towering and clustering
   //-----------------------------
@@ -390,8 +398,6 @@ int Fun4All_G4_sPHENIX(
 
   if (Enable::FEMC_TOWER) FEMC_Towers();
   if (Enable::FEMC_CLUSTER) FEMC_Clusters();
-
-  if (Enable::DSTOUT_COMPRESS) ShowerCompress();
 
   //--------------
   // SVTX tracking
@@ -469,6 +475,13 @@ int Fun4All_G4_sPHENIX(
 
   if (Enable::USER) UserAnalysisInit();
 
+  //======================
+  // Run KFParticle on evt
+  //======================
+  if (Enable::KFPARTICLE && Input::UPSILON) KFParticle_Upsilon_Reco();
+  if (Enable::KFPARTICLE && Input::DZERO) KFParticle_D0_Reco();
+  //if (Enable::KFPARTICLE && Input::LAMBDAC) KFParticle_Lambdac_Reco();
+     
   //----------------------
   // Standard QAs
   //----------------------
@@ -501,7 +514,11 @@ int Fun4All_G4_sPHENIX(
   {
     string FullOutFile = DstOut::OutputDir + "/" + DstOut::OutputFile;
     Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", FullOutFile);
-    if (Enable::DSTOUT_COMPRESS) DstCompress(out);
+    if (Enable::DSTOUT_COMPRESS)
+      {
+        ShowerCompress();
+        DstCompress(out);
+      }
     se->registerOutputManager(out);
   }
   //-----------------
