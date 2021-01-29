@@ -15,7 +15,10 @@
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
-#include "G4_Magnet.C"
+// local macros
+#include "G4Setup_sPHENIX.C"
+#include "G4_Bbc.C"
+#include "G4_Global.C"
 #include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
@@ -35,16 +38,32 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
 
+
+  // options
+  Enable::PIPE = true;
+  Enable::BBC = true;
+  Enable::MAGNET = true;
+  Enable::PLUGDOOR = false;
+
+  // enable all absorbers
+  // this is equivalent to the old "absorberactive" flag
+  Enable::ABSORBER = true;
+
   // central tracking
   Enable::MVTX = true;
+  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
+  Enable::BLACKHOLE = true;
+
+  // magnet
+  G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
