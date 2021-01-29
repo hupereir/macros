@@ -43,11 +43,9 @@ std::vector<TString> GetFiles( const char* pathname )
 
 //________________________________________________________________________________________________
 int Fun4All_G4_SpaceChargeReconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 5000,
   const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions/",
-  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm-new2.root"
-//   const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions_fullmap/",
-//   const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_fullmap_mm-new.root"
+  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm_extrapolated-test.root"
   )
 {
 
@@ -74,7 +72,7 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity();
 
   // reco const
   auto rc = recoConsts::instance();
@@ -86,14 +84,12 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction;
   spaceChargeReconstruction->set_double_param( "spacecharge_max_talpha", 0.6 );
   spaceChargeReconstruction->set_double_param( "spacecharge_max_drphi", 0.5 );
-  // spaceChargeReconstruction->set_double_param( "spacecharge_max_drphi", 2 );
   spaceChargeReconstruction->set_double_param( "spacecharge_max_tbeta", 1.5 );
   spaceChargeReconstruction->set_double_param( "spacecharge_max_dz", 0.5 );
-  // spaceChargeReconstruction->set_double_param( "spacecharge_max_dz", 2 );
 
   spaceChargeReconstruction->set_use_micromegas( true );
   spaceChargeReconstruction->set_outputfile( outputFile );
-  spaceChargeReconstruction->Verbosity(1);
+  // spaceChargeReconstruction->Verbosity(1);
   se->registerSubsystem( spaceChargeReconstruction );
 
   // input manager

@@ -52,17 +52,23 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::enable_distortions = true;
-  G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
 
   // space charge corrections
-  G4TPC::enable_corrections = true;
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth.root";
-  G4TPC::correction_coordinates = TpcSpaceChargeCorrection_hp::COORD_PHI|TpcSpaceChargeCorrection_hp::COORD_R|TpcSpaceChargeCorrection_hp::COORD_Z;
+  G4TPC::ENABLE_CORRECTIONS = true;
+  // G4TPC::correction_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_ideal_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-old_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-new_extrapolated.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-new-loose_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_iterate_realistic_micromegas_mm-new_extrapolated.root";
 
   // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
   G4TRACKING::use_Genfit = true;
