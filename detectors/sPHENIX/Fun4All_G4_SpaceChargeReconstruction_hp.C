@@ -43,9 +43,9 @@ std::vector<TString> GetFiles( const char* pathname )
 
 //________________________________________________________________________________________________
 int Fun4All_G4_SpaceChargeReconstruction_hp(
-  const int nEvents = 5000,
+  const int nEvents = 0,
   const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions/",
-  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm_extrapolated-test.root"
+  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm_extrapolated-new.root"
   )
 {
 
