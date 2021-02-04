@@ -28,7 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 1,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   const char *outputFile = "DST/dst_eval.root" )
 {
 
@@ -61,9 +61,10 @@ int Fun4All_G4_Reconstruction_hp(
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // TPC
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   // G4TPC::static_distortion_filename = "distortion_maps/average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
