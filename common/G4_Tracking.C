@@ -406,7 +406,7 @@ void Tracking_Reco()
       PHSiliconTpcTrackMatching* silicon_match = new PHSiliconTpcTrackMatching();
       silicon_match->Verbosity(verbosity);
       if (!G4TRACKING::use_PHTpcTracker_seeding)
-        silicon_match->set_seeder(true);  // module defaults to PHCASeeding, use true for PHTpcTracker seeding
+        silicon_match->set_seeder(true);  // module defaults to  PHTpcTracker seeding, for PHCASeeding use true here
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
       silicon_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
@@ -421,8 +421,8 @@ void Tracking_Reco()
       else
       {
         // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
-        silicon_match->set_phi_search_window(0.02);
-        silicon_match->set_eta_search_window(0.004);
+        silicon_match->set_phi_search_window(0.03);
+        silicon_match->set_eta_search_window(0.005);
       }
       silicon_match->set_test_windows_printout(false);  // used for tuning search windows only
       se->registerSubsystem(silicon_match);
@@ -470,11 +470,11 @@ void Tracking_Reco()
 #if __cplusplus >= 201703L
   
 
-    PHActsTracks* actsTracks = new PHActsTracks();
+    PHActsTracks* actsTracks = new PHActsTracks("PHActsTracks1");
     actsTracks->Verbosity(verbosity);
     se->registerSubsystem(actsTracks);
 
-    PHActsTrkFitter* actsFit = new PHActsTrkFitter();
+    PHActsTrkFitter* actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
     actsFit->Verbosity(verbosity);
     actsFit->doTimeAnalysis(false);
     /// If running with distortions, fit only the silicon+MMs first
@@ -489,9 +489,16 @@ void Tracking_Reco()
       se->registerSubsystem(residuals);
     }
 
-    PHActsVertexFinder* vtxer = new PHActsVertexFinder();
-    vtxer->Verbosity(verbosity);
-    se->registerSubsystem(vtxer);
+    PHActsTracks *actsTracks2 = new PHActsTracks("PHActsTracks2");
+    actsTracks2->Verbosity(verbosity);
+    actsTracks2->setSecondFit(true);
+    se->registerSubsystem(actsTracks2);
+
+    PHActsTrkFitter* actsFit2 = new PHActsTrkFitter("PHActsSecondTrKFitter");
+    actsFit2->Verbosity(verbosity);
+    actsFit2->doTimeAnalysis(false);
+    actsFit2->fitSiliconMMs(false);
+    se->registerSubsystem(actsFit2);
 
 #endif
   }
