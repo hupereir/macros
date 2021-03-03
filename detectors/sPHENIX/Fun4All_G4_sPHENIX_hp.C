@@ -17,7 +17,6 @@
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 // local macros
-
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
@@ -28,12 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
+  const int nEvents = 100,
   const char *outputFile = "DST/dst_eval.root"
-//   const int nEvents = 1000,
-//   const char *outputFile = "DST/dst_eval_1k_realistic_truth_distortions_rphiz.root"
-//   const int nEvents = 5000,
-//   const char *outputFile = "DST/dst_eval_5k_realistic_micromegas-notpc.root"
   )
 {
 
@@ -56,19 +51,21 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::ENABLE_DISTORTIONS = false;
+  // space charge distortions
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
-  std::cout << "Fun4All_G4_sPHENIX_hp - distortion filename: " << G4TPC::distortion_filename << std::endl;
-
-  G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
-
+  // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  G4TPC::correction_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  G4TPC::correction_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_iterate_realistic_micromegas_mm-new_extrapolated.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-subtracted_extrapolated.root";
 
-  // Micromegas
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_MAXIMAL;
+//   // micromegas configuration
+//   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+
+  // for testing the momentum resolution, focus on having Micromegas in only one sector
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
   G4TRACKING::use_Genfit = true;
@@ -79,7 +76,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
-
+  
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -103,7 +100,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
       // use specific distribution to generate pt
       // values from "http://arxiv.org/abs/nucl-ex/0308006"
