@@ -53,14 +53,14 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
-  G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
