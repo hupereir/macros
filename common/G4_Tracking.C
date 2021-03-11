@@ -90,7 +90,7 @@ namespace G4TRACKING
   bool use_PHTpcTracker_seeding = false;   // false for using the default PHCASeeding to get TPC track seeds, true to use PHTpcTracker
   bool use_hybrid_seeding = false;         // false for using the default PHCASeeding, true to use PHHybridSeeding (STAR core, ALICE KF)
   bool use_truth_si_matching = false;      // if true, associates silicon clusters using best truth track match to TPC seed tracks - for diagnostics only
-  bool use_truth_track_seeding = false;    // false for normal track seeding, use true to run with truth track seeding instead  ***** WORKS FOR GENFIT ONLY
+  bool use_truth_track_seeding = false;    // false for normal track seeding, use true to run with truth track seeding instead
   bool use_Genfit = false;                 // if false, acts KF is run on proto tracks assembled above, if true, use Genfit track propagation and fitting
   bool use_acts_silicon_seeding = true;   // if true runs acts silicon seeding
   bool use_acts_init_vertexing = false;    // if true runs acts initial vertex finder, false runs truth vertexing
@@ -188,19 +188,19 @@ void Tracking_Reco()
       geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
 
       /// Need a flip of the sign for constant field in tpc tracker
-      if(G4TRACKING::use_PHTpcTracker_seeding 
+      if(G4TRACKING::use_PHTpcTracker_seeding
 	 && G4MAGNET::magfield.find(".root") == std::string::npos)
 	geom->setMagFieldRescale(-1 * G4MAGNET::magfield_rescale);
       se->registerSubsystem(geom);
-      
-      /// Always run PHActsSourceLinks first, to convert TrkrClusters 
+
+      /// Always run PHActsSourceLinks first, to convert TrkrClusters
       /// to the Acts equivalent
       PHActsSourceLinks* sl = new PHActsSourceLinks();
       sl->Verbosity(verbosity);
       sl->setMagField(G4MAGNET::magfield);
       sl->setMagFieldRescale(G4MAGNET::magfield_rescale);
       se->registerSubsystem(sl);
-#endif  
+#endif
     }
 
   // Initial vertex finding
@@ -212,7 +212,7 @@ void Tracking_Reco()
       PHActsSiliconSeeding* silicon_Seeding = new PHActsSiliconSeeding();
       silicon_Seeding->Verbosity(verbosity);
       se->registerSubsystem(silicon_Seeding);
-      
+
       if(G4TRACKING::use_acts_init_vertexing)
 	{
 	  PHActsInitialVertexFinder* init_vtx = new PHActsInitialVertexFinder();
@@ -417,7 +417,7 @@ void Tracking_Reco()
 	  PHSiliconTruthTrackSeeding* silicon_seeding = new PHSiliconTruthTrackSeeding();
 	  silicon_seeding->Verbosity(verbosity);
 	  se->registerSubsystem(silicon_seeding);
-	  
+
 	}
 
       // Match the TPC track stubs from the CA seeder to silicon track stubs from PHSiliconTruthTrackSeeding
@@ -486,7 +486,7 @@ void Tracking_Reco()
     std::cout << "   Using Acts track fitting " << std::endl;
 
 #if __cplusplus >= 201703L
-  
+
 
     PHActsTracks* actsTracks = new PHActsTracks("PHActsTracks1");
     actsTracks->Verbosity(verbosity);
