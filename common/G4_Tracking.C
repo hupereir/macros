@@ -86,11 +86,18 @@ namespace G4TRACKING
   bool g4eval_use_initial_vertex = true;  // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
   bool use_tpc_seed_vertex_assoc = true;
 
+  // seeding type
+  enum SeedingType
+  {
+    PHTPCTRACKER_SEEDING,
+    HYBRID_SEEDING,
+    CA_SEEDING
+  };
+  SeedingType seeding_type = CA_SEEDING;
+
   // Possible variations - these are normally false
-  bool use_PHTpcTracker_seeding = false;   // false for using the default PHCASeeding to get TPC track seeds, true to use PHTpcTracker
-  bool use_hybrid_seeding = false;         // false for using the default PHCASeeding, true to use PHHybridSeeding (STAR core, ALICE KF)
   bool use_truth_si_matching = false;      // if true, associates silicon clusters using best truth track match to TPC seed tracks - for diagnostics only
-  bool use_truth_track_seeding = false;    // false for normal track seeding, use true to run with truth track seeding instead
+  bool use_truth_track_seeding = false;    // false for normal track seeding, use true to run with truth track seeding instead - TODO: should move to SeedingType
   bool use_Genfit = false;                 // if false, acts KF is run on proto tracks assembled above, if true, use Genfit track propagation and fitting
   bool use_acts_silicon_seeding = true;   // if true runs acts silicon seeding
   bool use_acts_init_vertexing = false;    // if true runs acts initial vertex finder, false runs truth vertexing
@@ -188,7 +195,7 @@ void Tracking_Reco()
       geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
 
       /// Need a flip of the sign for constant field in tpc tracker
-      if(G4TRACKING::use_PHTpcTracker_seeding
+      if(G4TRACKING::seeding_type == G4TRACKING::PHTPCTRACKER_SEEDING
 	 && G4MAGNET::magfield.find(".root") == std::string::npos)
 	geom->setMagFieldRescale(-1 * G4MAGNET::magfield_rescale);
       se->registerSubsystem(geom);
@@ -268,50 +275,53 @@ void Tracking_Reco()
     std::cout << "Using normal TPC track seeding " << std::endl;
 
     // TPC track seeding from data
-    if (G4TRACKING::use_PHTpcTracker_seeding && !G4TRACKING::use_hybrid_seeding)
+    switch( G4TRACKING::seeding_type )
     {
-      std::cout << "   Using PHTpcTracker track seeding " << std::endl;
-
-      PHTpcTracker* tracker = new PHTpcTracker("PHTpcTracker");
-      tracker->set_seed_finder_options(3.0, M_PI / 8, 10, 6.0, M_PI / 8, 5, 1);   // two-pass CA seed params
-      tracker->set_seed_finder_optimization_remove_loopers(true, 20.0, 10000.0);  // true if loopers not needed
-      tracker->set_track_follower_optimization_helix(true);                       // false for quality, true for speed
-      tracker->set_track_follower_optimization_precise_fit(false);                // true for quality, false for speed
-      tracker->enable_json_export(false);                                         // save event as json, filename is automatic and stamped by current time in ms
-      tracker->enable_vertexing(false);                                           // rave vertexing is pretty slow at large multiplicities...
-      tracker->Verbosity(verbosity);
-      se->registerSubsystem(tracker);
-    }
-    else if(G4TRACKING::use_hybrid_seeding && !G4TRACKING::use_PHTpcTracker_seeding)
-    {
-      std::cout << "   Using PHHybridSeeding track seeding " << std::endl;
-      PHHybridSeeding* hseeder = new PHHybridSeeding("PHHybridSeeding");
-      hseeder->set_field_dir(G4MAGNET::magfield_rescale);
-      hseeder->setSearchRadius(3.,6.); // mm (iter1, iter2)
-      hseeder->setSearchAngle(M_PI/8.,M_PI/8.); // radians (iter1, iter2)
-      hseeder->setMinTrackSize(10,5); // (iter1, iter2)
-      hseeder->setNThreads(1);
-      hseeder->Verbosity(0);
-      se->registerSubsystem(hseeder);
-    }
-    else
-    {
-      if(G4TRACKING::use_hybrid_seeding && G4TRACKING::use_PHTpcTracker_seeding)
+      case G4TRACKING::PHTPCTRACKER_SEEDING:
       {
-        std::cerr << "***WARNING: MULTIPLE SEEDER OPTIONS SELECTED!***" << std::endl;
-        std::cerr << "  Current config selects both PHTpcTracker and PHHybridSeeding." << std::endl;
-        std::cerr << "  Since config doesn't make sense, reverting to default..." << std::endl;
-      }
-      std::cout << "   Using PHCASeeding track seeding " << std::endl;
+        std::cout << "   Using PHTpcTracker track seeding " << std::endl;
 
-      auto seeder = new PHCASeeding("PHCASeeding");
-      seeder->set_field_dir(G4MAGNET::magfield_rescale);  // to get charge sign right
-      seeder->Verbosity(verbosity);
-      seeder->SetLayerRange(7, 55);
-      seeder->SetSearchWindow(0.01, 0.02);  // (eta width, phi width)
-      seeder->SetMinHitsPerCluster(2);
-      seeder->SetMinClustersPerTrack(20);
-      se->registerSubsystem(seeder);
+        PHTpcTracker* tracker = new PHTpcTracker("PHTpcTracker");
+        tracker->set_seed_finder_options(3.0, M_PI / 8, 10, 6.0, M_PI / 8, 5, 1);   // two-pass CA seed params
+        tracker->set_seed_finder_optimization_remove_loopers(true, 20.0, 10000.0);  // true if loopers not needed
+        tracker->set_track_follower_optimization_helix(true);                       // false for quality, true for speed
+        tracker->set_track_follower_optimization_precise_fit(false);                // true for quality, false for speed
+        tracker->enable_json_export(false);                                         // save event as json, filename is automatic and stamped by current time in ms
+        tracker->enable_vertexing(false);                                           // rave vertexing is pretty slow at large multiplicities...
+        tracker->Verbosity(verbosity);
+        se->registerSubsystem(tracker);
+        break;
+      }
+
+      case G4TRACKING::HYBRID_SEEDING:
+      {
+        std::cout << "   Using PHHybridSeeding track seeding " << std::endl;
+        PHHybridSeeding* hseeder = new PHHybridSeeding("PHHybridSeeding");
+        hseeder->set_field_dir(G4MAGNET::magfield_rescale);
+        hseeder->setSearchRadius(3.,6.); // mm (iter1, iter2)
+        hseeder->setSearchAngle(M_PI/8.,M_PI/8.); // radians (iter1, iter2)
+        hseeder->setMinTrackSize(10,5); // (iter1, iter2)
+        hseeder->setNThreads(1);
+        hseeder->Verbosity(0);
+        se->registerSubsystem(hseeder);
+        break;
+      }
+
+      default:
+      case G4TRACKING::CA_SEEDING:
+      {
+        std::cout << "   Using PHCASeeding track seeding " << std::endl;
+
+        auto seeder = new PHCASeeding("PHCASeeding");
+        seeder->set_field_dir(G4MAGNET::magfield_rescale);  // to get charge sign right
+        seeder->Verbosity(verbosity);
+        seeder->SetLayerRange(7, 55);
+        seeder->SetSearchWindow(0.01, 0.02);  // (eta width, phi width)
+        seeder->SetMinHitsPerCluster(2);
+        seeder->SetMinClustersPerTrack(20);
+        se->registerSubsystem(seeder);
+        break;
+      }
     }
   }
 
@@ -423,7 +433,7 @@ void Tracking_Reco()
       // Match the TPC track stubs from the CA seeder to silicon track stubs from PHSiliconTruthTrackSeeding
       PHSiliconTpcTrackMatching* silicon_match = new PHSiliconTpcTrackMatching();
       silicon_match->Verbosity(verbosity);
-      if (G4TRACKING::use_PHTpcTracker_seeding && !G4TRACKING::use_tpc_seed_vertex_assoc)
+      if (G4TRACKING::seeding_type == G4TRACKING::PHTPCTRACKER_SEEDING && !G4TRACKING::use_tpc_seed_vertex_assoc)
         silicon_match->set_seeder(false);  // module defaults to CASeeding, for PHTpcTracker seeding use false here ONLY when not using  PHTpcTrackSeedVertexAssoc.
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
