@@ -2,22 +2,23 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
-#include <g4main/PHG4VertexSelection.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
-
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-#include <qa_modules/QAHistManagerDef.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
-#include <qa_modules/QAG4SimulationTpc.h>
+#include <qa_modules/QAG4SimulationTracking.h>
+#include <qa_modules/QAHistManagerDef.h>
 
 // own modules
 #include <g4eval/EventCounter_hp.h>
+#include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
+// local macros
+#include "G4Setup_sPHENIX.C"
+#include "G4_Bbc.C"
+#include "G4_Global.C"
 #include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
@@ -25,13 +26,14 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_ClusterReconstruction_hp(
-  const int nEvents = 1,
+  const int nEvents = 1000,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/Clusters_merged/Clusters_sHijing_0-12fm_merged_000000_000030.root",
-  const char* outputFile = "DST/tracks.root",
-  const char* evalFile = "DST/g4svtx_eval.root",
-  const char* qaFile = "QA/qa_output.root"
+  const char* inputFile = "DST/clusters_realistic_micromegas.root",
+  // const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
+  const char* outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
   )
+  // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
 {
 
   // print inputs
@@ -39,31 +41,60 @@ int Fun4All_G4_ClusterReconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_G4_Reconstruction_hp - evalFile: " << evalFile << std::endl;
-  std::cout << "Fun4All_G4_Reconstruction_hp - qaFile: " << qaFile << std::endl;
+
+
+  // options
+  Enable::PIPE = true;
+  Enable::BBC = true;
+  Enable::MAGNET = true;
+  Enable::PLUGDOOR = false;
+
+  // enable all absorbers
+  // this is equivalent to the old "absorberactive" flag
+  Enable::ABSORBER = true;
 
   // central tracking
   Enable::MVTX = true;
+  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
+  Enable::BLACKHOLE = true;
+
+  // magnet
+  G4MAGNET::magfield_rescale = -1.4 / 1.5;
+
+  // TPC
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+
+  // space charge corrections
+  G4TPC::ENABLE_CORRECTIONS = false;
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-empty-new_extrapolated.root";
 
   // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = true;
-  G4TRACKING::use_truth_track_seeding = false;
+  G4TRACKING::use_Genfit = false;
+  G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_tpc_layers = true;
 
+  G4TRACKING::SC_ROOTOUTPUT = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+  
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
+  // make sure to printout random seeds for reproducibility
+  PHRandomSeed::Verbosity(1);
+
   // reco const
   auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
@@ -75,68 +106,68 @@ int Fun4All_G4_ClusterReconstruction_hp(
     Intt_Cells();
     TPC_Cells();
     Micromegas_Cells();
-  }
 
-  if( false )
-  {
     // digitizer and clustering
     Mvtx_Clustering();
     Intt_Clustering();
     TPC_Clustering();
     Micromegas_Clustering();
   }
-
-  if( true )
-  {
-    // tracking
-    TrackingInit();
-    Tracking_Reco();
-  }
+  
+  // tracking
+  TrackingInit();
+  Tracking_Reco();
 
   if( false )
-  {
-    // official evaluation
-    Tracking_Eval(evalFile);
-  }
-
-  if( true )
   {
     // local evaluation
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent|
-      SimEvaluator_hp::EvalVertices|
-      SimEvaluator_hp::EvalParticles );
+      SimEvaluator_hp::EvalEvent
+      // |SimEvaluator_hp::EvalVertices
+      // |SimEvaluator_hp::EvalParticles
+      );
     se->registerSubsystem(simEvaluator);
+  }
 
+  if( false )
+  {
+    // Micromegas evaluation
+    auto micromegasEvaluator = new MicromegasEvaluator_hp;
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits | MicromegasEvaluator_hp::EvalHits );
+    se->registerSubsystem(micromegasEvaluator);
+  }
+
+  if( true )
+  {
+    // tracking
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalEvent|
-      TrackingEvaluator_hp::EvalClusters|
-      TrackingEvaluator_hp::EvalTracks);
+      TrackingEvaluator_hp::EvalEvent
+      |TrackingEvaluator_hp::EvalClusters
+      |TrackingEvaluator_hp::EvalTracks
+      );
     se->registerSubsystem(trackingEvaluator);
-  }
-  
-  const bool do_qa = false;
-  if( do_qa ) 
-  {
-    // tracking QA
-    auto qa = new QAG4SimulationTracking();
-    qa->addEmbeddingID(0);
-    se->registerSubsystem(qa);
   }
 
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
-  in->registerSubsystem( new PHG4VertexSelection );
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  
+  // add evaluation nodes
+  out->AddNode("MicromegasEvaluator_hp::Container");
   out->AddNode("SimEvaluator_hp::Container");
   out->AddNode("TrackingEvaluator_hp::Container");
+
+  // add cluster and tracks nodes
+  // out->AddNode( "TRKR_CLUSTER" );
+  // out->AddNode( "SvtxTrackMap" );
+
   se->registerOutputManager(out);
 
   // skip events if any specified
@@ -145,10 +176,6 @@ int Fun4All_G4_ClusterReconstruction_hp(
 
   // process events
   se->run(nEvents);
-
-  // save QA histograms
-  if( do_qa ) 
-  { QAHistManagerDef::saveQARootFile(qaFile); }
 
   // terminate
   se->End();

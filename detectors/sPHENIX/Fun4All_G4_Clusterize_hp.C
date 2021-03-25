@@ -25,12 +25,11 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
-int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 100,
+int Fun4All_G4_Clusterize_hp(
+  const int nEvents = 1000,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root" )
-  // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
+  const char *outputFile = "DST/clusters_realistic_micromegas.root" )
 {
 
   // print inputs
@@ -91,7 +90,7 @@ int Fun4All_G4_Reconstruction_hp(
   rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
   Mvtx_Cells();
@@ -105,42 +104,6 @@ int Fun4All_G4_Reconstruction_hp(
   TPC_Clustering();
   Micromegas_Clustering();
   
-  // tracking
-  TrackingInit();
-  Tracking_Reco();
-
-  if( false )
-  {
-    // local evaluation
-    auto simEvaluator = new SimEvaluator_hp;
-    simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent
-      // |SimEvaluator_hp::EvalVertices
-      // |SimEvaluator_hp::EvalParticles
-      );
-    se->registerSubsystem(simEvaluator);
-  }
-
-  if( false )
-  {
-    // Micromegas evaluation
-    auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits | MicromegasEvaluator_hp::EvalHits );
-    se->registerSubsystem(micromegasEvaluator);
-  }
-
-  if( true )
-  {
-    // tracking
-    auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalEvent
-      |TrackingEvaluator_hp::EvalClusters
-      |TrackingEvaluator_hp::EvalTracks
-      );
-    se->registerSubsystem(trackingEvaluator);
-  }
-
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
@@ -149,21 +112,6 @@ int Fun4All_G4_Reconstruction_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  if( true )
-  {
-    // add evaluation nodes
-    out->AddNode("MicromegasEvaluator_hp::Container");
-    out->AddNode("SimEvaluator_hp::Container");
-    out->AddNode("TrackingEvaluator_hp::Container");
-  }
-
-  if( true )
-  {
-    // add cluster and tracks nodes
-    out->AddNode( "TRKR_CLUSTER" );
-    out->AddNode( "SvtxTrackMap" );
-  }
-
   se->registerOutputManager(out);
 
   // skip events if any specified

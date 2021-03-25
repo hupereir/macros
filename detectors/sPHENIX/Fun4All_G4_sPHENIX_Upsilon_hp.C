@@ -27,8 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 10,
-  const char *outputFile = "DST/dst_eval_upsilon_corrected.root"
+  const int nEvents = 1000,
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_truth.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_truth.root"
   )
 {
 
@@ -151,6 +154,15 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
     TrackingEvaluator_hp::EvalTrackPairs);
   se->registerSubsystem(trackingEvaluator);
 
+  // QA
+  Enable::QA = true;
+  Enable::TRACKING_QA = Enable::QA && true;
+  if( Enable::TRACKING_QA ) 
+  {  
+    Tracking_QA();
+    se->registerSubsystem(new QAG4SimulationUpsilon);
+  }
+  
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
@@ -165,6 +177,9 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // process events
   se->run(nEvents);
 
+  // QA output
+  if (Enable::QA) QA_Output(qaOutputFile);
+  
   // terminate
   se->End();
   se->PrintTimer();
