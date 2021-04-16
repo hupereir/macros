@@ -24,12 +24,15 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1000,
+  const int nEvents = 100,
 //   const char *outputFile = "DST/dst_eval_genfit_truth_flat_notpc.root",
 //   const char* qaOutputFile = "DST/qa_eval_genfit_truth_flat_notpc.root"
-  const char *outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
-  const char* qaOutputFile = "DST/qa_acts_truth_realistic_notpc.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
+  const char *outputFile = "DST/dst_eval.root",
+  const char* qaOutputFile = "DST/qa.root",
+  const char* residualsFile = "DST/TpcResiduals.root"
+//   const char *outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
+//   const char* qaOutputFile = "DST/qa_acts_truth_realistic_notpc.root",
+//   const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
   )
 {
 
@@ -70,21 +73,21 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = false;
+  G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
 
-  G4TRACKING::SC_ROOTOUTPUT = true;
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+//   G4TRACKING::SC_ROOTOUTPUT = true;
+//   G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity(0);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
