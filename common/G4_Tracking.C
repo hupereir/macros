@@ -179,8 +179,10 @@ void TrackingInit()
   geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
   
   /// Need a flip of the sign for constant field in tpc tracker
-  if(G4TRACKING::use_PHTpcTracker_seeding && 
-     G4MAGNET::magfield.find(".root") == std::string::npos)
+//   if(G4TRACKING::use_PHTpcTracker_seeding && 
+//      G4MAGNET::magfield.find(".root") == std::string::npos)
+
+  if( G4TRACKING::seeding_type == G4TRACKING::PHTPCTRACKER_SEEDING && G4MAGNET::magfield.find(".root") == std::string::npos)
     {
       geom->setMagFieldRescale(-1 * G4MAGNET::magfield_rescale);
     }
