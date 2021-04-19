@@ -24,7 +24,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 200,
 //   const char *outputFile = "DST/dst_eval_genfit_truth_flat_notpc.root",
 //   const char* qaOutputFile = "DST/qa_eval_genfit_truth_flat_notpc.root"
   const char *outputFile = "DST/dst_eval.root",
@@ -179,9 +179,12 @@ int Fun4All_G4_sPHENIX_hp(
 
   // QA
   Enable::QA = false;
-  Enable::TRACKING_QA = Enable::QA && true;
-  if( Enable::TRACKING_QA ) 
+  if( Enable::QA ) 
   {  
+    Intt_QA();
+    Mvtx_QA();
+    TPC_QA();
+    Micromegas_QA();
     Tracking_QA();
   }
   
