@@ -103,6 +103,10 @@ int Fun4All_G4_Clusterize_hp(
   Intt_Clustering();
   TPC_Clustering();
   Micromegas_Clustering();
+
+  // needed for makeActsGeometry
+  MagnetFieldInit();
+  TrackingInit();
   
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");

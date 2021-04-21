@@ -28,8 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_ClusterReconstruction_hp(
   const int nEvents = 1000,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/clusters_realistic_micromegas.root",
-  // const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
   const char* outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
   const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
   )
@@ -77,13 +76,13 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = false;
+  G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
 
-  G4TRACKING::SC_ROOTOUTPUT = true;
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+//   G4TRACKING::SC_ROOTOUTPUT = true;
+//   G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
   
   // server
   auto se = Fun4AllServer::instance();
@@ -115,6 +114,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   }
   
   // tracking
+  MagnetFieldInit();
   TrackingInit();
   Tracking_Reco();
 
