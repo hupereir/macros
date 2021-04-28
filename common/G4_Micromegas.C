@@ -70,7 +70,7 @@ void Micromegas(PHG4Reco* g4Reco)
   auto mm = new PHG4MicromegasSubsystem("MICROMEGAS", mm_layer);
   mm->SetActive();
   mm->set_double_param("mm_length", 220);
-  mm->set_double_param("mm_radius", 82);
+  mm->set_double_param("mm_radius", CylinderGeomMicromegas::reference_radius);
   g4Reco->registerSubsystem(mm);
 }
 
@@ -81,7 +81,7 @@ void Micromegas_Cells()
   auto reco = new PHG4MicromegasHitReco;
   reco->Verbosity(0);
 
-  static constexpr double radius = 82;
+  static constexpr double radius = CylinderGeomMicromegas::reference_radius;
   static constexpr double length = 210;
   static constexpr int nsectors = 12;
   static constexpr double tile_length = 50;
