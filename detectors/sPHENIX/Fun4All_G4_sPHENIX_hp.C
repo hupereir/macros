@@ -24,7 +24,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 200,
+  const int nEvents = 1000,
 //   const char *outputFile = "DST/dst_eval_genfit_truth_flat_notpc.root",
 //   const char* qaOutputFile = "DST/qa_eval_genfit_truth_flat_notpc.root"
   const char *outputFile = "DST/dst_eval.root",
