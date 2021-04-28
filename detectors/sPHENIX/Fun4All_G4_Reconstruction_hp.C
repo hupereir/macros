@@ -26,10 +26,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 100,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root" )
+  const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
 {
 
@@ -74,14 +74,14 @@ int Fun4All_G4_Reconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = false;
+  G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -91,7 +91,7 @@ int Fun4All_G4_Reconstruction_hp(
   rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
   Mvtx_Cells();
@@ -106,6 +106,7 @@ int Fun4All_G4_Reconstruction_hp(
   Micromegas_Clustering();
   
   // tracking
+  MagnetFieldInit();
   TrackingInit();
   Tracking_Reco();
 
