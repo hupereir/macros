@@ -26,10 +26,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 2000,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
+  // const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
+  const char *outputFile = "DST/dst_eval_genfit_truth_realistic-newgeom.root" )
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
 {
 
@@ -38,7 +39,6 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
-
 
   // options
   Enable::PIPE = true;
@@ -62,9 +62,9 @@ int Fun4All_G4_Reconstruction_hp(
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // TPC
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
@@ -77,7 +77,7 @@ int Fun4All_G4_Reconstruction_hp(
   G4TRACKING::use_Genfit = true;
   G4TRACKING::use_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_tpc_layers = true;
 
   // server
   auto se = Fun4AllServer::instance();

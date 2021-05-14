@@ -6,14 +6,6 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-#include <qa_modules/QAHistManagerDef.h>
-#include <qa_modules/QAG4SimulationIntt.h>
-#include <qa_modules/QAG4SimulationMvtx.h>
-#include <qa_modules/QAG4SimulationTpc.h>
-
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/SimEvaluator_hp.h>
@@ -32,9 +24,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_high_occupancy_hp(
-  const int nEvents = 1,
+  const int nEvents = 50,
   const char* outputFile = "DST/dst_eval.root",
-  const char* qaOutputFile = "QA/qa_output.root"
+  const char* qaOutputFile = "DST/qa-new.root"
   )
 {
 
@@ -56,22 +48,39 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
+  // TPC
+  // space charge distortions
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+
+  // space charge corrections
+  G4TPC::ENABLE_CORRECTIONS = false;
+
+  // micromegas configuration
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+
+  // for testing the momentum resolution, focus on having Micromegas in only one sector
+  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
+
   // tracking configuration
-  G4TRACKING::use_Genfit = true;
+  G4TRACKING::use_Genfit = false;
   G4TRACKING::use_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_micromegas_layers = false;
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity(2);
 
-//   // reco const
-//   auto rc = recoConsts::instance();
-//   rc->set_IntFlag("RANDOMSEED", 1);
+  // make sure to printout random seeds for reproducibility
+  PHRandomSeed::Verbosity(1);
+
+  // reco const
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -80,56 +89,50 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
 
     // 10.1103/PhysRevC.83.024913 : 0-10%AuAu 200 GeV dNch_deta = 609.
     static constexpr double target_dNch_deta = 609;
-    
+
     // eta range
     static constexpr double deta_dphi = .5;
     static constexpr double eta_start = .2;
-    
+
     //number particle  per 1/4 batch
     static constexpr int n_pion = int(target_dNch_deta * deta_dphi * deta_dphi / 4);
-    
+
     // low momentum pions (background)
     auto gen = new PHG4SimpleEventGenerator();
-    gen->add_particles("pi-",n_pion); 
-    gen->add_particles("pi+",n_pion); 
- 
+    gen->add_particles("pi-",n_pion);
+    gen->add_particles("pi+",n_pion);
+
+    // particle range
+    gen->set_eta_range(eta_start, eta_start + deta_dphi);
+    gen->set_phi_range(0, deta_dphi);
+
+    if( true )
+    {
+
+      // use specific distribution to generate pt
+      // values from "http://arxiv.org/abs/nucl-ex/0308006"
+      const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
+      const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
+      gen->set_pt_range(pt_bins,yield_int);
+
+    } else {
+
+      // flat pt distribution
+      gen->set_pt_range(0.5, 20.0);
+
+    }
+
+    // vertex
     gen->set_vertex_distribution_function(
       PHG4SimpleEventGenerator::Uniform,
       PHG4SimpleEventGenerator::Uniform,
       PHG4SimpleEventGenerator::Uniform);
     gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
     gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
-
     gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
     gen->set_vertex_size_parameters(0.0, 0.0);
-    
-    // particle range
-    gen->set_eta_range(eta_start, eta_start + deta_dphi);
-    gen->set_phi_range(0, deta_dphi);
-    gen->set_pt_range(0.1, 2);
-    gen->Embed(2);
-    gen->Verbosity(0);
-    se->registerSubsystem(gen);
 
-    // high momentum poions
-    gen = new PHG4SimpleEventGenerator();
-    gen->add_particles("pi-", n_pion);
-    gen->add_particles("pi+", n_pion);
-    
-    {
-      // reuse vertex of the last generator
-      gen->set_reuse_existing_vertex(true);
-      gen->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-    }
-    
-    gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
-    gen->set_vertex_size_parameters(0.0, 0.0);
-    gen->set_eta_range(eta_start, eta_start + deta_dphi);
-    gen->set_phi_range(0, deta_dphi);
-    gen->set_pt_range(2, 50);
     gen->Embed(2);
-    gen->Verbosity(0);
-
     se->registerSubsystem(gen);
   }
 
@@ -157,28 +160,37 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   TrackingInit();
   Tracking_Reco();
 
-  // local evaluation
-  auto simEvaluator = new SimEvaluator_hp;
-  simEvaluator->set_flags(
-    SimEvaluator_hp::EvalEvent|
-    SimEvaluator_hp::EvalVertices|
-    SimEvaluator_hp::EvalParticles );
-  se->registerSubsystem(simEvaluator);
-
-  auto trackingEvaluator = new TrackingEvaluator_hp;
-  trackingEvaluator->set_flags(
-    TrackingEvaluator_hp::EvalEvent|
-    TrackingEvaluator_hp::EvalClusters|
-    TrackingEvaluator_hp::EvalTracks);
-  se->registerSubsystem(trackingEvaluator);
-
+  if( false )
   {
-    // tracking QA
-    auto qa = new QAG4SimulationTracking();
-    qa->addEmbeddingID(2);
-    se->registerSubsystem(qa);
+    // local evaluation
+    auto simEvaluator = new SimEvaluator_hp;
+    simEvaluator->set_flags(
+      SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalVertices|
+      SimEvaluator_hp::EvalParticles );
+    se->registerSubsystem(simEvaluator);
+    
+    //   se->registerSubsystem(new MicromegasEvaluator_hp);
+    
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalEvent|
+      TrackingEvaluator_hp::EvalClusters|
+      TrackingEvaluator_hp::EvalTracks);
+    se->registerSubsystem(trackingEvaluator);
   }
   
+  // QA
+  Enable::QA = false;
+  if( Enable::QA )
+  {
+    Intt_QA();
+    Mvtx_QA();
+    TPC_QA();
+    Micromegas_QA();
+    Tracking_QA();
+  }
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
@@ -193,9 +205,9 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   // process events
   se->run(nEvents);
 
-  // save QA histograms
-  { QAHistManagerDef::saveQARootFile(qaOutputFile); }
-  
+  // QA output
+  if (Enable::QA) QA_Output(qaOutputFile);
+
   // terminate
   se->End();
   se->PrintTimer();
