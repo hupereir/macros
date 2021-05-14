@@ -31,7 +31,6 @@
 #include <trackreco/PHTruthVertexing.h>
 
 #if __cplusplus >= 201703L
-#include <trackreco/ActsEvaluator.h>
 #include <trackreco/MakeActsGeometry.h>
 #include <trackreco/PHActsSourceLinks.h>
 #include <trackreco/PHActsSiliconSeeding.h>
@@ -461,7 +460,7 @@ void Tracking_Reco()
       std::cout << "      Using Micromegas matching " << std::endl;
 
       // Match TPC track stubs from CA seeder to clusters in the micromegas layers
-      PHMicromegasTpcTrackMatching* mm_match = new PHMicromegasTpcTrackMatching();
+      auto mm_match = new PHMicromegasTpcTrackMatching;
       mm_match->Verbosity(verbosity);
       mm_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
       if (G4TRACKING::SC_CALIBMODE)
@@ -575,19 +574,6 @@ void Tracking_Eval(const std::string& outputfile)
   eval->scan_for_embedded(true);  // take all tracks if false - take only embedded tracks if true
   eval->Verbosity(verbosity);
   se->registerSubsystem(eval);
-
-  if (!G4TRACKING::use_Genfit && !G4TRACKING::SC_CALIBMODE)
-  {
-#if __cplusplus >= 201703L
-    if (G4TRACKING::use_acts_evaluator)
-    {
-      ActsEvaluator* actsEval = new ActsEvaluator(outputfile + "_acts.root", eval);
-      actsEval->Verbosity(verbosity);
-      actsEval->setEvalCKF(false);
-      se->registerSubsystem(actsEval);
-    }
-#endif
-  }
 
   if (G4TRACKING::use_primary_vertex)
   {
