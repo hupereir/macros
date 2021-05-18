@@ -28,10 +28,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 2000,
-  
-//   const char *outputFile = "DST/dst_eval.root",
-//   const char* qaOutputFile = "DST/qa.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
+
+  const char *outputFile = "DST/dst_eval.root",
+  const char* qaOutputFile = "DST/qa.root",
+  const char* residualsFile = "DST/TpcResiduals.root"
 
 //   const char *outputFile = "DST/dst_eval_genfit_truth_newgeom.root",
 //   const char* qaOutputFile = "DST/qa_genfit_truth_newgeom.root",
@@ -41,10 +41,14 @@ int Fun4All_G4_sPHENIX_hp(
 //   const char* qaOutputFile = "DST/qa_acts_full_oldgeom.root",
 //   const char* residualsFile = "DST/TpcResiduals.root"
 
-  const char *outputFile = "DST/dst_eval_acts_full_newgeom.root",
-  const char* qaOutputFile = "DST/qa_acts_full_newgeom.root",
-  const char* residualsFile = "DST/TpcResiduals.root"
-  
+//   const char *outputFile = "DST/dst_eval_acts_full_newgeom.root",
+//   const char* qaOutputFile = "DST/qa_acts_full_newgeom.root",
+//   const char* residualsFile = "DST/TpcResiduals.root"
+
+//   const char *outputFile = "DST/dst_eval_acts_full_newgeom.root",
+//   const char* qaOutputFile = "DST/qa_acts_full_newgeom.root",
+//   const char* residualsFile = "DST/TpcResiduals.root"
+
 //   const char *outputFile = "DST/dst_eval_acts_truth_newgeom.root",
 //   const char* qaOutputFile = "DST/qa_acts_truth_newgeom.root",
 //   const char* residualsFile = "DST/TpcResiduals.root"
@@ -73,7 +77,7 @@ int Fun4All_G4_sPHENIX_hp(
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
-  
+
   G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
   G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
 
@@ -100,7 +104,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
 
-  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
+//   G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
 
 //   G4TRACKING::SC_ROOTOUTPUT = true;
 //   G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
@@ -174,13 +178,13 @@ int Fun4All_G4_sPHENIX_hp(
   Mvtx_Cells();
   Intt_Cells();
   TPC_Cells();
-  Micromegas_Cells();
+  if( Enable::MICROMEGAS ) Micromegas_Cells();
 
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
-  Micromegas_Clustering();
+  if( Enable::MICROMEGAS ) Micromegas_Clustering();
 
   // tracking
   TrackingInit();
@@ -196,15 +200,18 @@ int Fun4All_G4_sPHENIX_hp(
 
 //   se->registerSubsystem(new MicromegasEvaluator_hp);
 
-  auto trackingEvaluator = new TrackingEvaluator_hp;
-  trackingEvaluator->set_flags(
-    TrackingEvaluator_hp::EvalEvent|
-    TrackingEvaluator_hp::EvalClusters|
-    TrackingEvaluator_hp::EvalTracks);
-  se->registerSubsystem(trackingEvaluator);
+  if( Enable::MICROMEGAS )
+  {
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalEvent|
+      TrackingEvaluator_hp::EvalClusters|
+      TrackingEvaluator_hp::EvalTracks);
+    se->registerSubsystem(trackingEvaluator);
+  }
 
   // se->registerSubsystem(new TrackEvaluation);
-  
+
   // QA
   Enable::QA = true;
   if( Enable::QA )
@@ -212,7 +219,9 @@ int Fun4All_G4_sPHENIX_hp(
     Intt_QA();
     Mvtx_QA();
     TPC_QA();
-    Micromegas_QA();
+    if( Enable::MICROMEGAS )
+    { Micromegas_QA(); }
+
     Tracking_QA();
   }
 
