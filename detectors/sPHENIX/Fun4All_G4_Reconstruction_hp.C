@@ -153,12 +153,12 @@ int Fun4All_G4_Reconstruction_hp(
   if( true )
   {
     // add evaluation nodes
-    out->AddNode("MicromegasEvaluator_hp::Container");
-    out->AddNode("SimEvaluator_hp::Container");
+    // out->AddNode("MicromegasEvaluator_hp::Container");
+    // out->AddNode("SimEvaluator_hp::Container");
     out->AddNode("TrackingEvaluator_hp::Container");
   }
 
-  if( true )
+  if( false )
   {
     // add cluster and tracks nodes
     out->AddNode( "TRKR_CLUSTER" );
