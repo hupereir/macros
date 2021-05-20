@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
+  const int nEvents = 200,
 
   const char *outputFile = "DST/dst_eval.root",
   const char* qaOutputFile = "DST/qa.root",
@@ -98,13 +98,13 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = false;
-  G4TRACKING::use_truth_track_seeding = false;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
 
-//   G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
+  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
 
 //   G4TRACKING::SC_ROOTOUTPUT = true;
 //   G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;

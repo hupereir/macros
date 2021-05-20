@@ -62,8 +62,8 @@ int Fun4All_G4_sPHENIX_high_occupancy_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_Genfit = false;
-  G4TRACKING::use_truth_track_seeding = false;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
