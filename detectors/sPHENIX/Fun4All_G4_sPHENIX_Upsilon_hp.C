@@ -62,8 +62,9 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
   // micromegas configuration
@@ -71,6 +72,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // tracking configuration
   G4TRACKING::use_genfit = true;
+  G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
   G4TRACKING::disable_mvtx_layers = false;

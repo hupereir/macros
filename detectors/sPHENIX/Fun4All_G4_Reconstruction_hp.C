@@ -28,6 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 2000,
   const int nSkipEvents = 0,
+  // const char* inputFile = "/sphenix/user/pinkenbu/newout/DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
   const char *outputFile = "DST/dst_eval_genfit_truth_realistic-newgeom.root" )
@@ -69,12 +70,14 @@ int Fun4All_G4_Reconstruction_hp(
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-empty-new_extrapolated.root";
-
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-newgeom_extrapolated.root";
+  
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
   G4TRACKING::use_genfit = true;
+  G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = true;

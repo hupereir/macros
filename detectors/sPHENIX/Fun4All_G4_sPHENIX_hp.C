@@ -27,31 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 200,
+  const int nEvents = 2000,
 
-  const char *outputFile = "DST/dst_eval.root",
+  const char *outputFile = "DST/dst_eval_truth.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* residualsFile = "DST/TpcResiduals.root"
-
-//   const char *outputFile = "DST/dst_eval_genfit_truth_newgeom.root",
-//   const char* qaOutputFile = "DST/qa_genfit_truth_newgeom.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
-
-//   const char *outputFile = "DST/dst_eval_acts_full_oldgeom.root",
-//   const char* qaOutputFile = "DST/qa_acts_full_oldgeom.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
-
-//   const char *outputFile = "DST/dst_eval_acts_full_newgeom.root",
-//   const char* qaOutputFile = "DST/qa_acts_full_newgeom.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
-
-//   const char *outputFile = "DST/dst_eval_acts_full_newgeom.root",
-//   const char* qaOutputFile = "DST/qa_acts_full_newgeom.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
-
-//   const char *outputFile = "DST/dst_eval_acts_truth_newgeom.root",
-//   const char* qaOutputFile = "DST/qa_acts_truth_newgeom.root",
-//   const char* residualsFile = "DST/TpcResiduals.root"
   )
 {
 
@@ -75,21 +55,20 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
 
-  G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
-  G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
-
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
+  // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
-  G4TPC::correction_filename = "distortion_maps_rec/distortion_corrections_empty.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_iterate_realistic_micromegas_mm-new_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-new_extrapolated.root";
+  G4TPC::ENABLE_CORRECTIONS = true;
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
@@ -98,8 +77,9 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_genfit = true;
+  G4TRACKING::use_truth_init_vertexing = true;
+  G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
@@ -121,8 +101,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // reco const
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
-  rc->set_IntFlag("RANDOMSEED",1);
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -136,7 +116,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
 
       // use specific distribution to generate pt
@@ -200,7 +180,7 @@ int Fun4All_G4_sPHENIX_hp(
 
 //   se->registerSubsystem(new MicromegasEvaluator_hp);
 
-  if( Enable::MICROMEGAS )
+  // if( Enable::MICROMEGAS )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
@@ -213,7 +193,7 @@ int Fun4All_G4_sPHENIX_hp(
   // se->registerSubsystem(new TrackEvaluation);
 
   // QA
-  Enable::QA = true;
+  Enable::QA = false;
   if( Enable::QA )
   {
     Intt_QA();
@@ -232,8 +212,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("MicromegasEvaluator_hp::Container");
+//   out->AddNode("SimEvaluator_hp::Container");
+//   out->AddNode("MicromegasEvaluator_hp::Container");
   out->AddNode("TrackingEvaluator_hp::Container");
 
   // out->AddNode("TrackEvaluationContainer");
