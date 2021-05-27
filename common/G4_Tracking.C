@@ -569,14 +569,38 @@ void Tracking_Reco()
 	      track_prop->set_max_search_win_phi_intt(i, 0.0050);
 	      track_prop->set_min_search_win_phi_intt(i, 0.000);
 	    }
-	}
+    }
         
       std::cout << "   Using Genfit track fitting " << std::endl;
       
-      PHGenFitTrkFitter* kalman = new PHGenFitTrkFitter();
+      auto kalman = new PHGenFitTrkFitter;
       kalman->Verbosity(verbosity);
       kalman->set_vertexing_method(G4TRACKING::vmethod);
-      kalman->set_use_truth_vertex(false);      
+      kalman->set_use_truth_vertex(false);
+
+      // disable mvtx
+      if( G4TRACKING::disable_mvtx_layers )
+      {
+        std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
+        for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
+      }
+
+      // disable tpc
+      if( G4TRACKING::disable_tpc_layers )
+      {
+        std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
+        for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
+        for( int layer = 23; layer < 39; ++layer ) { kalman->disable_layer( layer ); }
+        for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
+      }
+
+      // disable micromegas
+      if( G4TRACKING::disable_micromegas_layers )
+      {
+        std::cout << "Tracking_reco - Disabling Micromegas layers from kalman filter" << std::endl;
+        for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
+      }
+
       se->registerSubsystem(kalman);
     }
 
