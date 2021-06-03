@@ -26,12 +26,14 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 2000,
+  const int nEvents = 1,
   const int nSkipEvents = 0,
+  const char* inputFile = "DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
+  const char *outputFile = "DST/dst_eval_mdc1.root" )
   // const char* inputFile = "/sphenix/user/pinkenbu/newout/DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+  // const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
-  const char *outputFile = "DST/dst_eval_genfit_truth_realistic-newgeom.root" )
+  // const char *outputFile = "DST/dst_eval_genfit_truth_realistic-newgeom.root" )
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
 {
 
@@ -80,7 +82,7 @@ int Fun4All_G4_Reconstruction_hp(
   G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -97,22 +99,33 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
-  Mvtx_Cells();
-  Intt_Cells();
-  TPC_Cells();
-  Micromegas_Cells();
+  if( true )
+  {
+    Mvtx_Cells();
+    Intt_Cells();
+    TPC_Cells();
+    Micromegas_Cells();
+  }
 
-  // digitizer and clustering
-  Mvtx_Clustering();
-  Intt_Clustering();
-  TPC_Clustering();
-  Micromegas_Clustering();
-  
-  // tracking
+  // tracking init is needed for clustering
   MagnetFieldInit();
   TrackingInit();
-  Tracking_Reco();
 
+  // digitizer and clustering
+  if( true )
+  {
+    Mvtx_Clustering();
+    Intt_Clustering();
+    TPC_Clustering();
+    Micromegas_Clustering();
+  }
+  
+  // tracking
+  if( true )
+  {
+    Tracking_Reco();
+  }
+  
   if( false )
   {
     // local evaluation
@@ -135,11 +148,12 @@ int Fun4All_G4_Reconstruction_hp(
 
   if( true )
   {
-    // tracking
+    // tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
+      // |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );
     se->registerSubsystem(trackingEvaluator);
@@ -156,12 +170,12 @@ int Fun4All_G4_Reconstruction_hp(
   if( true )
   {
     // add evaluation nodes
-    // out->AddNode("MicromegasEvaluator_hp::Container");
-    // out->AddNode("SimEvaluator_hp::Container");
+    out->AddNode("MicromegasEvaluator_hp::Container");
+    out->AddNode("SimEvaluator_hp::Container");
     out->AddNode("TrackingEvaluator_hp::Container");
   }
 
-  if( false )
+  if( true )
   {
     // add cluster and tracks nodes
     out->AddNode( "TRKR_CLUSTER" );

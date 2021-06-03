@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
+  const int nEvents = 100,
 
   const char *outputFile = "DST/dst_eval_truth.root",
   const char* qaOutputFile = "DST/qa.root",
@@ -55,7 +55,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
   // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
 
@@ -63,7 +63,7 @@ int Fun4All_G4_sPHENIX_hp(
   // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
   G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
@@ -77,13 +77,15 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
+  G4TRACKING::use_genfit = false;
   G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
 
+  G4TRACKING::SC_CALIBMODE = true;
+  
   G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
 
 //   G4TRACKING::SC_ROOTOUTPUT = true;
@@ -116,7 +118,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( false )
+    if( true )
     {
 
       // use specific distribution to generate pt

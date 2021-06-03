@@ -6,6 +6,7 @@
 #include <g4main/PHG4VertexSelection.h>
 #include <phool/recoConsts.h>
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
+#include <tpccalib/TpcSpaceChargeMatrixInversion.h>
 
 
 #include <TSystemDirectory.h>
@@ -22,14 +23,20 @@ std::vector<TString> GetFiles( const char* pathname )
 {
   std::set<TString> filenames;
 
- 	TSystemDirectory dir( pathname, pathname );
+  static constexpr int max_files = 1;
+  
+  TSystemDirectory dir( pathname, pathname );
   auto files = dir.GetListOfFiles();
   TIter next( files );
   while( auto file = static_cast<TSystemFile*>(next()) )
   {
+    // get filename
     const TString filename( file->GetName() );
     if( !filename.EndsWith( ".root" ) ) continue;
     filenames.insert( TString( pathname ) + filename );
+
+    // stop as soon as enough files have been found
+    if( max_files > 0 && filenames.size() == max_files ) break;
   }
 
   for( const auto& filename: filenames )
@@ -44,8 +51,9 @@ std::vector<TString> GetFiles( const char* pathname )
 //________________________________________________________________________________________________
 int Fun4All_G4_SpaceChargeReconstruction_hp(
   const int nEvents = 0,
-  const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions/",
-  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm_extrapolated-new.root"
+  // const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions/",
+  const char* inputDirectory = "DST/CONDOR_realistic_micromegas/dst_reco_truth_notpc_distortions-coarse-test/",
+  const char* outputFile = "Rootfiles/Distortions_full_realistic_micromegas_mm_extrapolated-test-new.root"
   )
 {
 
@@ -54,6 +62,9 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   std::cout << "Fun4All_G4_SpaceChargeReconstruction_hp - inputDirectory: " << inputDirectory << std::endl;
   std::cout << "Fun4All_G4_SpaceChargeReconstruction_hp - outputFile: " << outputFile << std::endl;
 
+  // temporary matrix filename
+  const std::string& tmpfile = "TpcSpaceChargeMatrices.root";
+  
   // central tracking
   Enable::MVTX = true;
   Enable::INTT = true;
@@ -78,7 +89,7 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   auto rc = recoConsts::instance();
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1000 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 100 ) );
 
   // space charge reconstruction
   auto spaceChargeReconstruction = new TpcSpaceChargeReconstruction;
@@ -88,8 +99,8 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   spaceChargeReconstruction->set_double_param( "spacecharge_max_dz", 0.5 );
 
   spaceChargeReconstruction->set_use_micromegas( true );
-  spaceChargeReconstruction->set_outputfile( outputFile );
-  // spaceChargeReconstruction->Verbosity(1);
+  spaceChargeReconstruction->set_outputfile( tmpfile );
+  spaceChargeReconstruction->Verbosity(1);
   se->registerSubsystem( spaceChargeReconstruction );
 
   // input manager
@@ -106,6 +117,14 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   // terminate
   se->End();
   se->PrintTimer();
+  
+  // perform matrix inversion
+  auto spaceChargeMatrixInversion = new TpcSpaceChargeMatrixInversion;
+  spaceChargeMatrixInversion->set_outputfile( outputFile );
+  spaceChargeMatrixInversion->Verbosity(1);
+  if( spaceChargeMatrixInversion->add_from_file( tmpfile ) )
+  { spaceChargeMatrixInversion->calculate_distortions(); }
+  
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);
