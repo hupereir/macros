@@ -26,10 +26,12 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 1,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
   const char* inputFile = "DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
-  const char *outputFile = "DST/dst_eval_mdc1.root" )
+  const char *outputFile = "DST/dst_eval_mdc1.root",
+  const char* qaOutputFile = "DST/qa.root"
+ )
   // const char* inputFile = "/sphenix/user/pinkenbu/newout/DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
   // const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic.root" )
@@ -78,9 +80,9 @@ int Fun4All_G4_Reconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
-  G4TRACKING::use_truth_init_vertexing = true;
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_truth_init_vertexing = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
@@ -99,7 +101,7 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
-  if( true )
+  if( false )
   {
     Mvtx_Cells();
     Intt_Cells();
@@ -121,7 +123,7 @@ int Fun4All_G4_Reconstruction_hp(
   }
   
   // tracking
-  if( true )
+  if( false )
   {
     Tracking_Reco();
   }
@@ -146,7 +148,7 @@ int Fun4All_G4_Reconstruction_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( true )
+  if( false )
   {
     // tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -157,6 +159,19 @@ int Fun4All_G4_Reconstruction_hp(
       |TrackingEvaluator_hp::EvalTracks
       );
     se->registerSubsystem(trackingEvaluator);
+  }
+
+  // QA
+  Enable::QA = false;
+  if( Enable::QA )
+  {
+//     Intt_QA();
+//     Mvtx_QA();
+//     TPC_QA();
+    if( Enable::MICROMEGAS )
+    { Micromegas_QA(); }
+
+//     Tracking_QA();
   }
 
   // input manager
@@ -190,6 +205,9 @@ int Fun4All_G4_Reconstruction_hp(
 
   // process events
   se->run(nEvents);
+
+  // QA output
+  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();

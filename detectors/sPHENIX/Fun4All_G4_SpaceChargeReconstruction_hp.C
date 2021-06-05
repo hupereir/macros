@@ -65,22 +65,6 @@ int Fun4All_G4_SpaceChargeReconstruction_hp(
   // temporary matrix filename
   const std::string& tmpfile = "TpcSpaceChargeMatrices.root";
   
-  // central tracking
-  Enable::MVTX = true;
-  Enable::INTT = true;
-  Enable::TPC = true;
-  Enable::TPC_ABSORBER = true;
-  Enable::MICROMEGAS = true;
-
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
-
-  // tracking configuration
-  G4TRACKING::use_genfit = true;
-  G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity();

@@ -9,6 +9,11 @@
 #include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAHistManagerDef.h>
 
+#define NEW_SC
+#ifdef NEW_SC
+#include <tpccalib/TpcSpaceChargeMatrixInversion.h>
+#endif
+
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/MicromegasEvaluator_hp.h>
@@ -28,9 +33,12 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_ClusterReconstruction_hp(
   const int nEvents = 1000,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
-  const char* outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
+  const char* inputFile = "DST/clusters.root",
+  const char* outputFile = "DST/dst_eval.root",
+  const char* redisualsFile = "TpcSpaceChargeMatrixInversion.root"
+//   const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
+//   const char* outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
+//   const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
   )
   // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
 {
@@ -40,7 +48,6 @@ int Fun4All_G4_ClusterReconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
-
 
   // options
   Enable::PIPE = true;
@@ -64,9 +71,9 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // TPC
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
@@ -76,27 +83,39 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
+  G4TRACKING::add_fake_surfaces = false;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
 
-//   G4TRACKING::SC_ROOTOUTPUT = true;
-//   G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+  G4TRACKING::SC_CALIBMODE = true;
+  
+  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
+
+  #ifdef NEW_SC
+  // temporary matrix filename
+  const std::string& tmpfile = "TpcSpaceChargeMatrices.root";
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = tmpfile;
+  #else
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = redisualsFile;
+  #endif
   
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  // se->Verbosity();
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   if( false )
   {
@@ -138,7 +157,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( true )
+  if( false )
   {
     // tracking
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -180,6 +199,16 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // terminate
   se->End();
   se->PrintTimer();
+  
+  #ifdef NEW_SC
+  // perform matrix inversion
+  auto spaceChargeMatrixInversion = new TpcSpaceChargeMatrixInversion;
+  spaceChargeMatrixInversion->set_outputfile( redisualsFile );
+  spaceChargeMatrixInversion->Verbosity(1);
+  if( spaceChargeMatrixInversion->add_from_file( tmpfile ) )
+  { spaceChargeMatrixInversion->calculate_distortions(); }
+  #endif
+  
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);

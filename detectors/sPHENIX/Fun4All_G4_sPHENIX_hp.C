@@ -27,11 +27,15 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 10000,
 
-  const char *outputFile = "DST/dst_eval_truth.root",
+  const char *outputFile = "DST/clusters.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* residualsFile = "DST/TpcResiduals.root"
+
+//   const char *outputFile = "DST/dst_eval_truth.root",
+//   const char* qaOutputFile = "DST/qa.root",
+//   const char* residualsFile = "DST/TpcResiduals.root"
   )
 {
 
@@ -55,7 +59,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
   // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
 
@@ -162,28 +166,33 @@ int Fun4All_G4_sPHENIX_hp(
   TPC_Cells();
   if( Enable::MICROMEGAS ) Micromegas_Cells();
 
+  // tracking
+  TrackingInit();
+
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
   if( Enable::MICROMEGAS ) Micromegas_Clustering();
 
-  // tracking
-  TrackingInit();
-  Tracking_Reco();
+  if( false )
+  { 
+    // tracking
+    Tracking_Reco();
+  }
 
   // local evaluation
-  auto simEvaluator = new SimEvaluator_hp;
-  simEvaluator->set_flags(
-    SimEvaluator_hp::EvalEvent|
-    SimEvaluator_hp::EvalVertices|
-    SimEvaluator_hp::EvalParticles );
-  se->registerSubsystem(simEvaluator);
-
-//   se->registerSubsystem(new MicromegasEvaluator_hp);
-
-  // if( Enable::MICROMEGAS )
+  if( false )
   {
+    auto simEvaluator = new SimEvaluator_hp;
+    simEvaluator->set_flags(
+      SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalVertices|
+      SimEvaluator_hp::EvalParticles );
+    se->registerSubsystem(simEvaluator);
+    
+    // se->registerSubsystem(new MicromegasEvaluator_hp);
+    
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent|
@@ -191,7 +200,7 @@ int Fun4All_G4_sPHENIX_hp(
       TrackingEvaluator_hp::EvalTracks);
     se->registerSubsystem(trackingEvaluator);
   }
-
+  
   // se->registerSubsystem(new TrackEvaluation);
 
   // QA
@@ -216,7 +225,7 @@ int Fun4All_G4_sPHENIX_hp(
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
 //   out->AddNode("SimEvaluator_hp::Container");
 //   out->AddNode("MicromegasEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
+//   out->AddNode("TrackingEvaluator_hp::Container");
 
   // out->AddNode("TrackEvaluationContainer");
 
