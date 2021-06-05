@@ -92,6 +92,9 @@ namespace G4TRACKING
   //Fittting
   bool use_genfit = false;                 // if false, acts KF is run on proto tracks. If true, use Genfit track propagation and fitting
 
+  // set to false to disable adding fake surfaces to MakeActsGeom
+  bool add_fake_surfaces = true;
+  
   // Initial vertexing
   bool g4eval_use_initial_vertex = true;  // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
   bool use_truth_init_vertexing = false;    // if true runs truth vertexing, if false runs acts initial vertex finder
@@ -111,6 +114,8 @@ namespace G4TRACKING
   bool disable_mvtx_layers = false;
   bool disable_tpc_layers = false;
   bool disable_micromegas_layers = false;
+
+  std::string SC_ROOTOUTPUT_FILENAME = "PHTpcResiduals.root";
 
 }  // namespace G4TRACKING
 
@@ -169,6 +174,7 @@ void TrackingInit()
   geom->Verbosity(verbosity);
   geom->setMagField(G4MAGNET::magfield);
   geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
+  geom->add_fake_surfaces( G4TRACKING::add_fake_surfaces );
   
   /// Need a flip of the sign for constant field in tpc tracker
   if( G4TRACKING::seeding_type == G4TRACKING::PHTPCTRACKER_SEEDING && G4MAGNET::magfield.find(".root") == std::string::npos)
@@ -415,7 +421,8 @@ void Tracking_Reco()
 	{
 	  /// run tpc residual determination with silicon+MM track fit
 	  PHTpcResiduals* residuals = new PHTpcResiduals();
-	  residuals->Verbosity(verbosity);
+   residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+	  residuals->Verbosity(1);
 	  se->registerSubsystem(residuals);
 	}
       
