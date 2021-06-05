@@ -64,7 +64,7 @@ namespace G4TRACKING
   // Space Charge calibration flag
   bool SC_CALIBMODE = true;        // this is anded with G4TPC::ENABLE_DISTORTIONS in TrackingInit()
   double SC_COLLISIONRATE = 50e3;  // leave at 50 KHz for now, scaling of distortion map not implemented yet
-  std::string SC_ROOTOUTPUT_FILENAME = "PHTpcResiduals.root";
+  std::string SC_ROOTOUTPUT_FILENAME = "TpcSpaceChargeMatrices.root";
 
   // Tracking reconstruction setup parameters and flags
   //=====================================
@@ -580,13 +580,6 @@ void Tracking_Reco()
       kalman->Verbosity(verbosity);
       kalman->set_vertexing_method(G4TRACKING::vmethod);
       kalman->set_use_truth_vertex(false);
-
-      // disable mvtx
-      if( G4TRACKING::disable_mvtx_layers )
-      {
-        std::cout << "Tracking_reco - Disabling MVTX layers from kalman filter" << std::endl;
-        for( int layer = 0; layer < 3; ++layer ) { kalman->disable_layer( layer ); }
-      }
 
       // disable tpc
       if( G4TRACKING::SC_CALIBMODE )
