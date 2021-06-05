@@ -596,7 +596,7 @@ void Tracking_Reco()
       {
         // Genfit based Tpc space charge Reconstruction
         auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
-        tpcSpaceChargeReconstruction->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+        tpcSpaceChargeReconstruction->set_outputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
         se->registerSubsystem(tpcSpaceChargeReconstruction);
       }
     
