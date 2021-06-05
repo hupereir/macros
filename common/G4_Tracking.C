@@ -28,14 +28,14 @@
 #include <trackreco/PHTruthTrackSeeding.h>
 #include <trackreco/PHTruthVertexing.h>
 
-#if __cplusplus >= 201703L
 #include <trackreco/MakeActsGeometry.h>
 #include <trackreco/PHActsSiliconSeeding.h>
 #include <trackreco/PHActsTrkFitter.h>
 #include <trackreco/PHActsInitialVertexFinder.h>
 #include <trackreco/PHActsVertexFinder.h>
-#include <trackreco/PHTpcResiduals.h>
-#endif
+
+#include <tpccalib/TpcSpaceChargeReconstruction.h>
+#include <tpccalib/PHTpcResiduals.h>
 
 #include <trackbase/TrkrHitTruthAssoc.h>
 
@@ -47,6 +47,7 @@
 
 R__LOAD_LIBRARY(libg4eval.so)
 R__LOAD_LIBRARY(libtrack_reco.so)
+R__LOAD_LIBRARY(libtpccalib.so)
 R__LOAD_LIBRARY(libPHTpcTracker.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
@@ -63,6 +64,7 @@ namespace G4TRACKING
   // Space Charge calibration flag
   bool SC_CALIBMODE = true;        // this is anded with G4TPC::ENABLE_DISTORTIONS in TrackingInit()
   double SC_COLLISIONRATE = 50e3;  // leave at 50 KHz for now, scaling of distortion map not implemented yet
+  std::string SC_ROOTOUTPUT_FILENAME = "PHTpcResiduals.root";
 
   // Tracking reconstruction setup parameters and flags
   //=====================================
@@ -110,12 +112,6 @@ namespace G4TRACKING
   bool use_rave_vertexing = true;                     // Use Rave to find and fit for vertex after track fitting - used for QA only
   // This is the setup we have been using  - smeared truth vertex for a single collision per event. Make it the default for now.
   std::string vmethod("avf-smoothing:1");  // only good for 1 vertex events // vmethod is a string used to set the Rave final-vertexing method:
-
-  bool disable_mvtx_layers = false;
-  bool disable_tpc_layers = false;
-  bool disable_micromegas_layers = false;
-
-  std::string SC_ROOTOUTPUT_FILENAME = "PHTpcResiduals.root";
 
 }  // namespace G4TRACKING
 
@@ -421,7 +417,7 @@ void Tracking_Reco()
 	{
 	  /// run tpc residual determination with silicon+MM track fit
 	  PHTpcResiduals* residuals = new PHTpcResiduals();
-   residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+    residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
 	  residuals->Verbosity(1);
 	  se->registerSubsystem(residuals);
 	}
@@ -593,7 +589,7 @@ void Tracking_Reco()
       }
 
       // disable tpc
-      if( G4TRACKING::disable_tpc_layers )
+      if( G4TRACKING::SC_CALIBMODE )
       {
         std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
         for( int layer = 7; layer < 23; ++layer ) { kalman->disable_layer( layer ); }
@@ -601,14 +597,16 @@ void Tracking_Reco()
         for( int layer = 39; layer < 55; ++layer ) { kalman->disable_layer( layer ); }
       }
 
-      // disable micromegas
-      if( G4TRACKING::disable_micromegas_layers )
-      {
-        std::cout << "Tracking_reco - Disabling Micromegas layers from kalman filter" << std::endl;
-        for( int layer = 55; layer < 57; ++layer ) { kalman->disable_layer( layer ); }
-      }
-
       se->registerSubsystem(kalman);
+
+      if( G4TRACKING::SC_CALIBMODE )
+      {
+        // Genfit based Tpc space charge Reconstruction
+        auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
+        tpcSpaceChargeReconstruction->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+        se->registerSubsystem(tpcSpaceChargeReconstruction);
+      }
+    
     }
 
 
