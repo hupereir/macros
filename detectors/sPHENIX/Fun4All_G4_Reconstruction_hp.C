@@ -29,7 +29,8 @@ int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 0,
   const int nSkipEvents = 0,
   const char* inputFile = "DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
-  const char *outputFile = "DST/dst_eval_mdc1.root",
+  const char* outputFile = "DST/dst_eval_mdc1.root",
+  const char* residualsFile = "DST/TpcSpaceChargeMatrices.root",
   const char* qaOutputFile = "DST/qa.root"
  )
   // const char* inputFile = "/sphenix/user/pinkenbu/newout/DSTNEW_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000001-00000.root",
@@ -74,18 +75,18 @@ int Fun4All_G4_Reconstruction_hp(
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-empty-new_extrapolated.root";
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-newgeom_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-newgeom_extrapolated.root";
   
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = false;
-  G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-
+  G4TRACKING::use_genfit = true;
+  G4TRACKING::use_truth_init_vertexing = true;
+  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+  
   // server
   auto se = Fun4AllServer::instance();
   // se->Verbosity(1);
@@ -101,7 +102,7 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
-  if( false )
+  if( true )
   {
     Mvtx_Cells();
     Intt_Cells();
@@ -123,7 +124,7 @@ int Fun4All_G4_Reconstruction_hp(
   }
   
   // tracking
-  if( false )
+  if( true )
   {
     Tracking_Reco();
   }
@@ -148,13 +149,13 @@ int Fun4All_G4_Reconstruction_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( false )
+  if( true )
   {
     // tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
-      |TrackingEvaluator_hp::EvalClusters
+      // |TrackingEvaluator_hp::EvalClusters
       // |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );
@@ -165,13 +166,11 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::QA = false;
   if( Enable::QA )
   {
-//     Intt_QA();
-//     Mvtx_QA();
-//     TPC_QA();
-    if( Enable::MICROMEGAS )
-    { Micromegas_QA(); }
-
-//     Tracking_QA();
+    Intt_QA();
+    Mvtx_QA();
+    TPC_QA();
+    Micromegas_QA();
+    Tracking_QA();
   }
 
   // input manager
@@ -180,17 +179,16 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerInputManager(in);
 
   // output manager
-  /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   if( true )
   {
     // add evaluation nodes
-    out->AddNode("MicromegasEvaluator_hp::Container");
-    out->AddNode("SimEvaluator_hp::Container");
+    // out->AddNode("MicromegasEvaluator_hp::Container");
+    // out->AddNode("SimEvaluator_hp::Container");
     out->AddNode("TrackingEvaluator_hp::Container");
   }
 
-  if( true )
+  if( false )
   {
     // add cluster and tracks nodes
     out->AddNode( "TRKR_CLUSTER" );
