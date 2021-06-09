@@ -64,7 +64,7 @@ namespace G4TRACKING
   // Space Charge calibration flag
   bool SC_CALIBMODE = true;        // this is anded with G4TPC::ENABLE_DISTORTIONS in TrackingInit()
   double SC_COLLISIONRATE = 50e3;  // leave at 50 KHz for now, scaling of distortion map not implemented yet
-  std::string SC_ROOTOUTPUT_FILENAME = "TpcSpaceChargeMatrices.root";
+  std::string SC_ROOTOUTPUT_FILENAME = "TpcSpaceChargeMatrices.root"; // space charge calibration output file
 
   // Tracking reconstruction setup parameters and flags
   //=====================================
@@ -416,9 +416,9 @@ void Tracking_Reco()
       if (G4TRACKING::SC_CALIBMODE)
 	{
 	  /// run tpc residual determination with silicon+MM track fit
-	  PHTpcResiduals* residuals = new PHTpcResiduals();
-    residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
-	  residuals->Verbosity(1);
+	  auto residuals = new PHTpcResiduals;
+   residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+   residuals->Verbosity(verbosity);
 	  se->registerSubsystem(residuals);
 	}
       
@@ -581,7 +581,7 @@ void Tracking_Reco()
       kalman->set_vertexing_method(G4TRACKING::vmethod);
       kalman->set_use_truth_vertex(false);
 
-      // disable tpc
+      // in space charge calibration mode, disable the tpc
       if( G4TRACKING::SC_CALIBMODE )
       {
         std::cout << "Tracking_reco - Disabling TPC layers from kalman filter" << std::endl;
@@ -599,9 +599,7 @@ void Tracking_Reco()
         tpcSpaceChargeReconstruction->set_outputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
         se->registerSubsystem(tpcSpaceChargeReconstruction);
       }
-    
     }
-
 
   //==================================
   // Common  to all sections
