@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10000,
+  const int nEvents = 10,
 
   const char *outputFile = "DST/clusters.root",
   const char* qaOutputFile = "DST/qa.root",
@@ -84,9 +84,9 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_genfit = false;
   G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
+//   G4TRACKING::disable_mvtx_layers = false;
+//   G4TRACKING::disable_tpc_layers = false;
+//   G4TRACKING::disable_micromegas_layers = false;
 
   G4TRACKING::SC_CALIBMODE = true;
   

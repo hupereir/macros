@@ -45,6 +45,7 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - residualsFile: " << residualsFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -81,7 +82,7 @@ int Fun4All_G4_Reconstruction_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
+  G4TRACKING::use_genfit = false;
   G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::SC_CALIBMODE = true;
