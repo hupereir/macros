@@ -60,7 +60,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-new_extrapolated.root";
+  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;

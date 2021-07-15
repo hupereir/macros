@@ -27,9 +27,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 10,
+  const int nEvents = 2000,
 
-  const char *outputFile = "DST/clusters.root",
+  const char *outputFile = "DST/dst_reco_.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* residualsFile = "DST/TpcResiduals.root"
 
@@ -59,8 +59,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
   // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
 
   // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
@@ -70,7 +70,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
-  G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
+  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
@@ -81,12 +81,12 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_genfit = true;
   G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
-//   G4TRACKING::disable_mvtx_layers = false;
-//   G4TRACKING::disable_tpc_layers = false;
-//   G4TRACKING::disable_micromegas_layers = false;
+  G4TRACKING::disable_mvtx_layers = false;
+  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_micromegas_layers = false;
 
   G4TRACKING::SC_CALIBMODE = true;
   
@@ -175,7 +175,7 @@ int Fun4All_G4_sPHENIX_hp(
   TPC_Clustering();
   if( Enable::MICROMEGAS ) Micromegas_Clustering();
 
-  if( false )
+  if( true )
   { 
     // tracking
     Tracking_Reco();
@@ -190,9 +190,12 @@ int Fun4All_G4_sPHENIX_hp(
       SimEvaluator_hp::EvalVertices|
       SimEvaluator_hp::EvalParticles );
     se->registerSubsystem(simEvaluator);
+  }
+  
+  // se->registerSubsystem(new MicromegasEvaluator_hp);
     
-    // se->registerSubsystem(new MicromegasEvaluator_hp);
-    
+  if( true )
+  {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent|
@@ -226,8 +229,7 @@ int Fun4All_G4_sPHENIX_hp(
 //   out->AddNode("SimEvaluator_hp::Container");
 //   out->AddNode("MicromegasEvaluator_hp::Container");
 //   out->AddNode("TrackingEvaluator_hp::Container");
-
-  // out->AddNode("TrackEvaluationContainer");
+//   out->AddNode("TrackEvaluationContainer");
 
   se->registerOutputManager(out);
 
