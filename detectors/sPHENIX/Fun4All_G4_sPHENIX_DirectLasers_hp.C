@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-  const int nEvents = 10,
+  const int nEvents = 1300,
   const char *outputFile = "DST/dst_eval_directlasers-nominal.root"
   )
 {
@@ -53,19 +53,9 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
-
-  // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
-  // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
-
+  
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = false;
   G4TPC::ENABLE_DIRECT_LASER_HITS = true;
@@ -83,10 +73,7 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
-
   G4TRACKING::SC_CALIBMODE = false;
-  
-  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
