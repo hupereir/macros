@@ -15,6 +15,7 @@
 
 #include <trackreco/PHCASeeding.h>
 #include <trackreco/PHHybridSeeding.h>
+#include <trackreco/PHSimpleKFProp.h>
 #include <trackreco/PHGenFitTrackProjection.h>
 #include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHGenFitTrkProp.h>
@@ -23,6 +24,7 @@
 #include <trackreco/PHRaveVertexing.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
 #include <trackreco/PHTpcTrackSeedVertexAssoc.h>
+#include <trackreco/PHTrackCleaner.h>
 #include <trackreco/PHTrackSeeding.h>
 #include <trackreco/PHTruthSiliconAssociation.h>
 #include <trackreco/PHTruthTrackSeeding.h>
@@ -94,6 +96,7 @@ namespace G4TRACKING
     CA_SEEDING
   };
   SeedingType seeding_type = CA_SEEDING;
+  bool use_propagator = true;             // use PHSimpleKFProp for CA seeding if true
 
   // Possible variations - these are normally false
   //====================================
@@ -317,9 +320,29 @@ void Tracking_Reco()
 	      seeder->Verbosity(verbosity);
 	      seeder->SetLayerRange(7, 55);
 	      seeder->SetSearchWindow(0.01, 0.02);  // (eta width, phi width)
-	      seeder->SetMinHitsPerCluster(2);
-	      seeder->SetMinClustersPerTrack(20);
+	      seeder->SetMinHitsPerCluster(0);
+	      if(G4TRACKING::use_propagator) seeder->SetMinClustersPerTrack(3);
+	      else seeder->SetMinClustersPerTrack(20);
+	      seeder->useConstBField(false);
+	      seeder->useFixedClusterError(true);
 	      se->registerSubsystem(seeder);
+
+        if(G4TRACKING::use_propagator)
+	      {
+	        auto vtxassoc2 = new PHTpcTrackSeedVertexAssoc("PrePropagatorPHTpcTrackSeedVertexAssoc");
+	        vtxassoc2->Verbosity(verbosity);
+	        se->registerSubsystem(vtxassoc2);
+
+	        std::cout << "   Using PHSimpleKFProp propagator " << std::endl;
+	        auto cprop = new PHSimpleKFProp("PHSimpleKFProp");
+	        cprop->set_field_dir(G4MAGNET::magfield_rescale);
+	        cprop->useConstBField(false);
+	        cprop->useFixedClusterError(true);
+	        cprop->set_max_window(5.);
+	        cprop->Verbosity(verbosity);
+	        se->registerSubsystem(cprop);
+	      }
+
         break;
       }
     }
@@ -427,8 +450,12 @@ void Tracking_Reco()
     residuals->Verbosity(verbosity);
 	  se->registerSubsystem(residuals);
 	}
-
-
+      
+      // Choose the best silicon matched track for each TPC track seed
+      PHTrackCleaner *cleaner= new PHTrackCleaner();
+      cleaner->Verbosity(verbosity);
+      se->registerSubsystem(cleaner);
+      
       PHActsVertexFinder *finder = new PHActsVertexFinder();
       finder->Verbosity(verbosity);
       se->registerSubsystem(finder);
@@ -691,6 +718,7 @@ void Tracking_Eval(const std::string& outputfile)
   eval->set_use_initial_vertex(G4TRACKING::g4eval_use_initial_vertex);
   eval->set_use_genfit_vertex(G4TRACKING::use_genfit);
   eval->scan_for_embedded(true);  // take all tracks if false - take only embedded tracks if true
+  eval->scan_for_primaries(true); // defaults to only thrown particles for ntp_gtrack
   eval->Verbosity(verbosity);
   se->registerSubsystem(eval);
 
