@@ -27,11 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 1000,
+  const int nEvents = 2000,
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
-  const char *outputFile = "DST/dst_eval_upsilon_acts_truth.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_truth.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
   )
 {
 
@@ -55,21 +55,21 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::ENABLE_CORRECTIONS = false;
   G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
-  G4TRACKING::use_truth_init_vertexing = true;
-  G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_truth_init_vertexing = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_propagator = false;
   G4TRACKING::SC_CALIBMODE = false;
   
   // magnet
@@ -77,7 +77,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity(2);
 
   // reco const
   auto rc = recoConsts::instance();
@@ -136,13 +136,16 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Tracking_Reco();
 
   // local evaluation
-  auto simEvaluator = new SimEvaluator_hp;
-  simEvaluator->set_flags(
-    SimEvaluator_hp::EvalEvent|
-    SimEvaluator_hp::EvalVertices|
-    SimEvaluator_hp::EvalParticles );
-  se->registerSubsystem(simEvaluator);
-
+  if( false )
+  {
+    auto simEvaluator = new SimEvaluator_hp;
+    simEvaluator->set_flags(
+      SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalVertices|
+      SimEvaluator_hp::EvalParticles );
+    se->registerSubsystem(simEvaluator);
+  }
+  
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
     TrackingEvaluator_hp::EvalEvent|
@@ -152,7 +155,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   se->registerSubsystem(trackingEvaluator);
 
   // QA
-  Enable::QA = true;
+  Enable::QA = false;
   Enable::TRACKING_QA = Enable::QA && true;
   if( Enable::TRACKING_QA ) 
   {  
