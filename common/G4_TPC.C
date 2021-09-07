@@ -24,6 +24,8 @@
 #include <tpc/TpcSpaceChargeCorrection.h>
 #include <qa_modules/QAG4SimulationTpc.h>
 
+#include <tpccalib/TpcDirectLaserReconstruction.h>
+
 #include <fun4all/Fun4AllServer.h>
 
 R__LOAD_LIBRARY(libg4tpc.so)
@@ -262,6 +264,10 @@ void TPC_Clustering()
     tpcSpaceChargeCorrection->set_coordinates( G4TPC::correction_coordinates );
     se->registerSubsystem(tpcSpaceChargeCorrection);
   }
+
+  // direct laser reconstruction
+  if( G4TPC::ENABLE_DIRECT_LASER_HITS )
+  { se->registerSubsystem(new TpcDirectLaserReconstruction); }
 
 }
 
