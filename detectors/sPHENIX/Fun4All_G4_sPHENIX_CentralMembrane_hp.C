@@ -53,22 +53,12 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
-
-  // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
-  // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_truth-empty.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-coarse-oldgeom_extrapolated.root";
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = true;
-  
+
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
@@ -84,8 +74,6 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   G4TRACKING::disable_micromegas_layers = false;
 
   G4TRACKING::SC_CALIBMODE = false;
-  
-  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
 
   // magnet
   G4MAGNET::magfield_rescale = -1.4 / 1.5;
@@ -118,10 +106,10 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   Intt_Cells();
   TPC_Cells();
   Micromegas_Cells();
-  
+
   // tracking
   TrackingInit();
-  
+
   TPC_Clustering();
 
   // local evaluation
@@ -136,9 +124,9 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
       );
     se->registerSubsystem(simEvaluator);
   }
-  
+
   // se->registerSubsystem(new MicromegasEvaluator_hp);
-    
+
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -149,7 +137,7 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
       );
     se->registerSubsystem(trackingEvaluator);
   }
-  
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");

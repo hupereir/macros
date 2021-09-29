@@ -26,13 +26,13 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 200,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   // const char* outputFile = "DST/dst_reco_realistic_truth_genfit.root",
   const char* outputFile = "DST/dst_reco_realistic_truth_acts.root",
-  const char* residualsFile = "DST/TpcSpaceChargeMatrices.root",
-  const char* qaOutputFile = "DST/qa.root"
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
+  const char* residualsFile = "DST/TpcResiduals.root"
  )
 {
 
@@ -41,6 +41,7 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - residualsFile: " << residualsFile << std::endl;
 
   // options
@@ -61,31 +62,25 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
-
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse_scaled_x2.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  
+
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
   G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = true;
-  G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::SC_CALIBMODE = false;
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = residualsFile;
+  G4TRACKING::use_truth_init_vertexing = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
 
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
-  
+  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_SAVEHISTOGRAMS = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+
   // server
   auto se = Fun4AllServer::instance();
   // se->Verbosity(1);
@@ -121,13 +116,13 @@ int Fun4All_G4_Reconstruction_hp(
     TPC_Clustering();
     Micromegas_Clustering();
   }
-  
+
   // tracking
   if( true )
   {
     Tracking_Reco();
   }
-  
+
   if( false )
   {
     // local sim evaluation
@@ -161,17 +156,6 @@ int Fun4All_G4_Reconstruction_hp(
     se->registerSubsystem(trackingEvaluator);
   }
 
-  // QA
-  Enable::QA = false;
-  if( Enable::QA )
-  {
-    Intt_QA();
-    Mvtx_QA();
-    TPC_QA();
-    Micromegas_QA();
-    Tracking_QA();
-  }
-
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
@@ -202,9 +186,6 @@ int Fun4All_G4_Reconstruction_hp(
 
   // process events
   se->run(nEvents);
-
-  // QA output
-  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();

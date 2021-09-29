@@ -23,10 +23,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hijing_hp(
-  const int nEvents = 1,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_Hijing_Micromegas_50kHz/G4Hits_merged/G4Hits_sHijing_0-12fm_merged_000000_001000.root",
-  const char *outputFile = "DST/dst_eval.root" )
+  const char* inputFile = "/sphenix/user/frawley/new_macros_april27/macros/detectors/sPHENIX/hits_output_embed/EmbedOut_0_20fm_50kHz_bkg_0_20fm-00000.root",
+  const char *outputFile = "DST/dst_eval_0_20fm_50kHz_bkg_0_20fm-00000.root"
+  )
 {
 
   // print inputs
@@ -41,20 +42,24 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   Enable::TPC = true;
   Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
-
-  // TPC
-  G4TPC::ENABLE_DISTORTIONS = true;
-  G4TPC::distortion_filename = "distortion_maps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
-  G4TPC::distortion_coordinates = PHG4TpcElectronDrift::COORD_PHI|PHG4TpcElectronDrift::COORD_R|PHG4TpcElectronDrift::COORD_Z;
+ 
+  // TPC configuration
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
+  G4TPC::ENABLE_CORRECTIONS = false;
 
   // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_truth_init_vertexing = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
+
   G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_micromegas_layers = false;
+  G4TRACKING::SC_CALIBMODE = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -70,63 +75,61 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
-  // cells
   if( false )
   {
+    // cells
     Mvtx_Cells();
     Intt_Cells();
     TPC_Cells();
-  }
-  Micromegas_Cells();
-
-  // digitizer and clustering
-  if( false )
-  {
-    Mvtx_Clustering();
-    Intt_Clustering();
-    TPC_Clustering();
-  }
-  Micromegas_Clustering();
-
-  if( false )
-  {
-    // tracking
-    TrackingInit();
-    Tracking_Reco();
+    Micromegas_Cells();
   }
 
   if( true )
   {
-    // local evaluation
+    // tracking init is needed for clustering
+    MagnetFieldInit();
+    TrackingInit();
+  }
+  
+  if( true )
+  {
+    // digitizer and clustering
+    Mvtx_Clustering();
+    Intt_Clustering();
+    TPC_Clustering();
+    Micromegas_Clustering();
+  }
+  
+  if( true )
+  {
+    // tracking
+    Tracking_Reco();
+  }
+  
+  if( true )
+  {
+    // sim event evaluation
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
       SimEvaluator_hp::EvalEvent
       |SimEvaluator_hp::EvalVertices
-      // |SimEvaluator_hp::EvalParticles
+      |SimEvaluator_hp::EvalParticles
       );
     se->registerSubsystem(simEvaluator);
   }
-
+  
   if( true )
   {
-    // Micromegas evaluation
-    auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits | MicromegasEvaluator_hp::EvalHits );
-    se->registerSubsystem(micromegasEvaluator);
-  }
-
-  if( true )
-  {
-    // tracking
+    // tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
-      |TrackingEvaluator_hp::EvalClusters
-      // |TrackingEvaluator_hp::EvalTracks
+//       |TrackingEvaluator_hp::EvalClusters
+      |TrackingEvaluator_hp::EvalTracks
       );
     se->registerSubsystem(trackingEvaluator);
   }
-
+  
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);

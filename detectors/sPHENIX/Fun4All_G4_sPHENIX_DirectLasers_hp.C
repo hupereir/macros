@@ -27,8 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-  const int nEvents = 1300,
-  const char *outputFile = "DST/dst_eval_directlasers-nominal.root"
+  const int nEvents = 78,
+  const char *outputFile = "DST/dst_eval_directlasers-single.root"
   )
 {
 
@@ -53,13 +53,13 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  
+
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = false;
   G4TPC::ENABLE_DIRECT_LASER_HITS = true;
-  
+
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
@@ -106,10 +106,10 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   Intt_Cells();
   TPC_Cells();
   Micromegas_Cells();
-  
+
   // tracking
   TrackingInit();
-  
+
   TPC_Clustering();
 
   // local evaluation
@@ -124,9 +124,9 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
       );
     se->registerSubsystem(simEvaluator);
   }
-  
+
   // se->registerSubsystem(new MicromegasEvaluator_hp);
-    
+
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -137,7 +137,7 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
       );
     se->registerSubsystem(trackingEvaluator);
   }
-  
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
