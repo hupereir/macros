@@ -72,7 +72,7 @@ namespace G4TPC
 
   // enable central membrane g4hits generation
   bool ENABLE_CENTRAL_MEMBRANE_HITS = false;
-  
+
   // enable direct laser g4hits generation
   bool ENABLE_DIRECT_LASER_HITS = false;
 
@@ -135,24 +135,24 @@ double TPC(PHG4Reco* g4Reco,
   tpc->SetActive();
   tpc->SuperDetector("TPC");
   tpc->set_double_param("steplimits", 1);  // 1cm steps
-  
+
   if (AbsorberActive)
     {
       tpc->SetAbsorberActive();
     }
   tpc->OverlapCheck(OverlapCheck);
-  
+
   g4Reco->registerSubsystem(tpc);
-  
+
   if (Enable::TPC_ENDCAP)
     {
       TPC_Endcaps(g4Reco);
     }
-  
+
   radius = G4TPC::tpc_outer_radius;
-  
+
   radius += no_overlapp;
-  
+
   return radius;
 }
 
@@ -178,7 +178,8 @@ void TPC_Cells()
     /* use 5deg steps */
     static constexpr double deg_to_rad = M_PI/180.;
     directLaser->SetPhiStepping( 72, 0*deg_to_rad, 360*deg_to_rad );
-    directLaser->SetThetaStepping( 18, 0*deg_to_rad, 90*deg_to_rad );
+    directLaser->SetThetaStepping( 1, 45*deg_to_rad, 50*deg_to_rad );
+    // directLaser->SetThetaStepping( 18, 0*deg_to_rad, 90*deg_to_rad );
     directLaser->SetDirectLaserAuto( true );
     se->registerSubsystem(directLaser);
   }
