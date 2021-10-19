@@ -26,11 +26,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 200,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   // const char* outputFile = "DST/dst_reco_realistic_truth_genfit.root",
-  const char* outputFile = "DST/dst_reco_realistic_truth_acts.root",
+  const char* outputFile = "DST/dst_reco_realistic_full_acts-new4.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
   const char* residualsFile = "DST/TpcResiduals.root"
  )
@@ -73,13 +73,17 @@ int Fun4All_G4_Reconstruction_hp(
 
   // tracking configuration
   G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = false;
   G4TRACKING::use_full_truth_track_seeding = false;
 
-  G4TRACKING::SC_CALIBMODE = true;
-  G4TRACKING::SC_SAVEHISTOGRAMS = true;
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+  G4TRACKING::SC_CALIBMODE = false;
+//   G4TRACKING::SC_SAVEHISTOGRAMS = true;
+//   G4TRACKING::SC_USE_MICROMEGAS = false;
+//   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+//   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+
+  G4TRACKING::disable_mvtx_layers = false;
+  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::disable_micromegas_layers = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -149,7 +153,7 @@ int Fun4All_G4_Reconstruction_hp(
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
-      // |TrackingEvaluator_hp::EvalClusters
+      |TrackingEvaluator_hp::EvalClusters
       // |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );

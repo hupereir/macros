@@ -27,11 +27,29 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-  const int nEvents = 78,
-  const char *outputFile = "DST/dst_eval_directlasers-single.root"
+  const int nEvents = 1224,
+
+//   const char* outputFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all-simple/dst_eval_directlasers-all-simple-new.root",
+//   const char* spaceChargeMatricesFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all-simple/TpcSpaceChargeMatrices-all-simple-new.root",
+//   const char* evaluationFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all-simple/TpcDirectLaserReconstruction-all-simple-new.root"
+
+  const char* outputFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all/dst_eval_directlasers-all-new.root",
+  const char* spaceChargeMatricesFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all/TpcSpaceChargeMatrices-all-new.root",
+  const char* evaluationFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers-all/TpcDirectLaserReconstruction-all-new.root"
+
+//   const char* outputFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers_distortions_fullmap-all-simple/dst_eval_directlasers_distortions_fullmap-all-simple-new.root",
+//   const char* spaceChargeMatricesFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers_distortions_fullmap-all-simple/TpcSpaceChargeMatrices_distortions_fullmap-all-simple-new.root",
+//   const char* evaluationFile = "DST/CONDOR_direct_lasers/dst_reco_full_directlasers_distortions_fullmap-all-simple/TpcDirectLaserReconstruction_distortions_fullmap-all-simple-new.root"
+
+//   const char* outputFile = "DST/dst_evalroot",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction.root"
   )
 {
 
+  std::cout << "Fun4All_G4_sPHENIX_DirectLasers_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_DirectLasers_hp - evaluationFile: " << evaluationFile << std::endl;
+  
   // options
   Enable::PIPE = true;
   Enable::BBC = true;
@@ -53,13 +71,18 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-
+  G4TPC::static_distortion_filename = "distortion_maps-new/empty_distortion.workfest2021.distortion_map.hist.root";
+  
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = false;
   G4TPC::ENABLE_DIRECT_LASER_HITS = true;
-
+  G4TPC::DIRECT_LASER_SAVEHISTOGRAMS = true;
+  G4TPC::DIRECT_LASER_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+  G4TPC::DIRECT_LASER_HISTOGRAMOUTPUT_FILENAME = evaluationFile;
+  G4TPC::USE_SIMPLE_CLUSTERIZER = false;
+  
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
@@ -67,9 +90,8 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_genfit = true;
-  G4TRACKING::use_truth_init_vertexing = true;
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_genfit = false;
+  G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::disable_mvtx_layers = false;
   G4TRACKING::disable_tpc_layers = false;
   G4TRACKING::disable_micromegas_layers = false;
