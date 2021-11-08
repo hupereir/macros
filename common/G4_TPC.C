@@ -43,7 +43,7 @@ namespace Enable
   bool TPC_QA = false;
 
   bool TPC_ENDCAP = true;
-
+  
   int TPC_VERBOSITY = 0;
 }  // namespace Enable
 
@@ -56,6 +56,9 @@ namespace G4TPC
   int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
   double tpc_outer_radius = 77. + 2.;
 
+  // TPC drift velocity scale
+  double drift_velocity_scale = 1.0;
+  
   // use simple clusterizer
   bool USE_SIMPLE_CLUSTERIZER = false;
   
@@ -187,6 +190,11 @@ void TPC_Cells()
 
     // setup phi and theta steps
     static constexpr double deg_to_rad = M_PI/180.;
+    
+//     /* use 5degrees steps */
+//     /* custom setup for laser mimicking particles */
+//     directLaser->SetPhiStepping( 36, 0*deg_to_rad, 180*deg_to_rad );
+//     directLaser->SetThetaStepping( 12, 30*deg_to_rad, 90*deg_to_rad );
 
     /* use 5degrees steps */
     directLaser->SetPhiStepping( 72, 0*deg_to_rad, 360*deg_to_rad );
@@ -267,13 +275,18 @@ void TPC_Clustering()
   //==========
   if( G4TPC::USE_SIMPLE_CLUSTERIZER )
   {
+    
     auto tpcclusterizer = new TpcSimpleClusterizer;
     tpcclusterizer->Verbosity(verbosity);
     se->registerSubsystem(tpcclusterizer);
+    
   } else {
+
     auto tpcclusterizer = new TpcClusterizer;
+    tpcclusterizer->set_drift_velocity_scale(G4TPC::drift_velocity_scale);
     tpcclusterizer->Verbosity(verbosity);
     se->registerSubsystem(tpcclusterizer);
+
   }
   
   if( !G4TPC::ENABLE_DIRECT_LASER_HITS )
