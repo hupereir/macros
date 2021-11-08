@@ -27,11 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 500,
-  const char *outputFile = "DST/dst_eval_realistic_full_acts-new.root",
-  const char* qaOutputFile = "DST/qa.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
-  const char* residualsFile = "DST/TpcResiduals.root"
+  const int nEvents = 2000,
+  const char *outputFile = "DST/dst_eval_truth_realistic-old.root",
+  const char* qaOutputFile = "DST/qa_truth_realistic-old.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_truth_realistic-old.root",
+  const char* residualsFile = "DST/TpcResiduals_truth_realistic-old.root"
   )
 {
 
@@ -57,7 +57,7 @@ int Fun4All_G4_sPHENIX_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
+  G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
 
   // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
   // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
@@ -66,6 +66,8 @@ int Fun4All_G4_sPHENIX_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
 
+  G4TPC::USE_SIMPLE_CLUSTERIZER = false;
+
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
@@ -73,13 +75,8 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
-
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
-
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
@@ -110,18 +107,15 @@ int Fun4All_G4_sPHENIX_hp(
 
     if( true )
     {
-
       // use specific distribution to generate pt
       // values from "http://arxiv.org/abs/nucl-ex/0308006"
       const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
       const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
       gen->set_pt_range(pt_bins,yield_int);
-
     } else {
-
       // flat pt distribution
       gen->set_pt_range(0.5, 20.0);
-
+      // gen->set_pt_range(40., 40.);
     }
 
     // vertex
@@ -168,13 +162,14 @@ int Fun4All_G4_sPHENIX_hp(
   }
 
   // local evaluation
-  if( false )
+  if( true )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent|
-      SimEvaluator_hp::EvalVertices|
-      SimEvaluator_hp::EvalParticles );
+      SimEvaluator_hp::EvalEvent
+      |SimEvaluator_hp::EvalVertices
+      |SimEvaluator_hp::EvalHits
+      |SimEvaluator_hp::EvalParticles);
     se->registerSubsystem(simEvaluator);
   }
 

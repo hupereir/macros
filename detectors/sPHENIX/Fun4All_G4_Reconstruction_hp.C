@@ -28,11 +28,20 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 0,
   const int nSkipEvents = 0,
+//   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+//   const char *outputFile = "DST/dst_eval_truth_realistic-new.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_truth_realistic-new.root",
+//   const char* residualsFile = "DST/TpcResiduals_truth_realistic-new.root"
+
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  // const char* outputFile = "DST/dst_reco_realistic_truth_genfit.root",
-  const char* outputFile = "DST/dst_reco_realistic_full_acts-new4.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
-  const char* residualsFile = "DST/TpcResiduals.root"
+  const char *outputFile = "DST/dst_eval_full_realistic-scaled2-new.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_full_realistic-scaled2-new.root",
+  const char* residualsFile = "DST/TpcResiduals_full_realistic-scaled2-new.root"
+
+//   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+//   const char *outputFile = "DST/dst_eval-new2.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
+//   const char* residualsFile = "DST/TpcResiduals.root"
  )
 {
 
@@ -64,30 +73,24 @@ int Fun4All_G4_Reconstruction_hp(
 
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-
-  // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-
+  G4TPC::drift_velocity_scale = 1.0001;
+  
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
   G4TRACKING::use_full_truth_track_seeding = false;
-
-  G4TRACKING::SC_CALIBMODE = false;
-//   G4TRACKING::SC_SAVEHISTOGRAMS = true;
-//   G4TRACKING::SC_USE_MICROMEGAS = false;
-//   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-//   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
-
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
+  G4TRACKING::use_rave_vertexing = false;
+  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_SAVEHISTOGRAMS = true;
+  G4TRACKING::SC_USE_MICROMEGAS = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  // se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -95,6 +98,7 @@ int Fun4All_G4_Reconstruction_hp(
   // reco const
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -133,8 +137,9 @@ int Fun4All_G4_Reconstruction_hp(
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
       SimEvaluator_hp::EvalEvent
-      // |SimEvaluator_hp::EvalVertices
-      // |SimEvaluator_hp::EvalParticles
+      |SimEvaluator_hp::EvalVertices
+      |SimEvaluator_hp::EvalHits
+      |SimEvaluator_hp::EvalParticles
       );
     se->registerSubsystem(simEvaluator);
   }
@@ -154,9 +159,13 @@ int Fun4All_G4_Reconstruction_hp(
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
-      // |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );
+    
+    // special track map is used for space charge calibrations
+    if( G4TRACKING::SC_CALIBMODE )
+    { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+    
     se->registerSubsystem(trackingEvaluator);
   }
 
@@ -167,21 +176,6 @@ int Fun4All_G4_Reconstruction_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  if( true )
-  {
-    // add evaluation nodes
-    // out->AddNode("MicromegasEvaluator_hp::Container");
-    // out->AddNode("SimEvaluator_hp::Container");
-    out->AddNode("TrackingEvaluator_hp::Container");
-  }
-
-  if( false )
-  {
-    // add cluster and tracks nodes
-    out->AddNode( "TRKR_CLUSTER" );
-    out->AddNode( "SvtxTrackMap" );
-  }
-
   se->registerOutputManager(out);
 
   // skip events if any specified
