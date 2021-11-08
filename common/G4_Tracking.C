@@ -21,6 +21,7 @@
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
 #include <trackreco/PHRaveVertexing.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
+#include <trackreco/PHTpcDriftTimeCorrection.h>
 #include <trackreco/PHTpcTrackSeedCircleFit.h>
 #include <trackreco/PHTrackCleaner.h>
 #include <trackreco/PHTrackSeeding.h>
@@ -62,12 +63,6 @@ namespace G4TRACKING
   double SC_COLLISIONRATE = 50e3;  // leave at 50 KHz for now, scaling of distortion map not implemented yet
   std::string SC_ROOTOUTPUT_FILENAME = "TpcSpaceChargeMatrices.root"; // space charge calibration output file
   std::string SC_HISTOGRAMOUTPUT_FILENAME = "TpcResiduals.root"; // space charge calibration output file
-
-  // disable layers manually
-  // this works only for GenFit toolchain
-  bool disable_mvtx_layers = false;
-  bool disable_tpc_layers = false;
-  bool disable_micromegas_layers = false;
 
   // Vertexing
   bool g4eval_use_initial_vertex = true;  // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
@@ -128,7 +123,6 @@ void TrackingInit()
 
   // SC_CALIBMODE makes no sense if distortions are not present
   // G4TRACKING::SC_CALIBMODE = (G4TPC::ENABLE_STATIC_DISTORTIONS || G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS ) && G4TRACKING::SC_CALIBMODE;
-
  
   /// Build the Acts geometry
   Fun4AllServer* se = Fun4AllServer::instance();
@@ -237,6 +231,9 @@ void Tracking_Reco()
       ghosts->Verbosity(verbosity);
       se->registerSubsystem(ghosts);
             
+      // correct for particle propagation in TPC
+      se->registerSubsystem(new PHTpcDriftTimeCorrection);
+      
       // Silicon cluster matching to TPC track seeds
       if (G4TRACKING::use_truth_si_matching)
 	{
@@ -309,7 +306,7 @@ void Tracking_Reco()
 	  mm_match->set_test_windows_printout(false);  // used for tuning search windows only
 	  se->registerSubsystem(mm_match);
 	}
-
+  
       // Final fitting of tracks using Acts Kalman Filter
       //=====================================
 
@@ -375,6 +372,9 @@ void Tracking_Reco()
       pat_rec->Verbosity(verbosity);
       pat_rec->set_track_map_name("SvtxTrackMap");
       se->registerSubsystem(pat_rec);
+            
+      // correct for particle propagation in TPC
+      se->registerSubsystem(new PHTpcDriftTimeCorrection);
 
       // Fitting of tracks using Acts Kalman Filter
       //==================================
