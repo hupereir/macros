@@ -34,9 +34,9 @@ int Fun4All_G4_Reconstruction_hp(
 //   const char* residualsFile = "DST/TpcResiduals_truth_realistic-new.root"
 
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_full_realistic-scaled2-new.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_full_realistic-scaled2-new.root",
-  const char* residualsFile = "DST/TpcResiduals_full_realistic-scaled2-new.root"
+  const char *outputFile = "DST/dst_eval_full_realistic-new.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_full_realistic-new.root",
+  const char* residualsFile = "DST/TpcResiduals_full_realistic-new.root"
 
 //   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
 //   const char *outputFile = "DST/dst_eval-new2.root",
@@ -74,7 +74,7 @@ int Fun4All_G4_Reconstruction_hp(
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::ENABLE_CORRECTIONS = false;
-  G4TPC::drift_velocity_scale = 1.0001;
+  // G4TPC::drift_velocity_scale = 1.0001;
   
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
