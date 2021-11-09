@@ -21,7 +21,7 @@
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
 #include <trackreco/PHRaveVertexing.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
-#include <trackreco/PHTpcDriftTimeCorrection.h>
+#include <trackreco/PHTpcDeltaZCorrection.h>
 #include <trackreco/PHTpcTrackSeedCircleFit.h>
 #include <trackreco/PHTrackCleaner.h>
 #include <trackreco/PHTrackSeeding.h>
@@ -232,7 +232,7 @@ void Tracking_Reco()
       se->registerSubsystem(ghosts);
             
       // correct for particle propagation in TPC
-      se->registerSubsystem(new PHTpcDriftTimeCorrection);
+      se->registerSubsystem(new PHTpcDeltaZCorrection);
       
       // Silicon cluster matching to TPC track seeds
       if (G4TRACKING::use_truth_si_matching)
@@ -374,7 +374,7 @@ void Tracking_Reco()
       se->registerSubsystem(pat_rec);
             
       // correct for particle propagation in TPC
-      se->registerSubsystem(new PHTpcDriftTimeCorrection);
+      se->registerSubsystem(new PHTpcDeltaZCorrection);
 
       // Fitting of tracks using Acts Kalman Filter
       //==================================
