@@ -28,10 +28,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 2000,
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full-new.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full-distorted.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full-distorted.root"
   )
 {
 
@@ -55,33 +55,31 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
+  G4TPC::ENABLE_CORRECTIONS = true;
   G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_all-coarse.root";
 
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = false;
   G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::use_propagator = false;
   G4TRACKING::SC_CALIBMODE = false;
   
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
-
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  // se->Verbosity(0);
+
+  // make sure to printout random seeds for reproducibility
+  PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
+  rc->set_IntFlag("RANDOMSEED", 3624021837 );
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );

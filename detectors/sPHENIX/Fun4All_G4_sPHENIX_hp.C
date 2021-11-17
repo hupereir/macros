@@ -27,11 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
-  const char *outputFile = "DST/dst_eval_truth_realistic-old.root",
-  const char* qaOutputFile = "DST/qa_truth_realistic-old.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_truth_realistic-old.root",
-  const char* residualsFile = "DST/TpcResiduals_truth_realistic-old.root"
+  const int nEvents = 200,
+  const char *outputFile = "DST/dst_eval.root",
+  const char* qaOutputFile = "DST/qa.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
+  const char* residualsFile = "DST/TpcResiduals.root"
   )
 {
 
@@ -75,8 +75,8 @@ int Fun4All_G4_sPHENIX_hp(
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
