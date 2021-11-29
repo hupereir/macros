@@ -34,7 +34,6 @@
 #include <trackreco/PHActsTrkFitter.h>
 #include <trackreco/PHSimpleVertexFinder.h>
 
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
 #include <tpccalib/PHTpcResiduals.h>
 
 #include <qa_modules/QAG4SimulationTracking.h>
