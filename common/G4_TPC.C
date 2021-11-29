@@ -23,9 +23,10 @@
 #include <tpc/TpcClusterCleaner.h>
 #include <tpc/TpcSimpleClusterizer.h>
 #include <tpc/TpcLoadDistortionCorrection.h>
-#include <qa_modules/QAG4SimulationTpc.h>
 
 #include <tpccalib/TpcDirectLaserReconstruction.h>
+
+#include <qa_modules/QAG4SimulationTpc.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -195,11 +196,6 @@ void TPC_Cells()
     /* use 5degrees steps */
     directLaser->SetPhiStepping( 72, 0*deg_to_rad, 360*deg_to_rad );
     directLaser->SetThetaStepping( 17, 5*deg_to_rad, 90*deg_to_rad );
-    
-//     /* use 2degrees steps */
-//     directLaser->SetPhiStepping( 180, 0*deg_to_rad, 360*deg_to_rad );
-//     directLaser->SetThetaStepping( 45, 0*deg_to_rad, 90*deg_to_rad );
-    
     directLaser->SetDirectLaserAuto( true );
     se->registerSubsystem(directLaser);
   }
