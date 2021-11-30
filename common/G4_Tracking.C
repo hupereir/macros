@@ -38,7 +38,6 @@ R__LOAD_LIBRARY(libqa_modules.so)
 #include <trackreco/PHTruthVertexing.h>
 
 #include <tpccalib/PHTpcResiduals.h>
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 #include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAG4SimulationUpsilon.h>
