@@ -27,11 +27,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 2000,
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full-new.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full-new.root"
+  const int nEvents = 250,
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full-new.root"
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_full-distorted.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_full-distorted.root"
   )
@@ -73,7 +73,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
