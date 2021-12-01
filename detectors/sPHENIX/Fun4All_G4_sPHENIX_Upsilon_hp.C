@@ -28,12 +28,16 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 2000,
+  
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth.root"
+
   const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
   const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full-new.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full-new.root"
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full-distorted.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full-distorted.root"
+
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion.root"
+
   )
 {
 
@@ -49,7 +53,6 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
@@ -58,10 +61,15 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/workfest2021/empty_distortion.workfest2021.distortion_map.hist.root";
-
+  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/workfest2021/empty_distortion.workfest2021.distortion_map.hist.root";
+  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/workfest2021/average_minus_static_distortion.workfest2021.distortion_map.hist.root";
+  G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+    
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
+  // G4TPC::correction_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+  // G4TPC::correction_filename = "distortion_maps-new/empty_distortion_converted.root";
+  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_converted.root";
   G4TPC::correction_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
 
   // micromegas configuration
