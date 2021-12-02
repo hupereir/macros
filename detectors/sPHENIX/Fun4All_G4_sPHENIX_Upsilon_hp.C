@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 2000,
+  const int nEvents = 200,
   
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_truth.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_truth.root"
@@ -76,7 +76,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::SC_CALIBMODE = false;
   
   // server
