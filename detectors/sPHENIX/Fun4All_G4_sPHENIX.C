@@ -7,6 +7,7 @@
 #include <G4Setup_sPHENIX.C>
 #include <G4_Bbc.C>
 #include <G4_CaloTrigger.C>
+#include <G4_Centrality.C>
 #include <G4_DSTReader.C>
 #include <G4_Global.C>
 #include <G4_HIJetReco.C>
@@ -363,6 +364,8 @@ int Fun4All_G4_sPHENIX(
   Enable::TOPOCLUSTER = false && Enable::CEMC_TOWER && Enable::HCALIN_TOWER && Enable::HCALOUT_TOWER;
   // particle flow jet reconstruction - needs topoClusters!
   Enable::PARTICLEFLOW = true && Enable::TOPOCLUSTER;
+  // centrality reconstruction
+  Enable::CENTRALITY = true;
 
   // new settings using Enable namespace in GlobalVariables.C
   Enable::BLACKHOLE = true;
@@ -474,6 +477,15 @@ int Fun4All_G4_sPHENIX(
   else if (Enable::GLOBAL_FASTSIM)
   {
     Global_FastSim();
+  }
+
+  //-----------------
+  // Centrality Determination
+  //-----------------
+
+  if (Enable::CENTRALITY)
+  {
+      Centrality();
   }
 
   //-----------------
