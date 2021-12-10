@@ -27,16 +27,27 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 200,
+  const int nEvents = 10,
   
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted_fullmap-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted_fullmap-new.root"
+  
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted-new.root"
 
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted_fullmap-new.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted_fullmap-new.root"
+
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted-new.root"
 
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion.root"
+
+  //   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted_test0.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted_test0.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted_test.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted_test.root"
 
   )
 {
@@ -61,22 +72,23 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/workfest2021/empty_distortion.workfest2021.distortion_map.hist.root";
-  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/workfest2021/average_minus_static_distortion.workfest2021.distortion_map.hist.root";
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
   G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
     
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_inverted_4.root";
   // G4TPC::correction_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
-  // G4TPC::correction_filename = "distortion_maps-new/empty_distortion_converted.root";
-  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_converted.root";
-  G4TPC::correction_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
-
+  G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_4.root";
+  
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_truth_tpc_seeding = false;
+  
   G4TRACKING::SC_CALIBMODE = false;
   
   // server
@@ -88,7 +100,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // reco const
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
+//   rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
   rc->set_IntFlag("RANDOMSEED", 3624021837 );
 
   // event counter
@@ -131,13 +143,17 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Mvtx_Cells();
   Intt_Cells();
   TPC_Cells();
-  Micromegas_Cells();
+
+  if( Enable::MICROMEGAS )
+  { Micromegas_Cells(); }
 
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
-  Micromegas_Clustering();
+
+  if( Enable::MICROMEGAS )
+  { Micromegas_Clustering(); }
 
   // tracking
   TrackingInit();
