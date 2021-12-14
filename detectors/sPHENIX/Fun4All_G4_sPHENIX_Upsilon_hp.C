@@ -28,26 +28,27 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 2000,
+
+//   const char *outputFile = "DST/dst_eval.root",
+//   const char* qaOutputFile = "DST/qa.root"
+
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
   
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted_fullmap-new.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted_fullmap-new.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted-new2.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted-new2.root"  
+  
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted-new2.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted-new2.root"  
+
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted_fullmap-new2.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted_fullmap-new2.root"
   
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted-new.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted-new.root"
 
 //   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted_fullmap-new.root",
 //   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted_fullmap-new.root"
-
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted-new.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted-new.root"
-
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion.root"
-
-  //   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_distorted_test0.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_distorted_test0.root"
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted_test.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted_test.root"
 
   )
 {
@@ -72,19 +73,22 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
     
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_inverted_4.root";
+  G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
   // G4TPC::correction_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
-  G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_4.root";
+  // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_4.root";
+  // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_4-new.root";
   
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-
+  // G4MICROMEGAS::mm_radius = 82;
+  
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_tpc_seeding = false;
@@ -102,6 +106,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   auto rc = recoConsts::instance();
 //   rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
   rc->set_IntFlag("RANDOMSEED", 3624021837 );
+//   rc->set_IntFlag("RANDOMSEED", 5268597 );
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
