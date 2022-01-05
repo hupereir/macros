@@ -37,8 +37,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // options
   Enable::PIPE = true;
-  // Enable::BBC = true;
-  Enable::BBCFAKE = true;
+  Enable::BBC = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 
@@ -48,7 +47,6 @@ int Fun4All_G4_sPHENIX_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
@@ -56,26 +54,22 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  G4TPC::static_distortion_filename = "distortion_maps/static_distortions_empty.root";
-
-  // G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
-  // G4TPC::time_ordered_distortion_filename = "distortion_maps/time_ordered_distortions_empty.root";
-
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+    
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm_fullmap-coarse_extrapolated.root";
-
-  G4TPC::USE_SIMPLE_CLUSTERIZER = false;
-
+  G4TPC::ENABLE_CORRECTIONS = true;
+  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
+  G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
+  
   // micromegas configuration
   G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
-  // for testing the momentum resolution, focus on having Micromegas in only one sector
-  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
-
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_truth_tpc_seeding = false;
+
   G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -83,14 +77,14 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(0);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
@@ -105,16 +99,18 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
+      
       // use specific distribution to generate pt
       // values from "http://arxiv.org/abs/nucl-ex/0308006"
       const std::vector<double> pt_bins = {0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.5, 3.8, 4, 4.4, 4.8, 5.2, 5.6, 6, 6.5, 7, 8, 9, 10};
       const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
       gen->set_pt_range(pt_bins,yield_int);
+      
     } else {
       // flat pt distribution
-      gen->set_pt_range(0.5, 20.0);
+      gen->set_pt_range(0.2, 20.0);
       // gen->set_pt_range(40., 40.);
     }
 
@@ -144,25 +140,21 @@ int Fun4All_G4_sPHENIX_hp(
   Mvtx_Cells();
   Intt_Cells();
   TPC_Cells();
-  if( Enable::MICROMEGAS ) Micromegas_Cells();
-
-  // tracking
-  TrackingInit();
+  if( Enable::MICROMEGAS )
+  { Micromegas_Cells(); }
 
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
-  if( Enable::MICROMEGAS ) Micromegas_Clustering();
+  if( Enable::MICROMEGAS )
+  { Micromegas_Clustering(); }
 
-  if( true )
-  {
-    // tracking
-    Tracking_Reco();
-  }
+  TrackingInit();
+  Tracking_Reco();
 
   // local evaluation
-  if( true )
+  if( false )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
@@ -173,8 +165,6 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  // se->registerSubsystem(new MicromegasEvaluator_hp);
-
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -184,8 +174,6 @@ int Fun4All_G4_sPHENIX_hp(
       TrackingEvaluator_hp::EvalTracks);
     se->registerSubsystem(trackingEvaluator);
   }
-
-  // se->registerSubsystem(new TrackEvaluation);
 
   // QA
   Enable::QA = false;
