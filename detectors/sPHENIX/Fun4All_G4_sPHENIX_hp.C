@@ -11,6 +11,7 @@
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval/TrackEvaluation.h>
 
 #include <g4eval/TrackEvaluation.h>
 
@@ -27,8 +28,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 200,
-  const char *outputFile = "DST/dst_eval.root",
+  const int nEvents = 1000,
+  const char *outputFile = "DST/dst_eval_test.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
   const char* residualsFile = "DST/TpcResiduals.root"
@@ -54,12 +55,12 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
   G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
     
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
   G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
   
@@ -99,7 +100,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( false )
+    if( true )
     {
       
       // use specific distribution to generate pt
@@ -175,6 +176,9 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(trackingEvaluator);
   }
 
+  if( true ) 
+  { se->registerSubsystem( new TrackEvaluation ); }
+  
   // QA
   Enable::QA = false;
   if( Enable::QA )
