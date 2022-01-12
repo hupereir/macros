@@ -27,8 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_Simulation_hp(
-  const int nEvents = 1000,
-  const char *outputFile = "DST/G4Hits_realistic_micromegas.root"
+  const int nEvents = 1,
+  const char *outputFile = "DST/G4Hits.root"
   )
 {
 
@@ -44,14 +44,10 @@ int Fun4All_G4_Simulation_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
-
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -110,12 +106,25 @@ int Fun4All_G4_Simulation_hp(
   BbcInit();
   Bbc_Reco();
 
+  // cells
+  if( true )
+  {
+    Mvtx_Cells();
+    Intt_Cells();
+    TPC_Cells();
+    Micromegas_Cells();
+  }
+
+  TrackingInit();
+  // Tracking_Reco();
+  
   // local evaluation
-  if( false )
+  if( true )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
       SimEvaluator_hp::EvalEvent|
+      SimEvaluator_hp::EvalHits|
       SimEvaluator_hp::EvalVertices|
       SimEvaluator_hp::EvalParticles );
     se->registerSubsystem(simEvaluator);
