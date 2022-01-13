@@ -28,9 +28,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
-  const char *outputFile = "DST/dst_eval.root",
-//   const char *outputFile = "DST/dst_eval-newgeom.root",
+  const int nEvents = 2000,
+  const char *outputFile = "DST/dst_eval-newgeom.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
   const char* residualsFile = "DST/TpcResiduals.root"
@@ -87,7 +86,7 @@ int Fun4All_G4_sPHENIX_hp(
   // reco const
   auto rc = recoConsts::instance();
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
-  rc->set_IntFlag("RANDOMSEED",1);
+  // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -101,7 +100,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
 
       // use specific distribution to generate pt
