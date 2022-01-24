@@ -166,6 +166,14 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
+  if( true ) 
+  {
+    // Micromegas evaluation
+    auto micromegasEvaluator = new MicromegasEvaluator_hp;
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+    se->registerSubsystem(micromegasEvaluator);
+  }
+  
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
