@@ -27,8 +27,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_Simulation_hp(
-  const int nEvents = 1,
-  const char *outputFile = "DST/G4Hits.root"
+  const int nEvents = 1000,
+  const char *outputFile = "DST/G4Hits_flat_micromegas-oldgeom.root"
   )
 {
 
@@ -48,6 +48,9 @@ int Fun4All_G4_Simulation_hp(
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
+ 
+  // micromegas configuration
+  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -72,7 +75,7 @@ int Fun4All_G4_Simulation_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
       // use specific distribution to generate pt
       // values from "http://arxiv.org/abs/nucl-ex/0308006"
@@ -107,17 +110,20 @@ int Fun4All_G4_Simulation_hp(
   Bbc_Reco();
 
   // cells
-  if( true )
+  Mvtx_Cells();
+  Intt_Cells();
+  TPC_Cells();
+  if( Enable::MICROMEGAS )
+  { Micromegas_Cells(); }  
+  
+  if( true ) 
   {
-    Mvtx_Cells();
-    Intt_Cells();
-    TPC_Cells();
-    Micromegas_Cells();
+    // Micromegas evaluation
+    auto micromegasEvaluator = new MicromegasEvaluator_hp;
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+    se->registerSubsystem(micromegasEvaluator);
   }
 
-  TrackingInit();
-  // Tracking_Reco();
-  
   // local evaluation
   if( true )
   {
