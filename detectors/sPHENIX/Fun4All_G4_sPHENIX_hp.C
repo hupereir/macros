@@ -65,7 +65,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
 
   // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
@@ -155,7 +155,7 @@ int Fun4All_G4_sPHENIX_hp(
   Tracking_Reco();
 
   // local evaluation
-  if( false )
+  if( true )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
@@ -170,7 +170,7 @@ int Fun4All_G4_sPHENIX_hp(
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits );
     se->registerSubsystem(micromegasEvaluator);
   }
   
