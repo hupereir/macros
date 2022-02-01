@@ -17,9 +17,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //_________________________________________________________________________
 int Fun4All_G4_Evaluation_hp(
-    const int nEvents = 0,
-    const char* inputFile = "/sphenix/user/frawley/new_macros_april27/macros/detectors/sPHENIX/hits_output_embed/EmbedOut_0_20fm_50kHz_bkg_0_20fm-00000.root",
-    const char *outputFile = "DST/dst_eval_0_20fm_50kHz_bkg_0_20fm-00000.root" )
+    const int nEvents = 1,
+    const char* inputFile = "DST/DST_TRACKS_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000002-00000.root",
+    const char *outputFile = "DST/dst_eval.root" )
 {
   
   // central tracking
@@ -29,14 +29,8 @@ int Fun4All_G4_Evaluation_hp(
   Enable::TPC_ABSORBER = true;
   Enable::MICROMEGAS = true;
 
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
-
   // tracking configuration
-  G4TRACKING::use_genfit = false;
   G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
   
   // server
   auto se = Fun4AllServer::instance();
@@ -48,8 +42,12 @@ int Fun4All_G4_Evaluation_hp(
   // event counter
   se->registerSubsystem(new EventCounter_hp("EVENTCOUNTER_HP",1));
 
+  // tracking init is needed for clustering
+  MagnetFieldInit();
+  TrackingInit();
+
   // local evaluation
-  if( true )
+  if( false )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
@@ -60,7 +58,7 @@ int Fun4All_G4_Evaluation_hp(
     se->registerSubsystem(simEvaluator);
   }
   
-  if( false )
+  if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(

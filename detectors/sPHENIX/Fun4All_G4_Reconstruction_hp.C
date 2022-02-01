@@ -26,10 +26,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 1,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_full_realistic-new.root",
+  // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/MDC2/sHijing_HepMC/fm_0_20/g4hits/G4Hits_sHijing_0_20fm-0000000003-00000.root",
+  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/MDC2/sHijing_HepMC/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_25kHz_bkg_0_20fm-0000000003-00000.root",
+  const char* outputFile = "DST/dst-sHijing.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_full_realistic-new.root",
   const char* residualsFile = "DST/TpcResiduals_full_realistic-new.root"
  )
@@ -55,24 +56,19 @@ int Fun4All_G4_Reconstruction_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = true;
+  Enable::MICROMEGAS = false;
   Enable::BLACKHOLE = true;
 
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::ENABLE_CORRECTIONS = false;
-  G4TPC::drift_velocity_scale = 1.0001;
   
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_rave_vertexing = false;
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -80,7 +76,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(2);
+  se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -93,26 +89,26 @@ int Fun4All_G4_Reconstruction_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  // cells
-  if( true )
+  // hit generation and digitizer
+  if( false )
   {
     Mvtx_Cells();
     Intt_Cells();
     TPC_Cells();
-    Micromegas_Cells();
+    if( Enable::MICROMEGAS ) Micromegas_Cells();
   }
 
   // tracking init is needed for clustering
   MagnetFieldInit();
   TrackingInit();
 
-  // digitizer and clustering
+  // clustering
   if( true )
   {
     Mvtx_Clustering();
     Intt_Clustering();
     TPC_Clustering();
-    Micromegas_Clustering();
+    if( Enable::MICROMEGAS ) Micromegas_Clustering();
   }
 
   // tracking
