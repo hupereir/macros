@@ -20,16 +20,15 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   Enable::PIPE = true;
   // Enable::BBC = true;
   Enable::BBCFAKE = true;
-  Enable::MAGNET = true;
+  Enable::MAGNET = false;
   Enable::PLUGDOOR = false;
 
   // enable all absorbers
   // this is equivalent to the old "absorberactive" flag
-  Enable::ABSORBER = true;
+  Enable::ABSORBER = false;
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
@@ -42,16 +41,18 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   G4Init();
   G4Setup();
 
-  DisplayOn();
-
-  gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
-  gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+  // DisplayOn();
+  QTGui();
   
-  cout << "-------------------------------------------------" << endl;
-  cout << "You are in event display mode. Run one event with" << endl;
-  cout << "se->run(1)" << endl;
-  cout << "Run Geant4 command with following examples" << endl;
-  gROOT->ProcessLine("displaycmd()");
+// 
+//   gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
+//   gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+//   
+//   cout << "-------------------------------------------------" << endl;
+//   cout << "You are in event display mode. Run one event with" << endl;
+//   cout << "se->run(1)" << endl;
+//   cout << "Run Geant4 command with following examples" << endl;
+//   gROOT->ProcessLine("displaycmd()");
     
   return 0;
 }
