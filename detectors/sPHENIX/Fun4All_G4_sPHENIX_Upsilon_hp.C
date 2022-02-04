@@ -58,24 +58,20 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = true;
+  Enable::MICROMEGAS = false;
   Enable::BLACKHOLE = true;
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
   // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
     
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
-  G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
+  G4TPC::ENABLE_CORRECTIONS = false;
+  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
   // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
-  
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-  // G4MICROMEGAS::mm_radius = 82;
-  
+    
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_tpc_seeding = false;

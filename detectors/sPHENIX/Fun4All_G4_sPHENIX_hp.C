@@ -28,7 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
+  const int nEvents = 1,
   const char *outputFile = "DST/dst_eval-newgeom.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
@@ -50,22 +50,19 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = true;
+  Enable::MICROMEGAS = false;
   Enable::BLACKHOLE = true;
 
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
   // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
-  G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
-
-  // micromegas configuration
-  // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+  // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
