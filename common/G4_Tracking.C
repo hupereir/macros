@@ -22,6 +22,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 #include <trackreco/PHActsVertexPropagator.h>
 #include <trackreco/PHCASeeding.h>
 #include <trackreco/PHGenFitTrackProjection.h>
+#include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHGhostRejection.h>
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
 #include <trackreco/PHRaveVertexing.h>
@@ -77,6 +78,9 @@ namespace G4TRACKING
   bool use_full_truth_track_seeding = false;  // makes track seeds using truth info, used for both Acts and Genfit
   bool use_truth_vertexing = false;           // if true runs truth vertexing, if false runs PHSimpleVertexFinder
 
+  // genfit track fitter
+  bool use_genfit_track_fitter = false;
+  
   // Rave final vertexing (for QA)
   bool use_rave_vertexing = true;  // Use Rave to find and fit for vertex after track fitting - used for QA only
   // This is the setup we have been using  - smeared truth vertex for a single collision per event. Make it the default for now.
@@ -283,15 +287,26 @@ void Tracking_Reco()
     // Final fitting of tracks using Acts Kalman Filter
     //=====================================
 
-    std::cout << "   Using Acts track fitting " << std::endl;
+    if( G4TRACKING::use_genfit_track_fitter )
+    {
+      
+      std::cout << "   Using Genfit track fitting " << std::endl;
+      auto genfitFit = new PHGenFitTrkFitter("PHGenFitTrkFitter");
+      genfitFit->Verbosity(verbosity);
+      se->registerSubsystem(genfitFit);
+      
+    } else {
+      
+      std::cout << "   Using Acts track fitting " << std::endl;
+      auto actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
+      actsFit->Verbosity(verbosity);
+      /// If running with distortions, fit only the silicon+MMs first
+      actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+      actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+      se->registerSubsystem(actsFit);
 
-    PHActsTrkFitter* actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
-    actsFit->Verbosity(verbosity);
-    /// If running with distortions, fit only the silicon+MMs first
-    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
-    actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-    se->registerSubsystem(actsFit);
-
+    }
+    
     if (G4TRACKING::SC_CALIBMODE)
     {
       /// run tpc residual determination with silicon+MM track fit
@@ -305,13 +320,13 @@ void Tracking_Reco()
     }
 
     // Choose the best silicon matched track for each TPC track seed
-    PHTrackCleaner* cleaner = new PHTrackCleaner();
+    auto cleaner = new PHTrackCleaner;
     cleaner->Verbosity(verbosity);
     se->registerSubsystem(cleaner);
 
     if (G4TRACKING::use_truth_vertexing)
     {
-      PHTruthVertexing* vtxing = new PHTruthVertexing();
+      auto vtxing = new PHTruthVertexing;
       vtxing->associate_tracks(true);
       std::string trackmapnamef = "SvtxTrackMap";
       vtxing->set_track_map_name(trackmapnamef);
@@ -319,15 +334,18 @@ void Tracking_Reco()
     }
     else
     {
-      PHSimpleVertexFinder* vtxfinder = new PHSimpleVertexFinder();
+      auto vtxfinder = new PHSimpleVertexFinder;
       vtxfinder->Verbosity(verbosity);
       se->registerSubsystem(vtxfinder);
     }
 
-    /// Propagate track positions to the vertex position
-    PHActsVertexPropagator* vtxProp = new PHActsVertexPropagator();
-    vtxProp->Verbosity(verbosity);
-    se->registerSubsystem(vtxProp);
+    if( !G4TRACKING::use_genfit_track_fitter )
+    {
+      /// Propagate track positions to the vertex position
+      auto vtxProp = new PHActsVertexPropagator;
+      vtxProp->Verbosity(verbosity);
+      se->registerSubsystem(vtxProp);
+    }
   }
 
   //=========================================================
@@ -358,15 +376,26 @@ void Tracking_Reco()
     // Fitting of tracks using Acts Kalman Filter
     //==================================
 
-    std::cout << "   Using Acts track fitting " << std::endl;
-
-    PHActsTrkFitter* actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
-    actsFit->Verbosity(verbosity);
-    actsFit->doTimeAnalysis(false);
-    /// If running with distortions, fit only the silicon+MMs first
-    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
-    se->registerSubsystem(actsFit);
-
+    if( G4TRACKING::use_genfit_track_fitter )
+    {
+      
+      std::cout << "   Using Genfit track fitting " << std::endl;
+      auto genfitFit = new PHGenFitTrkFitter("PHGenFitTrkFitter");
+      genfitFit->Verbosity(verbosity);
+      se->registerSubsystem(genfitFit);
+      
+    } else {
+      
+      std::cout << "   Using Acts track fitting " << std::endl;
+      auto actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
+      actsFit->Verbosity(verbosity);
+      actsFit->doTimeAnalysis(false);
+      /// If running with distortions, fit only the silicon+MMs first
+      actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+      se->registerSubsystem(actsFit);
+    
+    }
+    
     if (G4TRACKING::SC_CALIBMODE)
     {
       /// run tpc residual determination with silicon+MM track fit
@@ -381,7 +410,7 @@ void Tracking_Reco()
 
     if (G4TRACKING::use_truth_vertexing)
     {
-      PHTruthVertexing* vtxing = new PHTruthVertexing();
+      auto vtxing = new PHTruthVertexing;
       vtxing->associate_tracks(true);
       std::string trackmapnamef = "SvtxTrackMap";
       vtxing->set_track_map_name(trackmapnamef);
@@ -389,15 +418,20 @@ void Tracking_Reco()
     }
     else
     {
-      PHSimpleVertexFinder* vtxfinder = new PHSimpleVertexFinder();
+      auto vtxfinder = new PHSimpleVertexFinder;
       vtxfinder->Verbosity(verbosity);
       se->registerSubsystem(vtxfinder);
     }
-
-    /// Propagate track positions to the vertex position
-    PHActsVertexPropagator* vtxProp = new PHActsVertexPropagator();
-    vtxProp->Verbosity(verbosity);
-    se->registerSubsystem(vtxProp);
+    
+    if( !G4TRACKING::use_genfit_track_fitter )
+    {
+      /// Propagate track positions to the vertex position
+      /// works only if one uses ACTS fitting
+      auto vtxProp = new PHActsVertexPropagator;
+      vtxProp->Verbosity(verbosity);
+      se->registerSubsystem(vtxProp);
+    }
+    
   }
 
   //==================================
