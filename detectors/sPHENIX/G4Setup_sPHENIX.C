@@ -87,7 +87,7 @@ int G4Setup()
   Fun4AllServer *se = Fun4AllServer::instance();
 
   PHG4Reco *g4Reco = new PHG4Reco();
-  // g4Reco->export_geometry( true, "/phenix/u/hpereira/sPHENIXGeom.root" );
+  g4Reco->export_geometry( true, "sPHENIXGeom.root" );
   
   g4Reco->set_rapidity_coverage(1.1);  // according to drawings
   WorldInit(g4Reco);
