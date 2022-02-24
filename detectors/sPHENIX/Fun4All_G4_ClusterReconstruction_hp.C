@@ -9,11 +9,6 @@
 #include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAHistManagerDef.h>
 
-#define NEW_SC
-#ifdef NEW_SC
-#include <tpccalib/TpcSpaceChargeMatrixInversion.h>
-#endif
-
 // own modules
 #include <g4eval/EventCounter_hp.h>
 #include <g4eval/MicromegasEvaluator_hp.h>
@@ -31,16 +26,18 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_ClusterReconstruction_hp(
-  const int nEvents = 1000,
+  const int nEvents = 500,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/clusters.root",
-  const char* outputFile = "DST/dst_eval.root",
-  const char* redisualsFile = "TpcSpaceChargeMatrixInversion.root"
-//   const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters/clusters_realistic_micromegas_0.root",
-//   const char* outputFile = "DST/dst_eval_acts_truth_realistic_notpc.root",
-//   const char* residualsFile = "DST/TpcResiduals_acts_truth_realistic_notpc.root"
-  )
-  // const char *outputFile = "DST/dst_eval_genfit_truth_realistic_notpc.root" )
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters_nodistortion/dst_reco_realistic_micromegas_1.root",
+  
+  const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
+  
+//   const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
+//   const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
+ )
 {
 
   // print inputs
@@ -61,111 +58,90 @@ int Fun4All_G4_ClusterReconstruction_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
-
   // TPC
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
-  G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_coarse.root";
 
-  // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-empty-new_extrapolated.root";
-
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
 
   // tracking configuration
-  G4TRACKING::add_fake_surfaces = false;
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
+  G4TRACKING::use_rave_vertexing = false;
+
+  // genfit track fitter
+  G4TRACKING::use_genfit_track_fitter = false;
 
   G4TRACKING::SC_CALIBMODE = true;
-  
-  G4TRACKING::seeding_type = G4TRACKING::PHTPCTRACKER_SEEDING;
+  G4TRACKING::SC_SAVEHISTOGRAMS = true;
+  G4TRACKING::SC_USE_MICROMEGAS = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
 
-  #ifdef NEW_SC
-  // temporary matrix filename
-  const std::string& tmpfile = "TpcSpaceChargeMatrices.root";
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = tmpfile;
-  #else
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = redisualsFile;
-  #endif
-  
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity();
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
-  rc->set_IntFlag("RANDOMSEED",1);
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  if( false )
-  {
-    // cells
-    Mvtx_Cells();
-    Intt_Cells();
-    TPC_Cells();
-    Micromegas_Cells();
-
-    // digitizer and clustering
-    Mvtx_Clustering();
-    Intt_Clustering();
-    TPC_Clustering();
-    Micromegas_Clustering();
-  }
-  
-  // tracking
+  // tracking init is needed for clustering
   MagnetFieldInit();
   TrackingInit();
-  Tracking_Reco();
+
+  // tracking
+  if( true )
+  {
+    Tracking_Reco();
+  }
 
   if( false )
   {
-    // local evaluation
+    // local sim evaluation
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
       SimEvaluator_hp::EvalEvent
-      // |SimEvaluator_hp::EvalVertices
-      // |SimEvaluator_hp::EvalParticles
+      |SimEvaluator_hp::EvalVertices
+      |SimEvaluator_hp::EvalHits
+      |SimEvaluator_hp::EvalParticles
       );
     se->registerSubsystem(simEvaluator);
   }
 
   if( false )
   {
-    // Micromegas evaluation
+    // local Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
     micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits | MicromegasEvaluator_hp::EvalHits );
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( false )
+  if( true )
   {
-    // tracking
+    // local tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
       );
+
+    // special track map is used for space charge calibrations
+    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
+    { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+
     se->registerSubsystem(trackingEvaluator);
   }
 
@@ -175,18 +151,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   se->registerInputManager(in);
 
   // output manager
-  /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  
-  // add evaluation nodes
-  out->AddNode("MicromegasEvaluator_hp::Container");
-  out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
-
-  // add cluster and tracks nodes
-  // out->AddNode( "TRKR_CLUSTER" );
-  // out->AddNode( "SvtxTrackMap" );
-
   se->registerOutputManager(out);
 
   // skip events if any specified
@@ -199,16 +164,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // terminate
   se->End();
   se->PrintTimer();
-  
-  #ifdef NEW_SC
-  // perform matrix inversion
-  auto spaceChargeMatrixInversion = new TpcSpaceChargeMatrixInversion;
-  spaceChargeMatrixInversion->set_outputfile( redisualsFile );
-  spaceChargeMatrixInversion->Verbosity(1);
-  if( spaceChargeMatrixInversion->add_from_file( tmpfile ) )
-  { spaceChargeMatrixInversion->calculate_distortions(); }
-  #endif
-  
+
   std::cout << "All done" << std::endl;
   delete se;
   gSystem->Exit(0);

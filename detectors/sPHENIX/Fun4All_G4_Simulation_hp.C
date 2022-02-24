@@ -49,9 +49,6 @@ int Fun4All_G4_Simulation_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
  
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -75,7 +72,7 @@ int Fun4All_G4_Simulation_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( false )
+    if( true )
     {
       // use specific distribution to generate pt
       // values from "http://arxiv.org/abs/nucl-ex/0308006"
@@ -105,36 +102,36 @@ int Fun4All_G4_Simulation_hp(
   G4Init();
   G4Setup();
 
-  // BBC
-  BbcInit();
-  Bbc_Reco();
+//   // BBC
+//   BbcInit();
+//   Bbc_Reco();
 
-  // cells
-  Mvtx_Cells();
-  Intt_Cells();
-  TPC_Cells();
-  if( Enable::MICROMEGAS )
-  { Micromegas_Cells(); }  
+//   // cells
+//   Mvtx_Cells();
+//   Intt_Cells();
+//   TPC_Cells();
+//   if( Enable::MICROMEGAS )
+//   { Micromegas_Cells(); }  
   
-  if( true ) 
-  {
-    // Micromegas evaluation
-    auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
-    se->registerSubsystem(micromegasEvaluator);
-  }
+//   if( false ) 
+//   {
+//     // Micromegas evaluation
+//     auto micromegasEvaluator = new MicromegasEvaluator_hp;
+//     micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
+//     se->registerSubsystem(micromegasEvaluator);
+//   }
 
-  // local evaluation
-  if( true )
-  {
-    auto simEvaluator = new SimEvaluator_hp;
-    simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent|
-      SimEvaluator_hp::EvalHits|
-      SimEvaluator_hp::EvalVertices|
-      SimEvaluator_hp::EvalParticles );
-    se->registerSubsystem(simEvaluator);
-  }
+//   // local evaluation
+//   if( fakse )
+//   {
+//     auto simEvaluator = new SimEvaluator_hp;
+//     simEvaluator->set_flags(
+//       SimEvaluator_hp::EvalEvent|
+//       SimEvaluator_hp::EvalHits|
+//       SimEvaluator_hp::EvalVertices|
+//       SimEvaluator_hp::EvalParticles );
+//     se->registerSubsystem(simEvaluator);
+//   }
   
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that

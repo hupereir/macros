@@ -29,18 +29,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 2000,
 
-//   const char *outputFile = "DST/dst_eval.root",
-//   const char* qaOutputFile = "DST/qa.root"
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
 
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
-  
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted-new.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted-new.root"  
-  
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted_fullmap-tony.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted_fullmap-tony.root"
-
+  const char* outputFile = "DST/dst_eval_upsilon_genfit_full_no_distortion.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_genfit_no_distortion.root"
   )
 {
 
@@ -58,7 +51,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = false;
+  Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
   // TPC
@@ -76,7 +69,15 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_tpc_seeding = false;
   
+  // genfit track fitter
+  G4TRACKING::use_genfit_track_fitter = true;
+  
+  // space charge calibration mode
   G4TRACKING::SC_CALIBMODE = false;
+    
+//   // use 2D magnetic field
+//   G4MAGNET::magfield = string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root");
+//   G4MAGNET::magfield_rescale = -1.4 / 1.5;  // make consistent with expected Babar field strength of 1.4T
   
   // server
   auto se = Fun4AllServer::instance();

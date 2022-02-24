@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 1,
-  const char *outputFile = "DST/dst_eval-newgeom.root",
+  const char *outputFile = "DST/dst_eval.root",
   const char* qaOutputFile = "DST/qa.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
   const char* residualsFile = "DST/TpcResiduals.root"
@@ -50,7 +50,7 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = false;
+  Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
   // TPC
@@ -68,6 +68,9 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_tpc_seeding = false;
 
+  // genfit track fitter
+  G4TRACKING::use_genfit_track_fitter = true;
+  
   G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -163,7 +166,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( true ) 
+  if( true && Enable::MICROMEGAS ) 
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;

@@ -26,13 +26,15 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 1,
+  const int nEvents = 500,
   const int nSkipEvents = 0,
-  // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/MDC2/sHijing_HepMC/fm_0_20/g4hits/G4Hits_sHijing_0_20fm-0000000003-00000.root",
-  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/MDC2/sHijing_HepMC/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_25kHz_bkg_0_20fm-0000000003-00000.root",
-  const char* outputFile = "DST/dst-sHijing.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_full_realistic-new.root",
-  const char* residualsFile = "DST/TpcResiduals_full_realistic-new.root"
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+//   const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
+//   const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
+  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
+  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
  )
 {
 
@@ -58,17 +60,24 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;
-  Enable::MICROMEGAS = false;
+  Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
   // TPC
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_coarse.root";
+
   G4TPC::ENABLE_CORRECTIONS = false;
-  
+
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::use_rave_vertexing = false;
-  G4TRACKING::SC_CALIBMODE = false;
+
+  // genfit track fitter
+  G4TRACKING::use_genfit_track_fitter = true;
+
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -76,7 +85,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -90,7 +99,7 @@ int Fun4All_G4_Reconstruction_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // hit generation and digitizer
-  if( false )
+  if( true )
   {
     Mvtx_Cells();
     Intt_Cells();
@@ -147,11 +156,11 @@ int Fun4All_G4_Reconstruction_hp(
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
       );
-    
+
     // special track map is used for space charge calibrations
-    if( G4TRACKING::SC_CALIBMODE )
+    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
-    
+
     se->registerSubsystem(trackingEvaluator);
   }
 
