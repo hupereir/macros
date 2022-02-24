@@ -14,8 +14,13 @@ R__LOAD_LIBRARY(libqa_modules.so)
 #include <G4_TPC.C>
 #include <QA.C>
 
+#include <fun4all/Fun4AllServer.h>
 #include <g4eval/SvtxEvaluator.h>
-
+#include <qa_modules/QAG4SimulationTracking.h>
+#include <qa_modules/QAG4SimulationUpsilon.h>
+#include <qa_modules/QAG4SimulationVertex.h>
+#include <tpccalib/PHTpcResiduals.h>
+#include <tpccalib/TpcSpaceChargeReconstruction.h>
 #include <trackreco/MakeActsGeometry.h>
 #include <trackreco/PHActsSiliconSeeding.h>
 #include <trackreco/PHActsTrkFitter.h>
@@ -37,14 +42,6 @@ R__LOAD_LIBRARY(libqa_modules.so)
 #include <trackreco/PHTruthSiliconAssociation.h>
 #include <trackreco/PHTruthTrackSeeding.h>
 #include <trackreco/PHTruthVertexing.h>
-
-#include <tpccalib/PHTpcResiduals.h>
-
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-
-#include <fun4all/Fun4AllServer.h>
 
 namespace Enable
 {
@@ -289,11 +286,30 @@ void Tracking_Reco()
 
     if( G4TRACKING::use_genfit_track_fitter )
     {
-      
       std::cout << "   Using Genfit track fitting " << std::endl;
       auto genfitFit = new PHGenFitTrkFitter("PHGenFitTrkFitter");
       genfitFit->Verbosity(verbosity);
+      genfitFit->set_vertexing_method(G4TRACKING::vmethod);
+      genfitFit->set_use_truth_vertex(false);      
+      if (G4TRACKING::SC_CALIBMODE)
+      {
+        // in distortion calibration mode, disable TPC layers
+        for( int layer = 7; layer < 23; ++layer ) { genfitFit->disable_layer( layer ); }
+        for( int layer = 23; layer < 39; ++layer ) { genfitFit->disable_layer( layer ); }
+        for( int layer = 39; layer < 55; ++layer ) { genfitFit->disable_layer( layer ); }
+      }
       se->registerSubsystem(genfitFit);
+      
+      if( G4TRACKING::SC_CALIBMODE )
+      {
+        // Genfit based Tpc space charge Reconstruction
+        auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
+        tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
+        tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+        tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
+        tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+        se->registerSubsystem(tpcSpaceChargeReconstruction);
+      }
       
     } else {
       
@@ -304,21 +320,21 @@ void Tracking_Reco()
       actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
       actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
       se->registerSubsystem(actsFit);
-
+      
+      if (G4TRACKING::SC_CALIBMODE)
+      {
+        /// run tpc residual determination with silicon+MM track fit
+        auto residuals = new PHTpcResiduals;
+        residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+        residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
+        residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+        residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+        residuals->Verbosity(verbosity);
+        se->registerSubsystem(residuals);
+      }
+      
     }
     
-    if (G4TRACKING::SC_CALIBMODE)
-    {
-      /// run tpc residual determination with silicon+MM track fit
-      auto residuals = new PHTpcResiduals;
-      residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-      residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
-      residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
-      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-      residuals->Verbosity(verbosity);
-      se->registerSubsystem(residuals);
-    }
-
     // Choose the best silicon matched track for each TPC track seed
     auto cleaner = new PHTrackCleaner;
     cleaner->Verbosity(verbosity);
@@ -378,34 +394,53 @@ void Tracking_Reco()
 
     if( G4TRACKING::use_genfit_track_fitter )
     {
-      
       std::cout << "   Using Genfit track fitting " << std::endl;
       auto genfitFit = new PHGenFitTrkFitter("PHGenFitTrkFitter");
       genfitFit->Verbosity(verbosity);
+      genfitFit->set_vertexing_method(G4TRACKING::vmethod);
+      genfitFit->set_use_truth_vertex(false);      
+      if (G4TRACKING::SC_CALIBMODE)
+      {
+        // in distortion calibration mode, disable TPC layers
+        for( int layer = 7; layer < 23; ++layer ) { genfitFit->disable_layer( layer ); }
+        for( int layer = 23; layer < 39; ++layer ) { genfitFit->disable_layer( layer ); }
+        for( int layer = 39; layer < 55; ++layer ) { genfitFit->disable_layer( layer ); }
+      }
       se->registerSubsystem(genfitFit);
+      
+      if( G4TRACKING::SC_CALIBMODE )
+      {
+        // Genfit based Tpc space charge Reconstruction
+        auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
+        tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
+        tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+        tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
+        tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+        se->registerSubsystem(tpcSpaceChargeReconstruction);
+      }
       
     } else {
       
       std::cout << "   Using Acts track fitting " << std::endl;
       auto actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
       actsFit->Verbosity(verbosity);
-      actsFit->doTimeAnalysis(false);
       /// If running with distortions, fit only the silicon+MMs first
       actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+      actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
       se->registerSubsystem(actsFit);
-    
-    }
-    
-    if (G4TRACKING::SC_CALIBMODE)
-    {
-      /// run tpc residual determination with silicon+MM track fit
-      auto residuals = new PHTpcResiduals;
-      residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
-      residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
-      residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
-      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-      residuals->Verbosity(verbosity);
-      se->registerSubsystem(residuals);
+      
+      if (G4TRACKING::SC_CALIBMODE)
+      {
+        /// run tpc residual determination with silicon+MM track fit
+        auto residuals = new PHTpcResiduals;
+        residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+        residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
+        residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+        residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+        residuals->Verbosity(verbosity);
+        se->registerSubsystem(residuals);
+      }
+      
     }
 
     if (G4TRACKING::use_truth_vertexing)
