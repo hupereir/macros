@@ -24,19 +24,23 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
+#define USE_ACTS
+
 //________________________________________________________________________________________________
 int Fun4All_G4_ClusterReconstruction_hp(
   const int nEvents = 500,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters_nodistortion/dst_reco_realistic_micromegas_1.root",
-  
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters_nodistortion/dst_reco_realistic_micromegas_0.root",
+
+  #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
   const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
-  
-//   const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
-//   const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
+  #else
+  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
+  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
+  #endif
  )
 {
 
@@ -74,9 +78,14 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::use_rave_vertexing = false;
 
-  // genfit track fitter
+  #ifdef USE_ACTS
+  // acts track fitter
   G4TRACKING::use_genfit_track_fitter = false;
-
+  #else
+  // genfit track fitter
+  G4TRACKING::use_genfit_track_fitter = true;
+  #endif
+  
   G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
@@ -95,7 +104,7 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   // tracking init is needed for clustering
   MagnetFieldInit();
