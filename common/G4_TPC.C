@@ -21,7 +21,7 @@
 
 #include <tpc/TpcClusterizer.h>
 #include <tpc/TpcClusterCleaner.h>
-#include <tpc/TpcSimpleClusterizer.h>
+// #include <tpc/TpcSimpleClusterizer.h>
 #include <tpc/TpcLoadDistortionCorrection.h>
 
 #include <tpccalib/TpcDirectLaserReconstruction.h>
@@ -61,7 +61,7 @@ namespace G4TPC
   double drift_velocity_scale = 1.0;
   
   // use simple clusterizer
-  bool USE_SIMPLE_CLUSTERIZER = false;
+//   bool USE_SIMPLE_CLUSTERIZER = false;
   
   // distortions
   bool ENABLE_STATIC_DISTORTIONS = false;
@@ -265,21 +265,21 @@ void TPC_Clustering()
 
   // For the Tpc
   //==========
-  if( G4TPC::USE_SIMPLE_CLUSTERIZER )
-  {
-    
-    auto tpcclusterizer = new TpcSimpleClusterizer;
-    tpcclusterizer->Verbosity(verbosity);
-    se->registerSubsystem(tpcclusterizer);
-    
-  } else {
+//   if( G4TPC::USE_SIMPLE_CLUSTERIZER )
+//   {
+//     
+//     auto tpcclusterizer = new TpcSimpleClusterizer;
+//     tpcclusterizer->Verbosity(verbosity);
+//     se->registerSubsystem(tpcclusterizer);
+//     
+//   } else {
 
     auto tpcclusterizer = new TpcClusterizer;
     tpcclusterizer->set_drift_velocity_scale(G4TPC::drift_velocity_scale);
     tpcclusterizer->Verbosity(verbosity);
     se->registerSubsystem(tpcclusterizer);
 
-  }
+//   }
   
   if( !G4TPC::ENABLE_DIRECT_LASER_HITS )
   {
