@@ -25,15 +25,19 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
+#define USE_ACTS
+
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 2000,
+  const int nEvents = 5000,
 
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
-
+  #ifdef USE_ACTS
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
+  #else
   const char* outputFile = "DST/dst_eval_upsilon_genfit_full_no_distortion.root",
   const char* qaOutputFile = "DST/qa_upsilon_acts_genfit_no_distortion.root"
+  #endif
   )
 {
 
@@ -70,7 +74,11 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4TRACKING::use_truth_tpc_seeding = false;
   
   // genfit track fitter
+  #ifdef USE_ACTS
+  G4TRACKING::use_genfit_track_fitter = false;
+  #else
   G4TRACKING::use_genfit_track_fitter = true;
+  #endif
   
   // space charge calibration mode
   G4TRACKING::SC_CALIBMODE = false;
