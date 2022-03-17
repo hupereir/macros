@@ -27,10 +27,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 #define USE_ACTS
 
 //________________________________________________________________________________________________
-int Fun4All_G4_ClusterReconstruction_hp(
+int Fun4All_G4_HitReconstruction_hp(
   const int nEvents = 100,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters_nodistortion/dst_reco_realistic_micromegas_0.root",
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/hits_nodistortion/dst_reco_realistic_micromegas_0.root",
 
   #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
@@ -77,7 +77,6 @@ int Fun4All_G4_ClusterReconstruction_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
 
   // tracking configuration
-  G4TRACKING::add_fake_surfaces = false;
   G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::use_rave_vertexing = false;
 
@@ -112,6 +111,15 @@ int Fun4All_G4_ClusterReconstruction_hp(
   // tracking init is needed for clustering
   MagnetFieldInit();
   TrackingInit();
+
+  // clustering
+  if( true )
+  {
+    Mvtx_Clustering();
+    Intt_Clustering();
+    TPC_Clustering();
+    if( Enable::MICROMEGAS ) Micromegas_Clustering();
+  }
 
   // tracking
   if( true )
