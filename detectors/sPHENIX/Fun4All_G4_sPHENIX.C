@@ -63,9 +63,11 @@ int Fun4All_G4_sPHENIX(
   // conditions DB flags
   //===============
   // tag
-  rc->set_StringFlag("XPLOAD_TAG","example_tag_1");
-  // database
-  rc->set_StringFlag("XPLOAD_CONFIG","test");
+  rc->set_StringFlag("XPLOAD_TAG","sPHENIX_ExampleGT_1");
+  // database config
+  rc->set_StringFlag("XPLOAD_CONFIG","sPHENIX_cdb");
+  // 64 bit timestamp
+  rc->set_uint64Flag("TIMESTAMP",12345678912345);
 
 
   //===============
@@ -148,11 +150,11 @@ int Fun4All_G4_sPHENIX(
     }
     else
     {
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Uniform,
-                                                                                PHG4SimpleEventGenerator::Uniform,
-                                                                                PHG4SimpleEventGenerator::Uniform);
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus,
+                                                                                PHG4SimpleEventGenerator::Gaus,
+                                                                                PHG4SimpleEventGenerator::Gaus);
       INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0., 0., 10.);
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
     }
     INPUTGENERATOR::SimpleEventGenerator[0]->set_eta_range(-1, 1);
     INPUTGENERATOR::SimpleEventGenerator[0]->set_phi_range(-M_PI, M_PI);
@@ -282,19 +284,19 @@ int Fun4All_G4_sPHENIX(
   Enable::MVTX = true;
   Enable::MVTX_CELL = Enable::MVTX && true;
   Enable::MVTX_CLUSTER = Enable::MVTX_CELL && true;
-  Enable::MVTX_QA = Enable::MVTX_CLUSTER and Enable::QA && true;
-  Enable::TrackingService = true;
+  Enable::MVTX_QA = Enable::MVTX_CLUSTER && Enable::QA && true;
+  Enable::TrackingService = false;
 
   Enable::INTT = true;
   Enable::INTT_CELL = Enable::INTT && true;
   Enable::INTT_CLUSTER = Enable::INTT_CELL && true;
-  Enable::INTT_QA = Enable::INTT_CLUSTER and Enable::QA && true;
+  Enable::INTT_QA = Enable::INTT_CLUSTER && Enable::QA && true;
 
   Enable::TPC = true;
   Enable::TPC_ABSORBER = true;
   Enable::TPC_CELL = Enable::TPC && true;
   Enable::TPC_CLUSTER = Enable::TPC_CELL && true;
-  Enable::TPC_QA = Enable::TPC_CLUSTER and Enable::QA && true;
+  Enable::TPC_QA = Enable::TPC_CLUSTER && Enable::QA && true;
 
   Enable::MICROMEGAS = true;
   Enable::MICROMEGAS_CELL = Enable::MICROMEGAS && true;
@@ -302,8 +304,8 @@ int Fun4All_G4_sPHENIX(
   Enable::MICROMEGAS_QA = Enable::MICROMEGAS_CLUSTER && Enable::QA && true;
 
   Enable::TRACKING_TRACK = true;
-  Enable::TRACKING_EVAL = Enable::TRACKING_TRACK && false;
-  Enable::TRACKING_QA = Enable::TRACKING_TRACK and Enable::QA && true;
+  Enable::TRACKING_EVAL = Enable::TRACKING_TRACK && true;
+  Enable::TRACKING_QA = Enable::TRACKING_TRACK && Enable::QA && true;
 
   //  cemc electronics + thin layer of W-epoxy to get albedo from cemc
   //  into the tracking, cannot run together with CEMC
@@ -315,7 +317,7 @@ int Fun4All_G4_sPHENIX(
   Enable::CEMC_TOWER = Enable::CEMC_CELL && true;
   Enable::CEMC_CLUSTER = Enable::CEMC_TOWER && true;
   Enable::CEMC_EVAL = Enable::CEMC_CLUSTER && true;
-  Enable::CEMC_QA = Enable::CEMC_CLUSTER and Enable::QA && true;
+  Enable::CEMC_QA = Enable::CEMC_CLUSTER && Enable::QA && true;
 
   Enable::HCALIN = false;
   Enable::HCALIN_ABSORBER = true;
@@ -323,7 +325,7 @@ int Fun4All_G4_sPHENIX(
   Enable::HCALIN_TOWER = Enable::HCALIN_CELL && true;
   Enable::HCALIN_CLUSTER = Enable::HCALIN_TOWER && true;
   Enable::HCALIN_EVAL = Enable::HCALIN_CLUSTER && true;
-  Enable::HCALIN_QA = Enable::HCALIN_CLUSTER and Enable::QA && true;
+  Enable::HCALIN_QA = Enable::HCALIN_CLUSTER && Enable::QA && true;
 
   Enable::MAGNET = false;
   Enable::MAGNET_ABSORBER = false;
@@ -334,7 +336,7 @@ int Fun4All_G4_sPHENIX(
   Enable::HCALOUT_TOWER = Enable::HCALOUT_CELL && true;
   Enable::HCALOUT_CLUSTER = Enable::HCALOUT_TOWER && true;
   Enable::HCALOUT_EVAL = Enable::HCALOUT_CLUSTER && true;
-  Enable::HCALOUT_QA = Enable::HCALOUT_CLUSTER and Enable::QA && true;
+  Enable::HCALOUT_QA = Enable::HCALOUT_CLUSTER && Enable::QA && true;
 
   Enable::EPD = true;
 
@@ -362,7 +364,7 @@ int Fun4All_G4_sPHENIX(
 
   Enable::JETS = false;
   Enable::JETS_EVAL = Enable::JETS && true;
-  Enable::JETS_QA = Enable::JETS and Enable::QA && true;
+  Enable::JETS_QA = Enable::JETS && Enable::QA && true;
 
   // HI Jet Reco for p+Au / Au+Au collisions (default is false for
   // single particle / p+p-only simulations, or for p+Au / Au+Au
@@ -562,7 +564,7 @@ int Fun4All_G4_sPHENIX(
   if (Enable::MICROMEGAS_QA) Micromegas_QA();
   if (Enable::TRACKING_QA) Tracking_QA();
 
-  if (Enable::TRACKING_QA and Enable::CEMC_QA and Enable::HCALIN_QA and Enable::HCALOUT_QA) QA_G4CaloTracking();
+  if (Enable::TRACKING_QA && Enable::CEMC_QA && Enable::HCALIN_QA && Enable::HCALOUT_QA) QA_G4CaloTracking();
 
   //--------------
   // Set up Input Managers
