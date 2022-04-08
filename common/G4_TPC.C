@@ -25,7 +25,7 @@
 #pragma GCC diagnostic pop
 
 #include <tpc/TpcClusterCleaner.h>
-// #include <tpc/TpcSimpleClusterizer.h>
+#include <tpc/TpcSimpleClusterizer.h>
 #include <tpc/TpcLoadDistortionCorrection.h>
 
 #include <tpccalib/TpcDirectLaserReconstruction.h>
@@ -66,7 +66,7 @@ namespace G4TPC
   double drift_velocity_scale = 1.0;
   
   // use simple clusterizer
-//   bool USE_SIMPLE_CLUSTERIZER = false;
+  bool USE_SIMPLE_CLUSTERIZER = false;
   
   // distortions
   bool ENABLE_STATIC_DISTORTIONS = false;
@@ -193,14 +193,15 @@ void TPC_Cells()
     // setup phi and theta steps
     static constexpr double deg_to_rad = M_PI/180.;
     
-//     /* use 5degrees steps */
+    /* use 5degrees steps */
 //     /* custom setup for laser mimicking particles */
 //     directLaser->SetPhiStepping( 36, 0*deg_to_rad, 180*deg_to_rad );
 //     directLaser->SetThetaStepping( 12, 30*deg_to_rad, 90*deg_to_rad );
 
-    /* use 5degrees steps */
+    /* nominal laser setup */
     directLaser->SetPhiStepping( 72, 0*deg_to_rad, 360*deg_to_rad );
     directLaser->SetThetaStepping( 17, 5*deg_to_rad, 90*deg_to_rad );
+
     directLaser->SetDirectLaserAuto( true );
     se->registerSubsystem(directLaser);
   }
@@ -270,21 +271,21 @@ void TPC_Clustering()
 
   // For the Tpc
   //==========
-//   if( G4TPC::USE_SIMPLE_CLUSTERIZER )
-//   {
-//     
-//     auto tpcclusterizer = new TpcSimpleClusterizer;
-//     tpcclusterizer->Verbosity(verbosity);
-//     se->registerSubsystem(tpcclusterizer);
-//     
-//   } else {
+  if( G4TPC::USE_SIMPLE_CLUSTERIZER )
+  {
+    
+    auto tpcclusterizer = new TpcSimpleClusterizer;
+    tpcclusterizer->Verbosity(verbosity);
+    se->registerSubsystem(tpcclusterizer);
+    
+  } else {
 
     auto tpcclusterizer = new TpcClusterizer;
     tpcclusterizer->set_drift_velocity_scale(G4TPC::drift_velocity_scale);
     tpcclusterizer->Verbosity(verbosity);
     se->registerSubsystem(tpcclusterizer);
 
-//   }
+  }
   
   if( !G4TPC::ENABLE_DIRECT_LASER_HITS )
   {
