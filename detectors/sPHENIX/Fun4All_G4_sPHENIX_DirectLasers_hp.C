@@ -12,10 +12,6 @@
 #include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
 
-#include <g4eval/TrackEvaluation.h>
-
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
-
 // local macros
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
@@ -27,25 +23,33 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-//   const int nEvents = 432,  
-//   const char* outputFile = "DST/dst_reco_full_directlasers_distortions_fullmap.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_distortions_fullmap.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_distortions_fullmap.root"
+//   const int nEvents = 360,  
+  
+//   const char* outputFile = "DST/dst_reco_single_directlasers_test_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_single_directlasers_test_no_distortion.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_single_directlasers_test_no_distortion.root"
 
-//   const int nEvents = 432*5,
-//   const char* outputFile = "DST/dst_reco_full_directlasers_distortions_fullmap-large.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_distortions_fullmap-large.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_distortions_fullmap-large.root"
+//   const char* outputFile = "DST/dst_reco_all_directlasers_test_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_test_no_distortion.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_test_no_distortion.root"
 
-//   const int nEvents = 432,  
-//   const char* outputFile = "DST/dst_reco_full_directlasers.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction.root"
+//   const char* outputFile = "DST/dst_reco_all_directlasers_test_simple_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_test_simple_no_distortion.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_test_simple_no_distortion.root"
 
   const int nEvents = 1224,  
-  const char* outputFile = "DST/dst_reco_full_directlasers-nominal.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices-nominal.root",
-  const char* evaluationFile = "DST/TpcDirectLaserReconstruction-nominal.root"
+
+//   const char* outputFile = "DST/dst_reco_single_directlasers_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_single_directlasers_no_distortion.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_single_directlasers_no_distortion.root"
+
+//   const char* outputFile = "DST/dst_reco_all_directlasers_no_distortion.root",
+//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_no_distortion.root",
+//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_no_distortion.root"
+
+  const char* outputFile = "DST/dst_reco_all_directlasers_simple_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_simple_no_distortion.root",
+  const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_simple_no_distortion.root"
 )
 {
 
@@ -64,7 +68,6 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
@@ -84,34 +87,25 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   G4TPC::DIRECT_LASER_SAVEHISTOGRAMS = true;
   G4TPC::DIRECT_LASER_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
   G4TPC::DIRECT_LASER_HISTOGRAMOUTPUT_FILENAME = evaluationFile;
-  G4TPC::USE_SIMPLE_CLUSTERIZER = false;
-  
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+  G4TPC::USE_SIMPLE_CLUSTERIZER = true;
 
   // for testing the momentum resolution, focus on having Micromegas in only one sector
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
   G4TRACKING::SC_CALIBMODE = false;
-
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
@@ -132,6 +126,7 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   Micromegas_Cells();
 
   // tracking
+  MagnetFieldInit();
   TrackingInit();
 
   TPC_Clustering();
@@ -158,6 +153,7 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
+//       |TrackingEvaluator_hp::PrintTracks
       );
     se->registerSubsystem(trackingEvaluator);
   }
@@ -169,7 +165,6 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-
   se->registerOutputManager(out);
 
   // process events

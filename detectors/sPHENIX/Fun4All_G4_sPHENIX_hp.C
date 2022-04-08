@@ -11,11 +11,6 @@
 #include <g4eval/SimEvaluator_hp.h>
 #include <g4eval/MicromegasEvaluator_hp.h>
 #include <g4eval/TrackingEvaluator_hp.h>
-#include <g4eval/TrackEvaluation.h>
-
-#include <g4eval/TrackEvaluation.h>
-
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
@@ -26,15 +21,28 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
+#define USE_ACTS
+
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
-  const char *outputFile = "DST/dst_eval.root",
-  const char* qaOutputFile = "DST/qa.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
-  const char* residualsFile = "DST/TpcResiduals.root"
+  const int nEvents = 2000,
+  #ifdef USE_ACTS
+  const char* outputFile = "DST/dst_eval_realistic_acts_full_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
+  #else
+  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
+  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
+  #endif
   )
 {
+
+  // print inputs
+  std::cout << "Fun4All_G4_sPHENIX_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_hp - residualsFile: " << residualsFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -61,16 +69,21 @@ int Fun4All_G4_sPHENIX_hp(
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
-  // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/static_only_inverted_10-new.root";
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::use_truth_tpc_seeding = false;
 
   // genfit track fitter
+  #ifdef USE_ACTS
+  // acts track fitter
+  G4TRACKING::use_genfit_track_fitter = false;
+  #else
+  // genfit track fitter
   G4TRACKING::use_genfit_track_fitter = true;
-  
+  #endif
+
   G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -78,7 +91,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -89,7 +102,7 @@ int Fun4All_G4_sPHENIX_hp(
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   {
     // event generation
@@ -100,7 +113,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( false )
+    if( true )
     {
 
       // use specific distribution to generate pt
@@ -155,7 +168,7 @@ int Fun4All_G4_sPHENIX_hp(
   Tracking_Reco();
 
   // local evaluation
-  if( true )
+  if( false )
   {
     auto simEvaluator = new SimEvaluator_hp;
     simEvaluator->set_flags(
@@ -166,38 +179,29 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( true && Enable::MICROMEGAS ) 
+  if( false && Enable::MICROMEGAS )
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
     micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits );
     se->registerSubsystem(micromegasEvaluator);
   }
-  
+
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalEvent|
-      TrackingEvaluator_hp::EvalClusters|
-      TrackingEvaluator_hp::EvalTracks);
+      TrackingEvaluator_hp::EvalEvent
+      |TrackingEvaluator_hp::EvalClusters
+      |TrackingEvaluator_hp::EvalTracks
+//       |TrackingEvaluator_hp::PrintTracks
+      );
+
+    // special track map is used for space charge calibrations
+    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
+    { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+
     se->registerSubsystem(trackingEvaluator);
-  }
-
-  if( true )
-  { se->registerSubsystem( new TrackEvaluation ); }
-
-  // QA
-  Enable::QA = false;
-  if( Enable::QA )
-  {
-    Intt_QA();
-    Mvtx_QA();
-    TPC_QA();
-    if( Enable::MICROMEGAS )
-    { Micromegas_QA(); }
-
-    Tracking_QA();
   }
 
   // for single particle generators we just need something which drives
@@ -207,18 +211,10 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-//   out->AddNode("SimEvaluator_hp::Container");
-//   out->AddNode("MicromegasEvaluator_hp::Container");
-//   out->AddNode("TrackingEvaluator_hp::Container");
-//   out->AddNode("TrackEvaluationContainer");
-
   se->registerOutputManager(out);
 
   // process events
   se->run(nEvents);
-
-  // QA output
-  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();

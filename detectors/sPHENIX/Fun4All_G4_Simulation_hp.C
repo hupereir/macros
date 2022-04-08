@@ -49,9 +49,12 @@ int Fun4All_G4_Simulation_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
  
+  // 2D magnetic field
+  G4MAGNET::magfield = std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sPHENIX.2d.root");
+  
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);

@@ -25,18 +25,18 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-#define USE_ACTS
+// #define USE_ACTS
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 5000,
 
   #ifdef USE_ACTS
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-new.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-new.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-test.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-test.root"
   #else
-  const char* outputFile = "DST/dst_eval_upsilon_genfit_full_no_distortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_genfit_no_distortion.root"
+  const char* outputFile = "DST/dst_eval_upsilon_genfit_full_no_distortion-test.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_genfit_no_distortion-test.root"
   #endif
   )
 {

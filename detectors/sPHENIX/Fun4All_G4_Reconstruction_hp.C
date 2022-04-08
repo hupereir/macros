@@ -28,10 +28,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 500,
+  const int nEvents = 1,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  
   #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
@@ -70,15 +69,14 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::BLACKHOLE = true;
 
   // TPC
+  // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_coarse.root";
 
+  // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-
+ 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::use_rave_vertexing = false;
 
   // genfit track fitter
   #ifdef USE_ACTS
@@ -97,18 +95,18 @@ int Fun4All_G4_Reconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(2);
-  
+  se->Verbosity(1);
+
   // make sure to printout random seeds for reproducibility
-  PHRandomSeed::Verbosity(1);
+  // PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // hit generation and digitizer
   if( true )
@@ -169,9 +167,9 @@ int Fun4All_G4_Reconstruction_hp(
       |TrackingEvaluator_hp::EvalTracks
       );
 
-    // special track map is used for space charge calibrations
-    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
-    { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+//     // special track map is used for space charge calibrations
+//     if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
+//     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
 
     se->registerSubsystem(trackingEvaluator);
   }
