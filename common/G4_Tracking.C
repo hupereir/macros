@@ -31,6 +31,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 #include <trackreco/PHGhostRejection.h>
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
+#include <trackreco/PHSiliconSeedMerger.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
 #include <trackreco/PHSimpleKFProp.h>
 #include <trackreco/PHSimpleVertexFinder.h>
@@ -129,6 +130,10 @@ void Tracking_Reco()
     silicon_Seeding->Verbosity(verbosity);
     silicon_Seeding->fieldMapName(G4MAGNET::magfield);
     se->registerSubsystem(silicon_Seeding);
+
+    PHSiliconSeedMerger *merger = new PHSiliconSeedMerger();
+    merger->Verbosity(verbosity);
+    se->registerSubsystem(merger);
   }
 
   //================================================
@@ -228,10 +233,8 @@ void Tracking_Reco()
       silicon_match->Verbosity(verbosity);
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
-      silicon_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
-//         silicon_match->set_collision_rate(G4TRACKING::SC_COLLISIONRATE);
 //         // search windows for initial matching with distortions
 //         // tuned values are 0.04 and 0.008 in distorted events
 //         silicon_match->set_phi_search_window(0.04);
