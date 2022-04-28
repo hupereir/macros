@@ -24,22 +24,13 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-#define USE_ACTS
-
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 1,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  #ifdef USE_ACTS
-  const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
-  #else
-  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
-  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
-  #endif
+  const char* inputFile = "DST/g4hits/dst_G4HIT_upsilon.root",
+  // const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_truth_no_distortion.root"
  )
 {
 
@@ -48,8 +39,6 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_G4_Reconstruction_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
-  std::cout << "Fun4All_G4_Reconstruction_hp - residualsFile: " << residualsFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -77,26 +66,13 @@ int Fun4All_G4_Reconstruction_hp(
  
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = true;
-
-  // genfit track fitter
-  #ifdef USE_ACTS
-  // acts track fitter
   G4TRACKING::use_genfit_track_fitter = false;
-  #else
-  // genfit track fitter
-  G4TRACKING::use_genfit_track_fitter = true;
-  #endif
-
-  G4TRACKING::SC_CALIBMODE = true;
-  G4TRACKING::SC_SAVEHISTOGRAMS = true;
-  G4TRACKING::SC_USE_MICROMEGAS = true;
-  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+  G4TRACKING::SC_CALIBMODE = false;
 
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
-
+  
   // make sure to printout random seeds for reproducibility
   // PHRandomSeed::Verbosity(1);
 
@@ -114,7 +90,7 @@ int Fun4All_G4_Reconstruction_hp(
     Mvtx_Cells();
     Intt_Cells();
     TPC_Cells();
-    if( Enable::MICROMEGAS ) Micromegas_Cells();
+    Micromegas_Cells();
   }
 
   // tracking init is needed for clustering
@@ -127,7 +103,7 @@ int Fun4All_G4_Reconstruction_hp(
     Mvtx_Clustering();
     Intt_Clustering();
     TPC_Clustering();
-    if( Enable::MICROMEGAS ) Micromegas_Clustering();
+    Micromegas_Clustering();
   }
 
   // tracking
@@ -165,11 +141,8 @@ int Fun4All_G4_Reconstruction_hp(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
+      |TrackingEvaluator_hp::EvalTrackPairs
       );
-
-//     // special track map is used for space charge calibrations
-//     if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
-//     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
 
     se->registerSubsystem(trackingEvaluator);
   }
@@ -177,6 +150,8 @@ int Fun4All_G4_Reconstruction_hp(
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFile);
+  
+  // in->fileopen(inputFile);
   se->registerInputManager(in);
 
   // output manager

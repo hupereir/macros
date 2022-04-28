@@ -25,8 +25,9 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hijing_hp(
   const int nEvents = 0,
   const int nSkipEvents = 0,
-  const char* inputFile = "/sphenix/user/frawley/new_macros_april27/macros/detectors/sPHENIX/hits_output_embed/EmbedOut_0_20fm_50kHz_bkg_0_20fm-00000.root",
-  const char *outputFile = "DST/dst_eval_0_20fm_50kHz_bkg_0_20fm-00000.root"
+  // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/mdc2/shijing_hepmc/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000.root",
+  const char* inputFile = "DST/CONDOR_hijing_micromegas/trkrcluster/DST_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root",
+  const char* outputFile = "DST/CONDOR_hijing_micromegas/tracks/DST_TRACKS_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root"
   )
 {
 
@@ -46,20 +47,14 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   // TPC configuration
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
-  G4TPC::ENABLE_CORRECTIONS = false;
+  G4TPC::DO_HIT_ASSOCIATION = false;
 
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-
+  // enable empty correction
+  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::correction_filename = "distortion_maps_rec/distortion_corrections_empty.root";  
+  
   // tracking configuration
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_truth_init_vertexing = true;
   G4TRACKING::use_full_truth_track_seeding = false;
-
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
-  G4TRACKING::SC_CALIBMODE = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -73,7 +68,7 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   if( false )
   {
@@ -91,9 +86,9 @@ int Fun4All_G4_Reconstruction_hijing_hp(
     TrackingInit();
   }
   
-  if( true )
+  if( false )
   {
-    // digitizer and clustering
+    // clustering
     Mvtx_Clustering();
     Intt_Clustering();
     TPC_Clustering();
@@ -106,7 +101,7 @@ int Fun4All_G4_Reconstruction_hijing_hp(
     Tracking_Reco();
   }
   
-  if( true )
+  if( false )
   {
     // sim event evaluation
     auto simEvaluator = new SimEvaluator_hp;
@@ -118,7 +113,7 @@ int Fun4All_G4_Reconstruction_hijing_hp(
     se->registerSubsystem(simEvaluator);
   }
   
-  if( true )
+  if( false )
   {
     // tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -138,12 +133,9 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  if( true )
-  {
-    out->AddNode("MicromegasEvaluator_hp::Container");
-    out->AddNode("SimEvaluator_hp::Container");
-    out->AddNode("TrackingEvaluator_hp::Container");
-  }
+  out->AddNode("TRKR_CLUSTER");
+  out->AddNode("SvtxTrackMap");
+  out->AddNode("SvtxVertexMap");
   se->registerOutputManager(out);
 
   // skip events if any specified

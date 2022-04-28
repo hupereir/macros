@@ -47,9 +47,9 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
 //   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_no_distortion.root",
 //   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_no_distortion.root"
 
-  const char* outputFile = "DST/dst_reco_all_directlasers_simple_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_simple_no_distortion.root",
-  const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_simple_no_distortion.root"
+  const char* outputFile = "DST/dst_reco_all_directlasers_simple_no_distortion-new.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_simple_no_distortion-new.root",
+  const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_simple_no_distortion-new.root"
 )
 {
 

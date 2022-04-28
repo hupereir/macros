@@ -21,20 +21,12 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-#define USE_ACTS
-
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 2000,
-  #ifdef USE_ACTS
-  const char* outputFile = "DST/dst_eval_realistic_acts_full_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
-  #else
-  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
+  const int nEvents = 500,
+  const char* outputFile = "DST/TRKRCLUSTER/clusters_no_distortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
   const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
-  #endif
   )
 {
 
@@ -76,13 +68,6 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
 
   // genfit track fitter
-  #ifdef USE_ACTS
-  // acts track fitter
-  G4TRACKING::use_genfit_track_fitter = false;
-  #else
-  // genfit track fitter
-  G4TRACKING::use_genfit_track_fitter = true;
-  #endif
 
   G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
@@ -102,7 +87,7 @@ int Fun4All_G4_sPHENIX_hp(
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   {
     // event generation
@@ -165,7 +150,7 @@ int Fun4All_G4_sPHENIX_hp(
   { Micromegas_Clustering(); }
 
   TrackingInit();
-  Tracking_Reco();
+//   Tracking_Reco();
 
   // local evaluation
   if( false )
@@ -187,7 +172,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( true )
+  if( false )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(

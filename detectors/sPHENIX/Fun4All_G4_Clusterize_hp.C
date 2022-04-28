@@ -26,10 +26,11 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Clusterize_hp(
-  const int nEvents = 1000,
+  const int nEvents = 50,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/clusters_realistic_micromegas.root" )
+  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/mdc2/shijing_hepmc/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000.root",
+  const char* outputFile = "DST/CONDOR_hijing_micromegas/trkrcluster/DST_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root"
+  )
 {
 
   // print inputs
@@ -51,33 +52,23 @@ int Fun4All_G4_Clusterize_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
-  // magnet
-  G4MAGNET::magfield_rescale = -1.4 / 1.5;
-
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "distortion_maps/average-coarse.root";
-  // G4TPC::static_distortion_filename = "distortion_maps/fluct_average-coarse.root";
-
-  // space charge corrections
+  G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps_rec/Distortions_full_realistic_micromegas_mm-empty-new_extrapolated.root";
-
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
+  G4TPC::DO_HIT_ASSOCIATION = false;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
-  G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
 
+  // do not initialize magnetic field in ACTS
+  G4TRACKING::init_acts_magfield = false;
+  
   // server
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -93,11 +84,14 @@ int Fun4All_G4_Clusterize_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
-  Mvtx_Cells();
-  Intt_Cells();
-  TPC_Cells();
-  Micromegas_Cells();
-
+  if( false )
+  {
+    Mvtx_Cells();
+    Intt_Cells();
+    TPC_Cells();
+    Micromegas_Cells();
+  }
+  
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
@@ -105,7 +99,7 @@ int Fun4All_G4_Clusterize_hp(
   Micromegas_Clustering();
 
   // needed for makeActsGeometry
-  MagnetFieldInit();
+  // MagnetFieldInit();
   TrackingInit();
   
   // input manager
@@ -116,6 +110,8 @@ int Fun4All_G4_Clusterize_hp(
   // output manager
   /* all the nodes from DST and RUN are saved to the output */
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("TRKR_CLUSTER"); 
+  out->AddNode("TRKR_CLUSTERCROSSINGASSOC");
   se->registerOutputManager(out);
 
   // skip events if any specified

@@ -25,19 +25,18 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-// #define USE_ACTS
-
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 5000,
+  const int nEvents = 1000,
+//   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_no_distortion_old2.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion_old2.root"
+  
+  const char *outputFile = "DST/trkrcluster/dst_TRKR_CLUSTER_upsilon.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion_old.root"
+// 
+//   const char *outputFile = "DST/g4hits/dst_G4HIT_upsilon.root",
+//   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion_old2.root"
 
-  #ifdef USE_ACTS
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion-test.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion-test.root"
-  #else
-  const char* outputFile = "DST/dst_eval_upsilon_genfit_full_no_distortion-test.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_genfit_no_distortion-test.root"
-  #endif
   )
 {
 
@@ -61,43 +60,23 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
-    
-  // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
-  // G4TPC::correction_filename = "distortion_maps-new/static_only_inverted_10-new.root";
     
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::use_truth_tpc_seeding = false;
-  
-  // genfit track fitter
-  #ifdef USE_ACTS
-  G4TRACKING::use_genfit_track_fitter = false;
-  #else
-  G4TRACKING::use_genfit_track_fitter = true;
-  #endif
-  
+  G4TRACKING::use_full_truth_track_seeding = true;
+    
   // space charge calibration mode
   G4TRACKING::SC_CALIBMODE = false;
     
-//   // use 2D magnetic field
-//   G4MAGNET::magfield = string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root");
-//   G4MAGNET::magfield_rescale = -1.4 / 1.5;  // make consistent with expected Babar field strength of 1.4T
-  
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-//   rc->set_IntFlag("RANDOMSEED", PHRandomSeed());
-//   rc->set_IntFlag("RANDOMSEED", 5268597 );
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -154,17 +133,6 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // tracking
   TrackingInit();
   Tracking_Reco();
-
-  // local evaluation
-  if( false )
-  {
-    auto simEvaluator = new SimEvaluator_hp;
-    simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent|
-      SimEvaluator_hp::EvalVertices|
-      SimEvaluator_hp::EvalParticles );
-    se->registerSubsystem(simEvaluator);
-  }
   
   auto trackingEvaluator = new TrackingEvaluator_hp;
   trackingEvaluator->set_flags(
@@ -175,7 +143,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   se->registerSubsystem(trackingEvaluator);
 
   // QA
-  Enable::QA = false;
+  Enable::QA = true;
   Enable::TRACKING_QA = Enable::QA && true;
   if( Enable::TRACKING_QA ) 
   {  
@@ -190,13 +158,13 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("SimEvaluator_hp::Container");
-  out->AddNode("TrackingEvaluator_hp::Container");
+//   out->AddNode("SimEvaluator_hp::Container");
+//   out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
   se->run(nEvents);
-
+  
   // QA output
   if (Enable::QA) QA_Output(qaOutputFile);
   

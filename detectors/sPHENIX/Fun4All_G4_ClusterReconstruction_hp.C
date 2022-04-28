@@ -24,23 +24,14 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-#define USE_ACTS
-
 //________________________________________________________________________________________________
 int Fun4All_G4_ClusterReconstruction_hp(
-  const int nEvents = 100,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/clusters_nodistortion/dst_reco_realistic_micromegas_0.root",
-
-  #ifdef USE_ACTS
-  const char* outputFile = "DST/dst_eval_acts_truth_no_distortion.root",
+  const char* inputFile = "DST/TRKRCLUSTER/clusters_no_distortion.root",
+  const char* outputFile = "DST/dst_eval_acts_truth_no_distortion-new.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_no_distortion.root",
   const char* residualsFile = "DST/TpcResiduals_acts_truth_no_distortion.root"
-  #else
-  const char* outputFile = "DST/dst_eval_genfit_truth_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
-  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
-  #endif
  )
 {
 
@@ -71,25 +62,13 @@ int Fun4All_G4_ClusterReconstruction_hp(
 
   // TPC
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_coarse.root";
-
   G4TPC::ENABLE_CORRECTIONS = false;
 
   // tracking configuration
   G4TRACKING::add_fake_surfaces = false;
   G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::use_rave_vertexing = false;
-
-  #ifdef USE_ACTS
-  // acts track fitter
-  G4TRACKING::use_genfit_track_fitter = false;
-  #else
-  // genfit track fitter
-  G4TRACKING::use_genfit_track_fitter = true;
-  #endif
   
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
