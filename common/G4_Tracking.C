@@ -352,35 +352,38 @@ void Tracking_Reco()
       }
       
     }
-    
-    // Choose the best silicon matched track for each TPC track seed
-    auto cleaner = new PHTrackCleaner;
-    cleaner->Verbosity(verbosity);
-    se->registerSubsystem(cleaner);
 
-    if (G4TRACKING::use_truth_vertexing)
+    if (!G4TRACKING::SC_CALIBMODE)
     {
-      auto vtxing = new PHTruthVertexing;
-      vtxing->associate_tracks(true);
-      std::string trackmapnamef = "SvtxTrackMap";
-      vtxing->set_track_map_name(trackmapnamef);
-      se->registerSubsystem(vtxing);
+      // Choose the best silicon matched track for each TPC track seed
+      auto cleaner = new PHTrackCleaner;
+      cleaner->Verbosity(verbosity);
+      se->registerSubsystem(cleaner);
+      
+      if (G4TRACKING::use_truth_vertexing)
+      {
+        auto vtxing = new PHTruthVertexing;
+        vtxing->associate_tracks(true);
+        std::string trackmapnamef = "SvtxTrackMap";
+        vtxing->set_track_map_name(trackmapnamef);
+        se->registerSubsystem(vtxing);
+      }
+      else
+      {
+        auto vtxfinder = new PHSimpleVertexFinder;
+        vtxfinder->Verbosity(verbosity);
+        se->registerSubsystem(vtxfinder);
+      }
+      
+      if( !G4TRACKING::use_genfit_track_fitter )
+      {
+        /// Propagate track positions to the vertex position
+          auto vtxProp = new PHActsVertexPropagator;
+        vtxProp->Verbosity(verbosity);
+        se->registerSubsystem(vtxProp);
+      }
     }
-    else
-    {
-      auto vtxfinder = new PHSimpleVertexFinder;
-      vtxfinder->Verbosity(verbosity);
-      se->registerSubsystem(vtxfinder);
     }
-
-    if( !G4TRACKING::use_genfit_track_fitter )
-    {
-      /// Propagate track positions to the vertex position
-      auto vtxProp = new PHActsVertexPropagator;
-      vtxProp->Verbosity(verbosity);
-      se->registerSubsystem(vtxProp);
-    }
-  }
 
   //=========================================================
   // Section 2: Full truth track finding with Acts final fitting
@@ -460,31 +463,33 @@ void Tracking_Reco()
       }
       
     }
+   
+    if (!G4TRACKING::SC_CALIBMODE)
+    {
 
-    if (G4TRACKING::use_truth_vertexing)
-    {
-      auto vtxing = new PHTruthVertexing;
-      vtxing->associate_tracks(true);
-      std::string trackmapnamef = "SvtxTrackMap";
-      vtxing->set_track_map_name(trackmapnamef);
-      se->registerSubsystem(vtxing);
+      if (G4TRACKING::use_truth_vertexing)
+      {
+        auto vtxing = new PHTruthVertexing;
+        vtxing->associate_tracks(true);
+        std::string trackmapnamef = "SvtxTrackMap";
+        vtxing->set_track_map_name(trackmapnamef);
+        se->registerSubsystem(vtxing);
+      }
+      else
+      {
+        auto vtxfinder = new PHSimpleVertexFinder;
+        vtxfinder->Verbosity(verbosity);
+        se->registerSubsystem(vtxfinder);
+      }
+      
+      if( !G4TRACKING::use_genfit_track_fitter )
+      {
+        /// Propagate track positions to the vertex position
+          auto vtxProp = new PHActsVertexPropagator;
+        vtxProp->Verbosity(verbosity);
+        se->registerSubsystem(vtxProp);
+      }
     }
-    else
-    {
-      auto vtxfinder = new PHSimpleVertexFinder;
-      vtxfinder->Verbosity(verbosity);
-      se->registerSubsystem(vtxfinder);
-    }
-    
-    if( !G4TRACKING::use_genfit_track_fitter )
-    {
-      /// Propagate track positions to the vertex position
-      /// works only if one uses ACTS fitting
-      auto vtxProp = new PHActsVertexPropagator;
-      vtxProp->Verbosity(verbosity);
-      se->registerSubsystem(vtxProp);
-    }
-    
   }
 
   //==================================
@@ -493,10 +498,13 @@ void Tracking_Reco()
 
   // Track Projections
   //===============
-  PHActsTrackProjection* projection = new PHActsTrackProjection();
-  projection->Verbosity(verbosity);
-  se->registerSubsystem(projection);
-
+  if (!G4TRACKING::SC_CALIBMODE)
+  {
+    auto projection = new PHActsTrackProjection;
+    projection->Verbosity(verbosity);
+    se->registerSubsystem(projection);
+  }
+  
   return;
 }
 
