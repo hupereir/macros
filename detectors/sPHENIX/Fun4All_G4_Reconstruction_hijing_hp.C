@@ -25,8 +25,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hijing_hp(
   const int nEvents = 0,
   const int nSkipEvents = 0,
-  // const char* inputFile = "/sphenix/sim/sim01/sphnxpro/mdc2/shijing_hepmc/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000.root",
-  const char* inputFile = "DST/CONDOR_hijing_micromegas/trkrcluster/DST_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root",
+  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/mdc2/shijing_hepmc/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000.root",
+  /// const char* inputFile = "DST/CONDOR_hijing_micromegas/trkrcluster/DST_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root",
   const char* outputFile = "DST/CONDOR_hijing_micromegas/tracks/DST_TRACKS_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root"
   )
 {
@@ -49,9 +49,10 @@ int Fun4All_G4_Reconstruction_hijing_hp(
   G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS = false;
   G4TPC::DO_HIT_ASSOCIATION = false;
 
-  // enable empty correction
-  G4TPC::ENABLE_CORRECTIONS = true;
-  G4TPC::correction_filename = "distortion_maps_rec/distortion_corrections_empty.root";  
+//   // enable empty correction
+//   /* right now this produces a crash in PHTpcTrackSeedCircleFit */
+//   G4TPC::ENABLE_CORRECTIONS = true;
+//   G4TPC::correction_filename = "distortion_maps_rec/distortion_corrections_empty.root";  
   
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
@@ -86,7 +87,7 @@ int Fun4All_G4_Reconstruction_hijing_hp(
     TrackingInit();
   }
   
-  if( false )
+  if( true )
   {
     // clustering
     Mvtx_Clustering();
