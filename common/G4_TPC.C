@@ -22,10 +22,10 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundefined-internal"
 #include <tpc/TpcClusterizer.h>
+#include <tpc/TpcSimpleClusterizer.h>
 #pragma GCC diagnostic pop
 
 #include <tpc/TpcClusterCleaner.h>
-#include <tpc/TpcSimpleClusterizer.h>
 
 #include <tpccalib/TpcDirectLaserReconstruction.h>
 
@@ -66,7 +66,7 @@ namespace G4TPC
   
   // use simple clusterizer
   bool USE_SIMPLE_CLUSTERIZER = false;
-  
+
   // distortions
   bool ENABLE_STATIC_DISTORTIONS = false;
   auto static_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only.distortion_map.hist.root";
@@ -294,7 +294,7 @@ void TPC_Clustering()
   {
     auto tpcclustercleaner = new TpcClusterCleaner;
     tpcclustercleaner->Verbosity(verbosity);
-    se->registerSubsystem(tpcclustercleaner);  
+    se->registerSubsystem(tpcclustercleaner);
   }
 
   // direct laser reconstruction
