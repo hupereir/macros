@@ -28,8 +28,8 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 1000,
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_no_distortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_no_distortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_truth_no_distortion.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion.root"
 
   )
 {
@@ -57,7 +57,7 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
     
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
     
   // space charge calibration mode
   G4TRACKING::SC_CALIBMODE = false;
