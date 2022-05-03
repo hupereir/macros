@@ -374,7 +374,6 @@ void Tracking_Reco()
         vtxfinder->Verbosity(verbosity);
         se->registerSubsystem(vtxfinder);
       }
-      
       if( !G4TRACKING::use_genfit_track_fitter )
       {
         /// Propagate track positions to the vertex position
@@ -382,8 +381,8 @@ void Tracking_Reco()
         vtxProp->Verbosity(verbosity);
         se->registerSubsystem(vtxProp);
       }
-    }
-    }
+    }  
+  }
 
   //=========================================================
   // Section 2: Full truth track finding with Acts final fitting
@@ -413,6 +412,7 @@ void Tracking_Reco()
     // Fitting of tracks using Acts Kalman Filter
     //==================================
 
+<<<<<<< HEAD
     if( G4TRACKING::use_genfit_track_fitter )
     {
       std::cout << "   Using Genfit track fitting " << std::endl;
@@ -462,6 +462,27 @@ void Tracking_Reco()
         se->registerSubsystem(residuals);
       }
       
+=======
+    std::cout << "   Using Acts track fitting " << std::endl;
+
+    PHActsTrkFitter* actsFit = new PHActsTrkFitter("PHActsFirstTrkFitter");
+    actsFit->Verbosity(verbosity);
+    actsFit->doTimeAnalysis(false);
+    /// If running with distortions, fit only the silicon+MMs first
+    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+    se->registerSubsystem(actsFit);
+
+    if (G4TRACKING::SC_CALIBMODE)
+    {
+      /// run tpc residual determination with silicon+MM track fit
+      auto residuals = new PHTpcResiduals;
+      residuals->setOutputfile( G4TRACKING::SC_ROOTOUTPUT_FILENAME );
+      residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
+      residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+      residuals->Verbosity(verbosity);
+      se->registerSubsystem(residuals);
+>>>>>>> master
     }
    
     if (!G4TRACKING::SC_CALIBMODE)
@@ -482,6 +503,7 @@ void Tracking_Reco()
         se->registerSubsystem(vtxfinder);
       }
       
+<<<<<<< HEAD
       if( !G4TRACKING::use_genfit_track_fitter )
       {
         /// Propagate track positions to the vertex position
@@ -489,6 +511,13 @@ void Tracking_Reco()
         vtxProp->Verbosity(verbosity);
         se->registerSubsystem(vtxProp);
       }
+=======
+      /// Propagate track positions to the vertex position
+      auto vtxProp = new PHActsVertexPropagator;
+      vtxProp->Verbosity(verbosity);
+      se->registerSubsystem(vtxProp);
+    
+>>>>>>> master
     }
   }
 
