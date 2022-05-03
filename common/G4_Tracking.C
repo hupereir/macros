@@ -227,13 +227,14 @@ void Tracking_Reco_TrackSeed()
       silicon_match->Verbosity(verbosity);
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
-      if (G4TRACKING::SC_CALIBMODE)
+//       if (G4TRACKING::SC_CALIBMODE)
+//       {
+//         // search windows for initial matching with distortions
+//         // tuned values are 0.04 and 0.008 in distorted events
+//         silicon_match->set_phi_search_window(0.04);
+//         silicon_match->set_eta_search_window(0.008);
+//       } else
       {
-        // search windows for initial matching with distortions
-        // tuned values are 0.04 and 0.008 in distorted events
-        silicon_match->set_phi_search_window(0.04);
-        silicon_match->set_eta_search_window(0.008);
-      } else {
         // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
         silicon_match->set_phi_search_window(0.03);
         silicon_match->set_eta_search_window(0.005);
@@ -251,16 +252,17 @@ void Tracking_Reco_TrackSeed()
       auto mm_match = new PHMicromegasTpcTrackMatching;
       mm_match->Verbosity(verbosity);
       mm_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
-      if (G4TRACKING::SC_CALIBMODE)
+//       if (G4TRACKING::SC_CALIBMODE)
+//       {
+//         // calibration pass with distorted tracks
+//         mm_match->set_collision_rate(G4TRACKING::SC_COLLISIONRATE);
+//         // configuration is potentially with different search windows
+//         mm_match->set_rphi_search_window_lyr1(0.2);
+//         mm_match->set_rphi_search_window_lyr2(13.0);
+//         mm_match->set_z_search_window_lyr1(26.0);
+//         mm_match->set_z_search_window_lyr2(0.2);
+//       } else 
       {
-        // calibration pass with distorted tracks
-        mm_match->set_collision_rate(G4TRACKING::SC_COLLISIONRATE);
-        // configuration is potentially with different search windows
-        mm_match->set_rphi_search_window_lyr1(0.2);
-        mm_match->set_rphi_search_window_lyr2(13.0);
-        mm_match->set_z_search_window_lyr1(26.0);
-        mm_match->set_z_search_window_lyr2(0.2);
-      } else {
         // baseline configuration is (0.2, 13.0, 26, 0.2) and is the default
         mm_match->set_rphi_search_window_lyr1(0.2);
         mm_match->set_rphi_search_window_lyr2(13.0);
@@ -310,30 +312,63 @@ void Tracking_Reco_TrackFit()
   // correct clusters for particle propagation in TPC
   se->registerSubsystem(new PHTpcDeltaZCorrection);
   
-  // perform final track fit with ACTS
-  auto actsFit = new PHActsTrkFitter;
-  actsFit->Verbosity(verbosity);
-  
-  // in calibration mode, fit only Silicons and Micromegas hits
-  actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
-  actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-  se->registerSubsystem(actsFit);
-  
-  if (G4TRACKING::SC_CALIBMODE)
+  if( G4TRACKING::use_genfit_track_fitter )
   {
-    /*
-    * in calibration mode, calculate residuals between TPC and fitted tracks, 
-    * store in dedicated structure for distortion correction
-    */
-    auto residuals = new PHTpcResiduals;
-    residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-    residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
-    residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
-    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-    residuals->Verbosity(verbosity);
-    se->registerSubsystem(residuals);
+    std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
+    auto genfitFit = new PHGenFitTrkFitter;
+    genfitFit->Verbosity(verbosity);
+    genfitFit->set_vertexing_method(G4TRACKING::vmethod);
+    genfitFit->set_use_truth_vertex(false);      
+    if (G4TRACKING::SC_CALIBMODE)
+    {
+      // in distortion calibration mode, disable TPC layers
+      for( int layer = 7; layer < 23; ++layer ) { genfitFit->disable_layer( layer ); }
+      for( int layer = 23; layer < 39; ++layer ) { genfitFit->disable_layer( layer ); }
+      for( int layer = 39; layer < 55; ++layer ) { genfitFit->disable_layer( layer ); }
+    }
+    se->registerSubsystem(genfitFit);
+    
+    if( G4TRACKING::SC_CALIBMODE )
+    {
+      // Genfit based Tpc space charge Reconstruction
+      auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
+      tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
+      tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+      tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
+      tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+      se->registerSubsystem(tpcSpaceChargeReconstruction);
+    }
+    
   } else {
     
+    // perform final track fit with ACTS
+    auto actsFit = new PHActsTrkFitter;
+    actsFit->Verbosity(verbosity);
+    
+    // in calibration mode, fit only Silicons and Micromegas hits
+    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+    actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+    se->registerSubsystem(actsFit);
+    
+    if (G4TRACKING::SC_CALIBMODE)
+    {
+      /*
+      * in calibration mode, calculate residuals between TPC and fitted tracks, 
+      * store in dedicated structure for distortion correction
+      */
+      auto residuals = new PHTpcResiduals;
+      residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+      residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
+      residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+      residuals->Verbosity(verbosity);
+      se->registerSubsystem(residuals);
+    } 
+    
+  }
+  
+  if (!G4TRACKING::SC_CALIBMODE)
+  {  
     /* 
      * in full tracking mode, run track cleaner, vertex finder, 
      * propagete tracks to vertex 
@@ -358,15 +393,18 @@ void Tracking_Reco_TrackFit()
       se->registerSubsystem(vtxfinder);
     }
     
-    // Propagate track positions to the vertex position
-    auto vtxProp = new PHActsVertexPropagator;
-    vtxProp->Verbosity(verbosity);
-    se->registerSubsystem(vtxProp);
-
-    // project tracks to EMCAL
-    auto projection = new PHActsTrackProjection;
-    projection->Verbosity(verbosity);
-    se->registerSubsystem(projection);
+    if( !G4TRACKING::use_genfit_track_fitter )
+    {
+      // Propagate track positions to the vertex position
+      auto vtxProp = new PHActsVertexPropagator;
+      vtxProp->Verbosity(verbosity);
+      se->registerSubsystem(vtxProp);
+      
+      // project tracks to EMCAL
+      auto projection = new PHActsTrackProjection;
+      projection->Verbosity(verbosity);
+      se->registerSubsystem(projection);
+    }
   }
   
 }
