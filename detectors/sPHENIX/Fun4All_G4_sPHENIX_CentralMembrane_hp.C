@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_CentralMembrane_hp(
-  const int nEvents = 10,
+  const int nEvents = 1,
   const char *outputFile = "DST/dst_eval_centralmembrane-nominal.root"
   )
 {
@@ -44,7 +44,6 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
 
   // central tracking
   Enable::MVTX = true;
-  Enable::MVTX_SERVICE = true;
   Enable::INTT = true;
   Enable::TPC = true;
   Enable::MICROMEGAS = true;
@@ -59,31 +58,23 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = true;
 
-  // micromegas configuration
-  G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_BASELINE;
-
   // for testing the momentum resolution, focus on having Micromegas in only one sector
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
   // tracking configuration
-  G4TRACKING::use_genfit = false;
   G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::disable_mvtx_layers = false;
-  G4TRACKING::disable_tpc_layers = false;
-  G4TRACKING::disable_micromegas_layers = false;
-
   G4TRACKING::SC_CALIBMODE = false;
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
@@ -129,6 +120,7 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
+//       |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );
     se->registerSubsystem(trackingEvaluator);
