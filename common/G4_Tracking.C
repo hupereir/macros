@@ -102,6 +102,7 @@ void TrackingInit()
 
   // Geometry must be built before any Acts modules
   MakeActsGeometry* geom = new MakeActsGeometry();
+  geom->set_drift_velocity(G4TPC::tpc_drift_velocity_reco);
   geom->Verbosity(verbosity);
   
   geom->loadMagField(G4TRACKING::init_acts_magfield);
@@ -214,18 +215,13 @@ void Tracking_Reco_TrackSeed()
       silicon_match->Verbosity(verbosity);
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
+      silicon_match->set_pp_mode(false);
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
-//         // search windows for initial matching with distortions
-//         // tuned values are 0.04 and 0.008 in distorted events
-//         silicon_match->set_phi_search_window(0.04);
-//         silicon_match->set_eta_search_window(0.008);
-//       } else
-      {
-        // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
-        silicon_match->set_phi_search_window(0.03);
-        silicon_match->set_eta_search_window(0.005);
-      }
+//         // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
+//         silicon_match->set_phi_search_window(0.03);
+//         silicon_match->set_eta_search_window(0.005);
+//       }
       silicon_match->set_test_windows_printout(false);  // used for tuning search windows
       se->registerSubsystem(silicon_match);
     }
@@ -300,7 +296,9 @@ void Tracking_Reco_TrackFit()
   auto se = Fun4AllServer::instance();
 
   // correct clusters for particle propagation in TPC
-  se->registerSubsystem(new PHTpcDeltaZCorrection);
+  auto deltazcorr = new PHTpcDeltaZCorrection;
+  deltazcorr->Verbosity(verbosity);
+  se->registerSubsystem(deltazcorr);
   
   if( G4TRACKING::use_genfit_track_fitter )
   {
@@ -330,7 +328,7 @@ void Tracking_Reco_TrackFit()
     }
     
   } else {
-    
+
     // perform final track fit with ACTS
     auto actsFit = new PHActsTrkFitter;
     actsFit->Verbosity(verbosity);

@@ -23,6 +23,7 @@
 #pragma GCC diagnostic ignored "-Wundefined-internal"
 #include <tpc/TpcClusterizer.h>
 #include <tpc/TpcSimpleClusterizer.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #pragma GCC diagnostic pop
 
 #include <tpc/TpcClusterCleaner.h>
@@ -63,9 +64,10 @@ namespace G4TPC
   int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
   double tpc_outer_radius = 77. + 2.;
 
-  // TPC drift velocity scale
-  double drift_velocity_scale = 1.0;
-  
+  // drift velocity is set here for all relevant modules
+  double tpc_drift_velocity_sim= 8.0 / 1000.0;  // cm/ns   // this is the Ne version of the gas
+  double tpc_drift_velocity_reco= 8.0 / 1000.0;  // cm/ns   // this is the Ne version of the gas
+
   // use simple clusterizer
   bool USE_SIMPLE_CLUSTERIZER = false;
 
@@ -124,6 +126,9 @@ void TPCInit()
   {
     G4INTT::n_intt_layer = 0;
   }
+
+  // Set the (static) drift velocity in the cluster Z crossing correction module
+  TpcClusterZCrossingCorrection::_vdrift = G4TPC::tpc_drift_velocity_reco;
 }
 
 //! TPC end cap, wagon wheel, electronics
@@ -207,6 +212,7 @@ void TPC_Cells()
     directLaser->SetThetaStepping( 17, 5*deg_to_rad, 90*deg_to_rad );
 
     directLaser->SetDirectLaserAuto( true );
+    directLaser->set_double_param("drift_velocity", G4TPC::tpc_drift_velocity_sim);
     se->registerSubsystem(directLaser);
   }
 
@@ -235,6 +241,10 @@ void TPC_Cells()
     edrift->setTpcDistortion( distortionMap );
   }
 
+  // override the default drift velocity parameter specification
+  edrift->set_double_param("drift_velocity", G4TPC::tpc_drift_velocity_sim);
+  padplane->SetDriftVelocity(G4TPC::tpc_drift_velocity_sim);
+
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
@@ -242,6 +252,7 @@ void TPC_Cells()
   se->registerSubsystem(edrift);
 
   // The pad plane readout default is set in PHG4TpcPadPlaneReadout
+
   // We may want to change the number of inner layers, and can do that here
   padplane->set_int_param("tpc_minlayer_inner", G4MVTX::n_maps_layer + G4INTT::n_intt_layer);  // sPHENIX layer number of first Tpc readout layer
   padplane->set_int_param("ntpc_layers_inner", G4TPC::n_tpc_layer_inner);
@@ -285,7 +296,6 @@ void TPC_Clustering()
   } else {
 
     auto tpcclusterizer = new TpcClusterizer;
-    tpcclusterizer->set_drift_velocity_scale(G4TPC::drift_velocity_scale);
     tpcclusterizer->Verbosity(verbosity);
     tpcclusterizer->set_do_hit_association( G4TPC::DO_HIT_ASSOCIATION );
     se->registerSubsystem(tpcclusterizer);

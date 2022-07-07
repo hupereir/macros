@@ -24,9 +24,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 500,
-  const char* outputFile = "DST/TRKRCLUSTER/clusters_no_distortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_no_distortion.root",
-  const char* residualsFile = "DST/TpcResiduals_genfit_truth_no_distortion.root"
+  const char* outputFile = "DST/dst_eval.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
+  const char* residualsFile = "DST/TpcResiduals.root",
+  const char* qaOutputFile = "DST/qa.root"
   )
 {
 
@@ -150,7 +151,7 @@ int Fun4All_G4_sPHENIX_hp(
   { Micromegas_Clustering(); }
 
   TrackingInit();
-//   Tracking_Reco();
+  Tracking_Reco();
 
   // local evaluation
   if( false )
@@ -164,7 +165,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( false && Enable::MICROMEGAS )
+  if( Enable::MICROMEGAS )
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
@@ -172,7 +173,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( false )
+  if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
@@ -189,6 +190,14 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(trackingEvaluator);
   }
 
+  // QA
+  Enable::QA = true;
+  {  
+    Intt_QA();
+    Mvtx_QA();
+    Micromegas_QA();
+  }
+ 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
@@ -200,6 +209,9 @@ int Fun4All_G4_sPHENIX_hp(
 
   // process events
   se->run(nEvents);
+
+  // QA output
+  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();

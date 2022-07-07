@@ -5,6 +5,7 @@
 #include <g4main/PHG4ParticleGeneratorVectorMeson.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
+
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
 #include <qa_modules/QAHistManagerDef.h>
@@ -25,11 +26,18 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
+#define USE_ACTS
+
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 1000,
+  #ifdef USE_ACTS
   const char *outputFile = "DST/dst_eval_upsilon_acts_truth_no_distortion.root",
   const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion.root"
+  #else
+  const char *outputFile = "DST/dst_eval_upsilon_genfit_truth_no_distortion.root",
+  const char* qaOutputFile = "DST/qa_upsilon_genfit_truth_no_distortion.root"
+  #endif
 
   )
 {
@@ -57,14 +65,18 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
     
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
-    
+  G4TRACKING::use_full_truth_track_seeding = false;
+  
+  #ifndef USE_ACTS
+  G4TRACKING::use_genfit_track_fitter = true;
+  #endif
+  
   // space charge calibration mode
   G4TRACKING::SC_CALIBMODE = false;
     
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  // se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
