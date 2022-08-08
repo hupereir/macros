@@ -29,7 +29,7 @@ int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 1000,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_full_no_distortion.root",
+  const char *outputFile = "DST/dst_eval_truth_no_distortion.root",
   const char* qaOutputFile = "DST/qa.root"
  )
 {
@@ -62,20 +62,20 @@ int Fun4All_G4_Reconstruction_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
  
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
   G4TRACKING::use_genfit_track_fitter = false;
   G4TRACKING::SC_CALIBMODE = false;
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(2);
   
   // make sure to printout random seeds for reproducibility
-  // PHRandomSeed::Verbosity(1);
+  PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
-  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  rc->set_IntFlag("RANDOMSEED", (int) PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
@@ -145,7 +145,7 @@ int Fun4All_G4_Reconstruction_hp(
   }
 
   // QA
-  Enable::QA = true;
+  Enable::QA = false;
   {  
     // Intt_QA();
     // Mvtx_QA();
