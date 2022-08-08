@@ -59,7 +59,6 @@ int Fun4All_G4_sPHENIX(
   // or set it to a fixed value so you can debug your code
   rc->set_IntFlag("RANDOMSEED", TString(outputFile).Hash());
 
-
   //===============
   // Input options
   //===============

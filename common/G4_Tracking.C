@@ -87,10 +87,15 @@ namespace G4TRACKING
   // use of the various evaluation tools already available
   bool convert_seeds_to_svtxtracks = false;
 
-}  // namespace G4TRACKING
 
-void TrackingInit()
+void ActsGeomInit()
 {
+  static bool wasCalled = false;
+  if (wasCalled)
+  {
+    return;
+  }
+  wasCalled = true;
   if (!Enable::MICROMEGAS)
   {
     G4MICROMEGAS::n_micromegas_layer = 0;
@@ -111,11 +116,17 @@ void TrackingInit()
   geom->add_fake_surfaces(G4TRACKING::add_fake_surfaces);
   geom->build_mm_surfaces(Enable::MICROMEGAS);
   se->registerSubsystem(geom);
+}
+}  // namespace G4TRACKING
 
+void TrackingInit()
+{
+  G4TRACKING::ActsGeomInit();
   // space charge correction
   /* corrections are applied in the track finding, and via TpcClusterMover before the final track fit */
   if( G4TPC::ENABLE_CORRECTIONS )
   {
+    auto se = Fun4AllServer::instance();
     auto tpcLoadDistortionCorrection = new TpcLoadDistortionCorrection;
     tpcLoadDistortionCorrection->set_distortion_filename( G4TPC::correction_filename );
     se->registerSubsystem(tpcLoadDistortionCorrection);
@@ -216,12 +227,20 @@ void Tracking_Reco_TrackSeed()
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
       silicon_match->set_pp_mode(false);
+
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
-//         // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
-//         silicon_match->set_phi_search_window(0.03);
-//         silicon_match->set_eta_search_window(0.005);
-//       }
+//         // search windows for initial matching with distortions
+//         // tuned values are 0.04 and 0.008 in distorted events
+//         silicon_match->set_phi_search_window(0.04);
+//         silicon_match->set_eta_search_window(0.008);
+//       } else 
+      {
+        // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
+        silicon_match->set_phi_search_window(0.03);
+        silicon_match->set_eta_search_window(0.005);
+      }
+      
       silicon_match->set_test_windows_printout(false);  // used for tuning search windows
       se->registerSubsystem(silicon_match);
     }
