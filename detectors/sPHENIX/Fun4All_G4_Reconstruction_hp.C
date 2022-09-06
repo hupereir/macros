@@ -62,13 +62,13 @@ int Fun4All_G4_Reconstruction_hp(
   G4TPC::ENABLE_CORRECTIONS = false;
  
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_genfit_track_fitter = false;
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  // se->Verbosity(2);
   
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -141,11 +141,16 @@ int Fun4All_G4_Reconstruction_hp(
       |TrackingEvaluator_hp::EvalTrackPairs
       );
 
+    // special track map is used for space charge calibrations
+    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
+    { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+
     se->registerSubsystem(trackingEvaluator);
   }
 
   // QA
   Enable::QA = false;
+  if( Enable::QA )
   {  
     // Intt_QA();
     // Mvtx_QA();
