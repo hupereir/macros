@@ -296,15 +296,15 @@ void Tracking_Reco_TrackSeed()
    * at this stage tracks are fully assembled. They contain clusters spaning Silicon detectors, TPC and Micromegas
    * they are ready to be fit.
    */ 
-   if(G4TRACKING::convert_seeds_to_svtxtracks)
-	{
-	  TrackSeedTrackMapConverter *converter = new TrackSeedTrackMapConverter();
-	  // Default set to full SvtxTrackSeeds. Can be set to 
-	  // SiliconTrackSeedContainer or TpcTrackSeedContainer 
-	  converter->setTrackSeedName("SvtxTrackSeedContainer");
-	  converter->Verbosity(verbosity);
-	  se->registerSubsystem(converter);
-      }
+  if(G4TRACKING::convert_seeds_to_svtxtracks)
+  {
+    TrackSeedTrackMapConverter *converter = new TrackSeedTrackMapConverter();
+    // Default set to full SvtxTrackSeeds. Can be set to 
+    // SiliconTrackSeedContainer or TpcTrackSeedContainer 
+    converter->setTrackSeedName("SvtxTrackSeedContainer");
+    converter->Verbosity(verbosity);
+    se->registerSubsystem(converter);
+  }
   
 
 }
