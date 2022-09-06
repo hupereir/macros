@@ -8,6 +8,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 #include <GlobalVariables.C>
 
+#include <G4_ActsGeom.C>
 #include <G4_Intt.C>
 #include <G4_Micromegas.C>
 #include <G4_Mvtx.C>
@@ -64,10 +65,6 @@ namespace G4TRACKING
 
   // Vertexing
   bool g4eval_use_initial_vertex = true;  // if true, g4eval uses initial vertices in SvtxVertexMap, not final vertices in SvtxVertexMapRefit
-
-  // set to false to disable adding fake surfaces (TPC, Micromegas) to MakeActsGeom
-  bool add_fake_surfaces = true;
-  bool init_acts_magfield = true;
   
   // Truth seeding options for diagnostics (can use any or all)
   bool use_truth_silicon_seeding = false;     // if true runs truth silicon seeding instead of acts silicon seeding
@@ -87,41 +84,11 @@ namespace G4TRACKING
   // use of the various evaluation tools already available
   bool convert_seeds_to_svtxtracks = false;
 
-
-void ActsGeomInit()
-{
-  static bool wasCalled = false;
-  if (wasCalled)
-  {
-    return;
-  }
-  wasCalled = true;
-  if (!Enable::MICROMEGAS)
-  {
-    G4MICROMEGAS::n_micromegas_layer = 0;
-  }
-
-  // Build the Acts geometry
-  auto se = Fun4AllServer::instance();
-  int verbosity = std::max(Enable::VERBOSITY, Enable::TRACKING_VERBOSITY);
-
-  // Geometry must be built before any Acts modules
-  MakeActsGeometry* geom = new MakeActsGeometry();
-  geom->set_drift_velocity(G4TPC::tpc_drift_velocity_reco);
-  geom->Verbosity(verbosity);
-  
-  geom->loadMagField(G4TRACKING::init_acts_magfield);
-  geom->setMagField(G4MAGNET::magfield);
-  geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
-  geom->add_fake_surfaces(G4TRACKING::add_fake_surfaces);
-  geom->build_mm_surfaces(Enable::MICROMEGAS);
-  se->registerSubsystem(geom);
-}
 }  // namespace G4TRACKING
 
 void TrackingInit()
 {
-  G4TRACKING::ActsGeomInit();
+  ACTSGEOM::ActsGeomInit();
   // space charge correction
   /* corrections are applied in the track finding, and via TpcClusterMover before the final track fit */
   if( G4TPC::ENABLE_CORRECTIONS )
@@ -131,11 +98,13 @@ void TrackingInit()
     tpcLoadDistortionCorrection->set_distortion_filename( G4TPC::correction_filename );
     se->registerSubsystem(tpcLoadDistortionCorrection);
   }
-  
+
 }
 
 void Tracking_Reco_TrackSeed()
 {
+  // !!!! THIS IS TEMPORARY, UNTIL CA SEEDER CAN HANDLE TRACKS FROM LARGE Z !!!!!
+  if(TRACKING::pp_mode) G4TRACKING::use_truth_tpc_seeding = true;  
   
   // set up verbosity
   int verbosity = std::max(Enable::VERBOSITY, Enable::TRACKING_VERBOSITY);
@@ -226,7 +195,8 @@ void Tracking_Reco_TrackSeed()
       silicon_match->Verbosity(verbosity);
       silicon_match->set_field(G4MAGNET::magfield);
       silicon_match->set_field_dir(G4MAGNET::magfield_rescale);
-      silicon_match->set_pp_mode(false);
+      silicon_match->set_pp_mode(TRACKING::pp_mode);
+      std::cout << "PHSiliconTpcTrackMatching pp_mode set to " << TRACKING::pp_mode << std::endl;
 
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
@@ -253,7 +223,7 @@ void Tracking_Reco_TrackSeed()
       // Match TPC track stubs from CA seeder to clusters in the micromegas layers
       auto mm_match = new PHMicromegasTpcTrackMatching;
       mm_match->Verbosity(verbosity);
-      mm_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
+       mm_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
 //         // calibration pass with distorted tracks
@@ -473,8 +443,11 @@ void Tracking_Eval(const std::string& outputfile)
   eval->do_vtx_eval_light(true);
   eval->do_eval_light(true);
   eval->set_use_initial_vertex(G4TRACKING::g4eval_use_initial_vertex);
-  eval->scan_for_embedded(true);   // take all tracks if false - take only embedded tracks if true
-  eval->scan_for_primaries(true);  // defaults to only thrown particles for ntp_gtrack
+  bool embed_scan = true;
+  if(TRACKING::pp_mode) embed_scan = false;
+  eval->scan_for_embedded(embed_scan);   // take all tracks if false - take only embedded tracks if true
+  eval->scan_for_primaries(embed_scan);  // defaults to only thrown particles for ntp_gtrack
+  std::cout << "SvtxEvaluator: pp_mode set to " << TRACKING::pp_mode << " and scan_for_embedded set to " << embed_scan << std::endl;
   eval->Verbosity(verbosity);
   se->registerSubsystem(eval);
 
