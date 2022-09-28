@@ -26,10 +26,12 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 1000,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char *outputFile = "DST/dst_eval_truth_no_distortion.root",
+  const char* outputFile = "DST/dst_eval_genfit_full_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_full_nodistortion.root",
+  const char* residualsFile = "DST/TpcResiduals_genfit_full_nodistortion.root",
   const char* qaOutputFile = "DST/qa.root"
  )
 {
@@ -56,16 +58,25 @@ int Fun4All_G4_Reconstruction_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  // G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted.root";
+  G4TPC::static_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only.distortion_map.hist.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
+  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only_inverted_10-new.root";
  
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_genfit_track_fitter = false;
-  G4TRACKING::SC_CALIBMODE = true;
-
+  
+  // distortion reconstruction
+  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_SAVEHISTOGRAMS = true;
+  G4TRACKING::SC_USE_MICROMEGAS = true;
+  G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
+  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+  
   // server
   auto se = Fun4AllServer::instance();
   // se->Verbosity(2);
@@ -152,8 +163,6 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::QA = false;
   if( Enable::QA )
   {  
-    // Intt_QA();
-    // Mvtx_QA();
     Micromegas_QA();
   }
 

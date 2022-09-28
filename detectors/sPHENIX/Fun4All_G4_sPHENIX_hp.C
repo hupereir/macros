@@ -67,8 +67,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = false;
-
-  // genfit track fitter
+  G4TRACKING::use_truth_vertexing = true;
 
   G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
@@ -99,7 +98,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
 
-    if( true )
+    if( false )
     {
 
       // use specific distribution to generate pt
@@ -193,9 +192,10 @@ int Fun4All_G4_sPHENIX_hp(
   // QA
   Enable::QA = true;
   {  
-    Intt_QA();
-    Mvtx_QA();
-    Micromegas_QA();
+//     Intt_QA();
+//     Mvtx_QA();
+//     Micromegas_QA();
+    Tracking_QA();
   }
  
   // for single particle generators we just need something which drives
