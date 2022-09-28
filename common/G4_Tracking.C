@@ -223,7 +223,6 @@ void Tracking_Reco_TrackSeed()
       // Match TPC track stubs from CA seeder to clusters in the micromegas layers
       auto mm_match = new PHMicromegasTpcTrackMatching;
       mm_match->Verbosity(verbosity);
-       mm_match->set_sc_calib_mode(G4TRACKING::SC_CALIBMODE);
 //       if (G4TRACKING::SC_CALIBMODE)
 //       {
 //         // calibration pass with distorted tracks
@@ -296,13 +295,7 @@ void Tracking_Reco_TrackFit()
     genfitFit->Verbosity(verbosity);
     genfitFit->set_vertexing_method(G4TRACKING::vmethod);
     genfitFit->set_use_truth_vertex(false);      
-    if (G4TRACKING::SC_CALIBMODE)
-    {
-      // in distortion calibration mode, disable TPC layers
-      for( int layer = 7; layer < 23; ++layer ) { genfitFit->disable_layer( layer ); }
-      for( int layer = 23; layer < 39; ++layer ) { genfitFit->disable_layer( layer ); }
-      for( int layer = 39; layer < 55; ++layer ) { genfitFit->disable_layer( layer ); }
-    }
+    genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
     se->registerSubsystem(genfitFit);
     
     if( G4TRACKING::SC_CALIBMODE )
