@@ -75,7 +75,7 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   // reco const
   auto rc = recoConsts::instance();
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
-  // rc->set_IntFlag("RANDOMSEED",1);
+  rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -120,6 +120,7 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
+      |TrackingEvaluator_hp::EvalCMClusters
 //       |TrackingEvaluator_hp::PrintClusters
       |TrackingEvaluator_hp::EvalTracks
       );

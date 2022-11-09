@@ -26,12 +26,12 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 500,
   const int nSkipEvents = 0,
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char* outputFile = "DST/dst_eval_genfit_full_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_full_nodistortion.root",
-  const char* residualsFile = "DST/TpcResiduals_genfit_full_nodistortion.root",
+  const char* outputFile = "DST/dst_eval_acts_full_distorted-new.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_distorted.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_full_distorted.root",
   const char* qaOutputFile = "DST/qa.root"
  )
 {
@@ -59,19 +59,29 @@ int Fun4All_G4_Reconstruction_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  // G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted.root";
-  G4TPC::static_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only.distortion_map.hist.root";
+  G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted.root";
+  // G4TPC::static_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only.distortion_map.hist.root";
+
+  G4TPC::ENABLE_TIME_ORDERED_DISTORTIONS=false;
+  // G4TPC::time_ordered_distortion_filename = "/sphenix/user/rcorliss/distortion_maps/2022.07/TimeOrderedDistortions_deltas.root";  
+  // G4TPC::time_ordered_distortion_filename = "/sphenix/user/rcorliss/distortion_maps/2022.07/TimeOrderedDistortions.root";  
+  // G4TPC::time_ordered_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/TimeOrderedDistortions.root";
+  // G4TPC::time_ordered_distortion_filename = "distortion_maps-new/TimeOrderedDistortions_converted.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
-  G4TPC::correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only_inverted_10-new.root";
+  G4TPC::ENABLE_CORRECTIONS = false;
+  // G4TPC::correction_filename = "distortion_maps-new/Distortions_full_realistic_micromegas_mm_acts_truth_notpc_nodistortion.root";
+  // G4TPC::correction_filename = "distortion_maps-new/Distortions_full_realistic_micromegas_mm_acts_truth_notpc_distorted.root";
+  // G4TPC::correction_filename = "distortion_maps-new/Distortions_full_realistic_micromegas_mm_genfit_truth_notpc_nodistortion.root";
+  // G4TPC::correction_filename = "distortion_maps-new/Distortions_full_realistic_micromegas_mm_genfit_truth_notpc_distorted.root";
+  // G4TPC::correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only_inverted_10-new.root";
  
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::use_genfit_track_fitter = false;
+  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_genfit_track_fitter = true;
   
   // distortion reconstruction
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -175,6 +185,8 @@ int Fun4All_G4_Reconstruction_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("TrackingEvaluator_hp::Container");
+
   se->registerOutputManager(out);
 
   // skip events if any specified

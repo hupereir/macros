@@ -81,7 +81,7 @@ int Fun4All_G4_Simulation_hp(
       gen->set_pt_range(pt_bins,yield_int);
     } else {
       // flat pt distribution
-      gen->set_pt_range(0.5, 20.0);
+      gen->set_pt_range(0.2, 50.0);
     }
 
     // vertex

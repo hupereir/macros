@@ -23,7 +23,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 500,
+  const int nEvents = 100,
   const char* outputFile = "DST/dst_eval.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
   const char* residualsFile = "DST/TpcResiduals.root",
@@ -179,7 +179,7 @@ int Fun4All_G4_sPHENIX_hp(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
-//       |TrackingEvaluator_hp::PrintTracks
+      |TrackingEvaluator_hp::PrintTracks
       );
 
     // special track map is used for space charge calibrations
