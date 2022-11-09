@@ -71,7 +71,13 @@ void Micromegas_Cells()
   auto se = Fun4AllServer::instance();
   // micromegas
   auto reco = new PHG4MicromegasHitReco;
-  reco->Verbosity(0);
+  
+//   // additional smearing (cm)
+//   reco->set_double_param( "micromegas_added_smear_sigma_rphi", 0.065 );
+//   reco->set_double_param( "micromegas_added_smear_sigma_z", 0.10 );
+
+  // verbosity
+  reco->Verbosity(1);
   se->registerSubsystem(reco);
 
   se->registerSubsystem(new PHG4MicromegasDigitizer);
