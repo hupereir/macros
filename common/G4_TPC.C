@@ -334,9 +334,9 @@ void TPC_Clustering()
     // central membrane clusterizer
     se->registerSubsystem(new PHTpcCentralMembraneClusterizer);
     
-    // match central membrane clusters to pads and generate distortion correction
-    auto centralMembraneMatcher = new PHTpcCentralMembraneMatcher;
-    se->registerSubsystem(centralMembraneMatcher);
+//     // match central membrane clusters to pads and generate distortion correction
+//     auto centralMembraneMatcher = new PHTpcCentralMembraneMatcher;
+//     se->registerSubsystem(centralMembraneMatcher);
   }
 }
 
