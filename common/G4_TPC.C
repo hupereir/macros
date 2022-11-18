@@ -87,6 +87,13 @@ namespace G4TPC
   // enable central membrane g4hits generation
   bool ENABLE_CENTRAL_MEMBRANE_HITS = false;
 
+  // save histograms
+  bool CENTRAL_MEMBRANE_SAVEHISTOGRAMS = false;
+
+  // central membrane output filenames
+  std::string CENTRAL_MEMBRANE_ROOTOUTPUT_FILENAME = "CMDistortionCorrections.root";
+  std::string CENTRAL_MEMBRANE_HISTOGRAMOUTPUT_FILENAME = "PHTpcCentralMembraneMatcher.root"; 
+
   // enable direct laser g4hits generation
   bool ENABLE_DIRECT_LASER_HITS = false;
 
@@ -96,7 +103,7 @@ namespace G4TPC
   // do cluster <-> hit association
   bool DO_HIT_ASSOCIATION = true;
   
-  // space charge calibration output file
+  // direct laser output filenames 
   std::string DIRECT_LASER_ROOTOUTPUT_FILENAME = "TpcSpaceChargeMatrices.root";
   std::string DIRECT_LASER_HISTOGRAMOUTPUT_FILENAME = "TpcDirectLaserReconstruction.root"; 
   
@@ -334,11 +341,18 @@ void TPC_Clustering()
   if( G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS )
   {
     // central membrane clusterizer
-    se->registerSubsystem(new PHTpcCentralMembraneClusterizer);
+    auto cm_clusterizer = new PHTpcCentralMembraneClusterizer;
+    cm_clusterizer->set_min_z_value(0);
+    cm_clusterizer->set_histos_on(true);
+    se->registerSubsystem(cm_clusterizer);
     
-//     // match central membrane clusters to pads and generate distortion correction
-//     auto centralMembraneMatcher = new PHTpcCentralMembraneMatcher;
-//     se->registerSubsystem(centralMembraneMatcher);
+    // match central membrane clusters to pads and generate distortion correction
+    auto centralMembraneMatcher = new PHTpcCentralMembraneMatcher;
+    centralMembraneMatcher->setSavehistograms( G4TPC::CENTRAL_MEMBRANE_SAVEHISTOGRAMS );
+    centralMembraneMatcher->setHistogramOutputfile( G4TPC::CENTRAL_MEMBRANE_HISTOGRAMOUTPUT_FILENAME );
+    centralMembraneMatcher->setOutputfile( G4TPC::CENTRAL_MEMBRANE_ROOTOUTPUT_FILENAME );
+      
+    se->registerSubsystem(centralMembraneMatcher);
   }
 }
 
