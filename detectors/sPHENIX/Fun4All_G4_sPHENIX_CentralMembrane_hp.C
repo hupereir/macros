@@ -28,7 +28,17 @@ R__LOAD_LIBRARY(libqa_modules.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   const int nEvents = 1,
-  const char *outputFile = "DST/dst_eval_centralmembrane-nominal.root"
+  const char *outputFile = "DST/dst_eval_centralmembrane-nominal-1ev_300.root",
+  const char *central_membrane_output_file = "distortion_maps-new/CMDistortionCorrections-1ev_300.root"
+
+//   const char *outputFile = "DST/dst_eval_centralmembrane_distorted-10ev-new.root",
+//   const char *central_membrane_output_file = "distortion_maps-new/CMDistortionCorrections_distorted-10ev-new.root"
+
+//   const char *outputFile = "DST/dst_eval_centralmembrane_distorted_scaled_x2-10ev-new.root",
+//   const char *central_membrane_output_file = "distortion_maps-new/CMDistortionCorrections_distorted_scaled_x2-10ev-new.root"
+
+//   const char *outputFile = "DST/dst_eval_centralmembrane_distorted_full-10ev-new.root",
+//   const char *central_membrane_output_file = "distortion_maps-new/CMDistortionCorrections_distorted_full-10ev-new.root"
   )
 {
 
@@ -52,12 +62,18 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted_scaled_x2.root";
+  // G4TPC::static_distortion_filename = "distortion_maps/static_only.distortion_map.hist.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = true;
-
+  G4TPC::CENTRAL_MEMBRANE_SAVEHISTOGRAMS = true;
+  G4TPC::CENTRAL_MEMBRANE_ROOTOUTPUT_FILENAME = central_membrane_output_file;
+  
+  
   // for testing the momentum resolution, focus on having Micromegas in only one sector
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
 
@@ -111,9 +127,14 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
       );
     se->registerSubsystem(simEvaluator);
   }
-
-  // se->registerSubsystem(new MicromegasEvaluator_hp);
-
+  
+  if( true )
+  {
+    auto micromegasEvaluator = new MicromegasEvaluator_hp;
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalHits );
+    se->registerSubsystem(micromegasEvaluator);
+  }
+  
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
@@ -134,7 +155,6 @@ int Fun4All_G4_sPHENIX_CentralMembrane_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-
   se->registerOutputManager(out);
 
   // process events

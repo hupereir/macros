@@ -23,33 +23,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-//   const int nEvents = 360,  
-  
-//   const char* outputFile = "DST/dst_reco_single_directlasers_test_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_single_directlasers_test_no_distortion.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_single_directlasers_test_no_distortion.root"
-
-//   const char* outputFile = "DST/dst_reco_all_directlasers_test_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_test_no_distortion.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_test_no_distortion.root"
-
-//   const char* outputFile = "DST/dst_reco_all_directlasers_test_simple_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_test_simple_no_distortion.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_test_simple_no_distortion.root"
-
-  const int nEvents = 1224,  
-
-//   const char* outputFile = "DST/dst_reco_single_directlasers_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_single_directlasers_no_distortion.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_single_directlasers_no_distortion.root"
-
-//   const char* outputFile = "DST/dst_reco_all_directlasers_no_distortion.root",
-//   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_no_distortion.root",
-//   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_no_distortion.root"
-
-  const char* outputFile = "DST/dst_reco_all_directlasers_simple_no_distortion-new.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers_simple_no_distortion-new.root",
-  const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers_simple_no_distortion-new.root"
+  const int nEvents = 10,  
+  const char* outputFile = "DST/dst_reco_all_directlasers.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers.root",
+  const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers.root"
 )
 {
 
@@ -87,7 +64,6 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   G4TPC::DIRECT_LASER_SAVEHISTOGRAMS = true;
   G4TPC::DIRECT_LASER_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
   G4TPC::DIRECT_LASER_HISTOGRAMOUTPUT_FILENAME = evaluationFile;
-  G4TPC::USE_SIMPLE_CLUSTERIZER = true;
 
   // for testing the momentum resolution, focus on having Micromegas in only one sector
   // G4MICROMEGAS::CONFIG = G4MICROMEGAS::CONFIG_Z_ONE_SECTOR;
