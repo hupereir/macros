@@ -76,7 +76,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -172,7 +172,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( true )
+  if( false )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
@@ -190,7 +190,8 @@ int Fun4All_G4_sPHENIX_hp(
   }
 
   // QA
-  Enable::QA = true;
+  Enable::QA = false;
+  if( Enable::QA )
   {  
 //     Intt_QA();
 //     Mvtx_QA();

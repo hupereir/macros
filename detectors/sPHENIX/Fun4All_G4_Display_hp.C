@@ -28,6 +28,9 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   Enable::ABSORBER = false;
 
   // central tracking
+  Enable::CEMC = false;
+  Enable::HCALOUT = false;
+  Enable::HCALIN = false;
   Enable::MVTX = true;
   Enable::INTT = true;
   Enable::TPC = true;

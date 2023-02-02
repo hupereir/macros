@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_Simulation_hp(
-  const int nEvents = 1000,
+  const int nEvents = 1,
   const char *outputFile = "DST/G4Hits_realistic.root"
   )
 {
@@ -51,7 +51,7 @@ int Fun4All_G4_Simulation_hp(
    
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -102,27 +102,42 @@ int Fun4All_G4_Simulation_hp(
   G4Init();
   G4Setup();
 
-//   // BBC
-//   BbcInit();
-//   Bbc_Reco();
+  // BBC
+  BbcInit();
+  Bbc_Reco();
 
-//   // cells
-//   Mvtx_Cells();
-//   Intt_Cells();
-//   TPC_Cells();
-//   if( Enable::MICROMEGAS )
-//   { Micromegas_Cells(); }  
+  // cells
+  Mvtx_Cells();
+  Intt_Cells();
+  TPC_Cells();
   
-//   if( false ) 
-//   {
-//     // Micromegas evaluation
-//     auto micromegasEvaluator = new MicromegasEvaluator_hp;
-//     micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits );
-//     se->registerSubsystem(micromegasEvaluator);
-//   }
+  if( Enable::MICROMEGAS )
+  { Micromegas_Cells(); }  
+  
+  // digitizer and clustering
+  if( true )
+  {
+    Mvtx_Clustering();
+    Intt_Clustering();
+    TPC_Clustering();
+    if( Enable::MICROMEGAS )
+    { Micromegas_Clustering(); }
+  }
+  
+  if( true ) 
+  {
+    // Micromegas evaluation
+    auto micromegasEvaluator = new MicromegasEvaluator_hp;
+    micromegasEvaluator->set_flags( 
+      MicromegasEvaluator_hp::EvalG4Hits
+      |MicromegasEvaluator_hp::EvalHits 
+      |MicromegasEvaluator_hp::PrintGeometry 
+     );
+    se->registerSubsystem(micromegasEvaluator);
+  }
 
 //   // local evaluation
-//   if( fakse )
+//   if( false )
 //   {
 //     auto simEvaluator = new SimEvaluator_hp;
 //     simEvaluator->set_flags(

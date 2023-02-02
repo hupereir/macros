@@ -23,7 +23,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-  const int nEvents = 10,  
+  const int nEvents = 1224,  
   const char* outputFile = "DST/dst_reco_all_directlasers.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers.root",
   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers.root"
@@ -53,7 +53,6 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  G4TPC::static_distortion_filename = "distortion_maps-new/static-coarse.root";
   
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
@@ -74,7 +73,7 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(1);
+  se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
