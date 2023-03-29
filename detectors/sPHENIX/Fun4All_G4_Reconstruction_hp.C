@@ -10,10 +10,10 @@
 #include <qa_modules/QAHistManagerDef.h>
 
 // own modules
-#include <g4eval/EventCounter_hp.h>
-#include <g4eval/MicromegasEvaluator_hp.h>
-#include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/SimEvaluator_hp.h>
+#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
@@ -22,16 +22,19 @@
 #include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Reconstruction_hp(
-  const int nEvents = 500,
+  const int nEvents = 100,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-  const char* outputFile = "DST/dst_eval_acts_full_distorted-new.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_distorted.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_full_distorted.root",
+//   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+//   const char* outputFile = "DST/dst_eval_acts_full_distorted-new.root",
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits-ana.332/G4Hits_realistic_micromegas_0.root",
+  const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion-ana.332.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion-ana.332.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_full_notpc_nodistortion-ana.332.root",
   const char* qaOutputFile = "DST/qa.root"
  )
 {
@@ -58,7 +61,7 @@ int Fun4All_G4_Reconstruction_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::static_distortion_filename = "distortion_maps/average_minus_static_distortion_converted.root";
   // G4TPC::static_distortion_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only.distortion_map.hist.root";
 
@@ -77,8 +80,8 @@ int Fun4All_G4_Reconstruction_hp(
   // G4TPC::correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only_inverted_10-new.root";
  
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
-  G4TRACKING::use_genfit_track_fitter = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
+  G4TRACKING::use_genfit_track_fitter = false;
   
   // distortion reconstruction
   G4TRACKING::SC_CALIBMODE = true;
@@ -89,7 +92,7 @@ int Fun4All_G4_Reconstruction_hp(
   
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(2);
+  se->Verbosity(2);
   
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -155,6 +158,8 @@ int Fun4All_G4_Reconstruction_hp(
   {
     // local tracking evaluation
     auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_cluster_version(G4TRACKING::cluster_version);
+
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
