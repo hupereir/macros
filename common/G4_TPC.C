@@ -275,8 +275,10 @@ void TPC_Cells()
 
   // Tpc digitizer
   //=========
-  PHG4TpcDigitizer* digitpc = new PHG4TpcDigitizer();
+  auto digitpc = new PHG4TpcDigitizer();
   digitpc->SetTpcMinLayer(G4MVTX::n_maps_layer + G4INTT::n_intt_layer);
+  digitpc->set_skip_noise_flag(true);
+  
   double ENC = 670.0;  // standard
   digitpc->SetENC(ENC);
   double ADC_threshold = 4.0 * ENC;
