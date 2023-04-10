@@ -1,29 +1,12 @@
-#ifndef MACRO_G4TRACKING_C
-#define MACRO_G4TRACKING_C
-
-R__LOAD_LIBRARY(libg4eval.so)
-R__LOAD_LIBRARY(libtrack_reco.so)
-R__LOAD_LIBRARY(libtpccalib.so)
-R__LOAD_LIBRARY(libqa_modules.so)
-R__LOAD_LIBRARY(libtrackeralign.so)
+#ifndef MACRO_TRKRTRUTHRECO_C
+#define MACRO_TRKRTRUTHRECO_C
 
 #include <GlobalVariables.C>
 
-#include <G4_ActsGeom.C>
-#include <G4_Intt.C>
-#include <G4_Micromegas.C>
-#include <G4_Mvtx.C>
-#include <G4_TPC.C>
-#include <QA.C>
+#include <G4_TrkrVariables.C>
+//#include <G4_ActsGeom.C>
 
-#include <fun4all/Fun4AllServer.h>
-#include <g4eval/SvtxEvaluator.h>
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-#include <tpc/TpcLoadDistortionCorrection.h>
-#include <tpccalib/PHTpcResiduals.h>
-#include <tpccalib/TpcSpaceChargeReconstruction.h>
+
 #include <g4eval/SvtxTruthRecoTableEval.h>
 #include <g4eval/TrackSeedTrackMapConverter.h>
 
@@ -33,7 +16,6 @@ R__LOAD_LIBRARY(libtrackeralign.so)
 #include <trackreco/PHActsTrkFitter.h>
 #include <trackreco/PHActsVertexPropagator.h>
 #include <trackreco/PHCASeeding.h>
-#include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
 #include <trackreco/PHSiliconSeedMerger.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
@@ -47,30 +29,20 @@ R__LOAD_LIBRARY(libtrackeralign.so)
 #include <trackreco/PHTruthVertexing.h>
 #include <trackreco/SecondaryVertexFinder.h>
 
+#include <tpc/TpcLoadDistortionCorrection.h>
+
+#include <tpccalib/PHTpcResiduals.h>
+
 #include <trackermillepedealignment/MakeMilleFiles.h>
 #include <trackermillepedealignment/HelicalFitter.h>
 
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-#include <qa_modules/QAG4SimulationDistortions.h>
-
 #include <fun4all/Fun4AllServer.h>
 
-void TrackingInit()
-{
-  ACTSGEOM::ActsGeomInit();
-  // space charge correction
-  /* corrections are applied in the track finding, and via TpcClusterMover before the final track fit */
-  if( G4TPC::ENABLE_CORRECTIONS )
-  {
-    auto se = Fun4AllServer::instance();
-    auto tpcLoadDistortionCorrection = new TpcLoadDistortionCorrection;
-    tpcLoadDistortionCorrection->set_distortion_filename( G4TPC::correction_filename );
-    se->registerSubsystem(tpcLoadDistortionCorrection);
-  }
 
-}
+R__LOAD_LIBRARY(libtrack_reco.so)
+R__LOAD_LIBRARY(libtpccalib.so)
+R__LOAD_LIBRARY(libtrackeralign.so)
+R__LOAD_LIBRARY(libg4eval.so)
 
 void convert_seeds()
 {
@@ -178,20 +150,17 @@ void Tracking_Reco_TrackSeed()
       silicon_match->Verbosity(verbosity);
       silicon_match->set_pp_mode(TRACKING::pp_mode);
       std::cout << "PHSiliconTpcTrackMatching pp_mode set to " << TRACKING::pp_mode << std::endl;
-
-//       if (G4TRACKING::SC_CALIBMODE)
-//       {
-//         // search windows for initial matching with distortions
-//         // tuned values are 0.04 and 0.008 in distorted events
-//         silicon_match->set_phi_search_window(0.04);
-//         silicon_match->set_eta_search_window(0.008);
-//       } else 
+      if (G4TRACKING::SC_CALIBMODE)
       {
+        // search windows for initial matching with distortions
+        // tuned values are 0.04 and 0.008 in distorted events
+        silicon_match->set_phi_search_window(0.04);
+        silicon_match->set_eta_search_window(0.008);
+      } else {
         // after distortion corrections and rerunning clustering, default tuned values are 0.02 and 0.004 in low occupancy events
         silicon_match->set_phi_search_window(0.03);
         silicon_match->set_eta_search_window(0.005);
       }
-      
       silicon_match->set_test_windows_printout(false);  // used for tuning search windows
       se->registerSubsystem(silicon_match);
     }
@@ -265,7 +234,8 @@ void vertexing()
     auto vtxfinder = new PHSimpleVertexFinder;
     vtxfinder->Verbosity(verbosity);
     se->registerSubsystem(vtxfinder);
-  }  
+  }
+  
 }
 
 void Tracking_Reco_TrackFit()
@@ -277,60 +247,34 @@ void Tracking_Reco_TrackFit()
   auto deltazcorr = new PHTpcDeltaZCorrection;
   deltazcorr->Verbosity(verbosity);
   se->registerSubsystem(deltazcorr);
+  
 
-  if( G4TRACKING::use_genfit_track_fitter )
+  // perform final track fit with ACTS
+  auto actsFit = new PHActsTrkFitter;
+  actsFit->Verbosity(verbosity);
+  //actsFit->commissioning(G4TRACKING::use_alignment);
+  actsFit->set_cluster_version(G4TRACKING::cluster_version);
+  // in calibration mode, fit only Silicons and Micromegas hits
+  actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+  actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+  actsFit->set_pp_mode(TRACKING::pp_mode);
+  se->registerSubsystem(actsFit);
+  
+  if (G4TRACKING::SC_CALIBMODE)
   {
-    std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
-    auto genfitFit = new PHGenFitTrkFitter;
-    genfitFit->Verbosity(verbosity);
-    genfitFit->set_vertexing_method(G4TRACKING::vmethod);
-    genfitFit->set_use_truth_vertex(false);      
-    genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
-    se->registerSubsystem(genfitFit);
-    
-    if( G4TRACKING::SC_CALIBMODE )
-    {
-      // Genfit based Tpc space charge Reconstruction
-      auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
-      tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
-      tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-      tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
-      tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
-      se->registerSubsystem(tpcSpaceChargeReconstruction);
-    }
-    
+    /*
+    * in calibration mode, calculate residuals between TPC and fitted tracks, 
+    * store in dedicated structure for distortion correction
+    */
+    auto residuals = new PHTpcResiduals;
+    residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+    residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
+    residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+    residuals->Verbosity(verbosity);
+    se->registerSubsystem(residuals);
   } else {
-
-    // perform final track fit with ACTS
-    auto actsFit = new PHActsTrkFitter;
-    actsFit->Verbosity(verbosity);
-    //actsFit->commissioning(G4TRACKING::use_alignment);
-    actsFit->set_cluster_version(G4TRACKING::cluster_version);
-    // in calibration mode, fit only Silicons and Micromegas hits
-    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
-    actsFit->set_pp_mode(TRACKING::pp_mode);
-    se->registerSubsystem(actsFit);
-  
-    if (G4TRACKING::SC_CALIBMODE)
-    {
-      /*
-      * in calibration mode, calculate residuals between TPC and fitted tracks, 
-      * store in dedicated structure for distortion correction
-      */
-      auto residuals = new PHTpcResiduals;
-      residuals->setClusterVersion(G4TRACKING::cluster_version);
-      residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-      residuals->setSavehistograms( G4TRACKING::SC_SAVEHISTOGRAMS );
-      residuals->setHistogramOutputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
-      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-      residuals->Verbosity(verbosity);
-      se->registerSubsystem(residuals);
-    }
     
-  }
-  
-  if (!G4TRACKING::SC_CALIBMODE)
-  {  
     /* 
      * in full tracking mode, run track cleaner, vertex finder, 
      * propagete tracks to vertex 
@@ -348,18 +292,15 @@ void Tracking_Reco_TrackFit()
     
     vertexing();
     
-    if( !G4TRACKING::use_genfit_track_fitter )
-    {
-      // Propagate track positions to the vertex position
-      auto vtxProp = new PHActsVertexPropagator;
-      vtxProp->Verbosity(verbosity);
-      se->registerSubsystem(vtxProp);
-      
-      // project tracks to EMCAL
-      auto projection = new PHActsTrackProjection;
-      projection->Verbosity(verbosity);
-      se->registerSubsystem(projection);
-    }
+    // Propagate track positions to the vertex position
+    auto vtxProp = new PHActsVertexPropagator;
+    vtxProp->Verbosity(verbosity);
+    se->registerSubsystem(vtxProp);
+
+    // project tracks to EMCAL
+    auto projection = new PHActsTrackProjection;
+    projection->Verbosity(verbosity);
+    se->registerSubsystem(projection);
   }
   
 }
@@ -502,7 +443,6 @@ void Tracking_Reco()
       Tracking_Reco_TrackFit();
     }
 
-
   if(G4TRACKING::use_alignment)
     {
       alignment();
@@ -538,101 +478,5 @@ void build_truthreco_tables()
   return;
 }
 
-void Tracking_Eval(const std::string& outputfile)
-{
-  int verbosity = std::max(Enable::VERBOSITY, Enable::TRACKING_VERBOSITY);
 
-  //---------------
-  // Fun4All server
-  //---------------
-
-  Fun4AllServer* se = Fun4AllServer::instance();
-  build_truthreco_tables(); 
-
-  //----------------
-  // Tracking evaluation
-  //----------------
-  SvtxEvaluator* eval;
-  eval = new SvtxEvaluator("SVTXEVALUATOR", outputfile, "SvtxTrackMap",
-                           G4MVTX::n_maps_layer,
-                           G4INTT::n_intt_layer,
-                           G4TPC::n_gas_layer,
-                           G4MICROMEGAS::n_micromegas_layer);
-  eval->do_cluster_eval(true);
-  eval->do_g4hit_eval(false);
-  eval->do_hit_eval(false);  // enable to see the hits that includes the chamber physics...
-  eval->do_gpoint_eval(true);
-  eval->do_vtx_eval_light(true);
-  eval->do_eval_light(true);
-  eval->set_use_initial_vertex(G4TRACKING::g4eval_use_initial_vertex);
-  bool embed_scan = true;
-  if(TRACKING::pp_mode) embed_scan = false;
-  eval->scan_for_embedded(embed_scan);   // take all tracks if false - take only embedded tracks if true
-  eval->scan_for_primaries(embed_scan);  // defaults to only thrown particles for ntp_gtrack
-  std::cout << "SvtxEvaluator: pp_mode set to " << TRACKING::pp_mode << " and scan_for_embedded set to " << embed_scan << std::endl;
-  eval->Verbosity(verbosity);
-  eval->set_cluster_version(G4TRACKING::cluster_version);
-
-  se->registerSubsystem(eval);
-
-  return;
-}
-
-void Tracking_QA()
-{
-  int verbosity = std::max(Enable::QA_VERBOSITY, Enable::TRACKING_VERBOSITY);
-
-  //---------------
-  // Fun4All server
-  //---------------
-
-  Fun4AllServer* se = Fun4AllServer::instance();
-
-  build_truthreco_tables();
-
-  QAG4SimulationTracking* qa = new QAG4SimulationTracking();
-  //  qa->addEmbeddingID(2);
-  qa->Verbosity(verbosity);
-  se->registerSubsystem(qa);
-
-  QAG4SimulationVertex* qa2 = new QAG4SimulationVertex();
-  // qa2->addEmbeddingID(2);
-  qa2->Verbosity(verbosity);
-  se->registerSubsystem(qa2);
-
-  //  Acts Kalman Filter vertex finder
-  //=================================
-  QAG4SimulationVertex* qav = new QAG4SimulationVertex();
-  // qav->addEmbeddingID(2);
-  qav->Verbosity(verbosity);
-  qav->setVertexMapName("SvtxVertexMapActs");
-  se->registerSubsystem(qav);
-
-  if (Input::UPSILON)
-  {
-    QAG4SimulationUpsilon* qa = new QAG4SimulationUpsilon();
-
-    for (int id : Input::UPSILON_EmbedIds)
-    {
-      qa->addEmbeddingID(id);
-    }
-    se->registerSubsystem(qa);
-  }
-}
-
-void Distortions_QA()
-{
-  int verbosity = std::max(Enable::QA_VERBOSITY, Enable::TRACKING_VERBOSITY);
-
-  //---------------
-  // Fun4All server
-  //---------------
-
-  Fun4AllServer* se = Fun4AllServer::instance();
-
-  auto qa = new QAG4SimulationDistortions();
-  qa->Verbosity(verbosity);
-  se->registerSubsystem(qa);
-
-}
 #endif
