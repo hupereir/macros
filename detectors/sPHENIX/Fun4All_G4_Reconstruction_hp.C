@@ -6,6 +6,7 @@
 #include <phool/recoConsts.h>
 #include <qa_modules/QAG4SimulationIntt.h>
 #include <qa_modules/QAG4SimulationMvtx.h>
+#include <qa_modules/QAG4SimulationDistortions.h>
 #include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAHistManagerDef.h>
 
@@ -33,7 +34,7 @@ int Fun4All_G4_Reconstruction_hp(
   const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
   const char* residualsFile = "DST/TpcResiduals_acts_full_notpc_nodistortion.root",
-  const char* qaOutputFile = "DST/qa.root"
+  const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
  )
 {
 
@@ -83,10 +84,11 @@ int Fun4All_G4_Reconstruction_hp(
   
   // distortion reconstruction
   G4TRACKING::SC_CALIBMODE = true;
-  G4TRACKING::SC_SAVEHISTOGRAMS = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
+
+//   G4TRACKING::SC_SAVEHISTOGRAMS = true;
+//   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
   
   // server
   auto se = Fun4AllServer::instance();
@@ -176,7 +178,8 @@ int Fun4All_G4_Reconstruction_hp(
   Enable::QA = true;
   if( Enable::QA )
   {  
-    Micromegas_QA();
+    // Micromegas_QA();
+    Distortions_QA();
   }
 
   // input manager
