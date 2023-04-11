@@ -29,12 +29,10 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Reconstruction_hp(
   const int nEvents = 100,
   const int nSkipEvents = 0,
-//   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
-//   const char* outputFile = "DST/dst_eval_acts_full_distorted-new.root",
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits-ana.332/G4Hits_realistic_micromegas_0.root",
-  const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion-ana.332.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion-ana.332.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_full_notpc_nodistortion-ana.332.root",
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+  const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
+  const char* residualsFile = "DST/TpcResiduals_acts_full_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa.root"
  )
 {
@@ -175,7 +173,7 @@ int Fun4All_G4_Reconstruction_hp(
   }
 
   // QA
-  Enable::QA = false;
+  Enable::QA = true;
   if( Enable::QA )
   {  
     Micromegas_QA();
