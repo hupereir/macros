@@ -143,17 +143,10 @@ void TPC_Cells()
     auto directLaser = new PHG4TpcDirectLaser;
 
     // setup phi and theta steps
+    /* use 5deg steps */
     static constexpr double deg_to_rad = M_PI/180.;
-    
-    /* use 5degrees steps */
-//     /* custom setup for laser mimicking particles */
-//     directLaser->SetPhiStepping( 36, 0*deg_to_rad, 180*deg_to_rad );
-//     directLaser->SetThetaStepping( 12, 30*deg_to_rad, 90*deg_to_rad );
-
-    /* nominal laser setup */
     directLaser->SetPhiStepping( 72, 0*deg_to_rad, 360*deg_to_rad );
     directLaser->SetThetaStepping( 17, 5*deg_to_rad, 90*deg_to_rad );
-
     directLaser->SetDirectLaserAuto( true );
     directLaser->set_double_param("drift_velocity", G4TPC::tpc_drift_velocity_sim);
     se->registerSubsystem(directLaser);
@@ -209,9 +202,8 @@ void TPC_Cells()
 
   // Tpc digitizer
   //=========
-  auto digitpc = new PHG4TpcDigitizer();
+  auto digitpc = new PHG4TpcDigitizer;
   digitpc->SetTpcMinLayer(G4MVTX::n_maps_layer + G4INTT::n_intt_layer);
-  
   double ENC = 670.0;  // standard
   digitpc->SetENC(ENC);
   double ADC_threshold = 4.0 * ENC;

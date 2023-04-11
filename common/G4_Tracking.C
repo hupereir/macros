@@ -18,9 +18,12 @@ R__LOAD_LIBRARY(libtrackeralign.so)
 
 #include <fun4all/Fun4AllServer.h>
 #include <g4eval/SvtxEvaluator.h>
+
 #include <qa_modules/QAG4SimulationTracking.h>
 #include <qa_modules/QAG4SimulationUpsilon.h>
 #include <qa_modules/QAG4SimulationVertex.h>
+#include <qa_modules/QAG4SimulationDistortions.h>
+
 #include <tpc/TpcLoadDistortionCorrection.h>
 #include <tpccalib/PHTpcResiduals.h>
 #include <tpccalib/TpcSpaceChargeReconstruction.h>
@@ -49,11 +52,6 @@ R__LOAD_LIBRARY(libtrackeralign.so)
 
 #include <trackermillepedealignment/MakeMilleFiles.h>
 #include <trackermillepedealignment/HelicalFitter.h>
-
-#include <qa_modules/QAG4SimulationTracking.h>
-#include <qa_modules/QAG4SimulationUpsilon.h>
-#include <qa_modules/QAG4SimulationVertex.h>
-#include <qa_modules/QAG4SimulationDistortions.h>
 
 #include <fun4all/Fun4AllServer.h>
 
