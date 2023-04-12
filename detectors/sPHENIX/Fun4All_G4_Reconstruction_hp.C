@@ -33,7 +33,6 @@ int Fun4All_G4_Reconstruction_hp(
   const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
   const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
-  const char* residualsFile = "DST/TpcResiduals_acts_full_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
  )
 {
@@ -43,6 +42,8 @@ int Fun4All_G4_Reconstruction_hp(
   std::cout << "Fun4All_G4_Reconstruction_hp - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_G4_Reconstruction_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
+  std::cout << "Fun4All_G4_Reconstruction_hp - qaOutputFile: " << qaOutputFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -86,9 +87,6 @@ int Fun4All_G4_Reconstruction_hp(
   G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-
-//   G4TRACKING::SC_SAVEHISTOGRAMS = true;
-//   G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
   
   // server
   auto se = Fun4AllServer::instance();
