@@ -7,10 +7,10 @@
 #include <phool/recoConsts.h>
 
 // own modules
-#include <g4eval/EventCounter_hp.h>
-#include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/MicromegasEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/SimEvaluator_hp.h>
+#include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
@@ -19,15 +19,15 @@
 #include "G4_Tracking.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 100,
-  const char* outputFile = "DST/dst_eval.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices.root",
-  const char* residualsFile = "DST/TpcResiduals.root",
-  const char* qaOutputFile = "DST/qa.root"
+  const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
+  const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
   )
 {
 
@@ -35,7 +35,7 @@ int Fun4All_G4_sPHENIX_hp(
   std::cout << "Fun4All_G4_sPHENIX_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_hp - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
-  std::cout << "Fun4All_G4_sPHENIX_hp - residualsFile: " << residualsFile << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_hp - qaOutputFile: " << qaOutputFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -69,14 +69,12 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_vertexing = true;
 
-  G4TRACKING::SC_CALIBMODE = false;
-  G4TRACKING::SC_SAVEHISTOGRAMS = true;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
-  G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME = residualsFile;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  // se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -107,10 +105,17 @@ int Fun4All_G4_sPHENIX_hp(
       const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
       gen->set_pt_range(pt_bins,yield_int);
 
+    } else if( true ) {
+      
+      // use power law
+      gen->set_pt_range(0.5, 20.0);
+      gen->set_power_law_n(-4);
+
     } else {
+      
       // flat pt distribution
       gen->set_pt_range(0.2, 20.0);
-      // gen->set_pt_range(40., 40.);
+      
     }
 
     // vertex
@@ -190,13 +195,14 @@ int Fun4All_G4_sPHENIX_hp(
   }
 
   // QA
-  Enable::QA = false;
+  Enable::QA = true;
   if( Enable::QA )
   {  
 //     Intt_QA();
 //     Mvtx_QA();
 //     Micromegas_QA();
-    Tracking_QA();
+//     Tracking_QA();
+    Distortions_QA();
   }
  
   // for single particle generators we just need something which drives
