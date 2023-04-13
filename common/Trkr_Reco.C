@@ -16,6 +16,7 @@
 #include <trackreco/PHActsTrkFitter.h>
 #include <trackreco/PHActsVertexPropagator.h>
 #include <trackreco/PHCASeeding.h>
+#include <trackreco/PHGenFitTrkFitter.h>
 #include <trackreco/PHMicromegasTpcTrackMatching.h>
 #include <trackreco/PHSiliconSeedMerger.h>
 #include <trackreco/PHSiliconTpcTrackMatching.h>
@@ -184,30 +185,58 @@ void Tracking_Reco_TrackFit()
   auto deltazcorr = new PHTpcDeltaZCorrection;
   deltazcorr->Verbosity(verbosity);
   se->registerSubsystem(deltazcorr);
-  
 
-  // perform final track fit with ACTS
-  auto actsFit = new PHActsTrkFitter;
-  actsFit->Verbosity(verbosity);
-  //actsFit->commissioning(G4TRACKING::use_alignment);
-  actsFit->set_cluster_version(G4TRACKING::cluster_version);
-  // in calibration mode, fit only Silicons and Micromegas hits
-  actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
-  actsFit->set_pp_mode(TRACKING::pp_mode);
-  se->registerSubsystem(actsFit);
-  
-  if (G4TRACKING::SC_CALIBMODE)
+  if( G4TRACKING::use_genfit_track_fitter )
   {
-    /*
-    * in calibration mode, calculate residuals between TPC and fitted tracks, 
-    * store in dedicated structure for distortion correction
-    */
-    auto residuals = new PHTpcResiduals;
-    residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-    residuals->Verbosity(verbosity);
-    se->registerSubsystem(residuals);
+    std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
+    auto genfitFit = new PHGenFitTrkFitter;
+    genfitFit->Verbosity(verbosity);
+    genfitFit->set_vertexing_method(G4TRACKING::vmethod);
+    genfitFit->set_use_truth_vertex(false);      
+    genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
+    se->registerSubsystem(genfitFit);
+    
+    if( G4TRACKING::SC_CALIBMODE )
+    {
+      // Genfit based Tpc space charge Reconstruction
+      auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
+      tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
+      tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+      tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
+      tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
+      se->registerSubsystem(tpcSpaceChargeReconstruction);
+    }
+    
   } else {
+    
+    // perform final track fit with ACTS
+    auto actsFit = new PHActsTrkFitter;
+    actsFit->Verbosity(verbosity);
+    //actsFit->commissioning(G4TRACKING::use_alignment);
+    actsFit->set_cluster_version(G4TRACKING::cluster_version);
+    // in calibration mode, fit only Silicons and Micromegas hits
+    actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+    actsFit->set_pp_mode(TRACKING::pp_mode);
+    se->registerSubsystem(actsFit);
+    
+    if (G4TRACKING::SC_CALIBMODE)
+    {
+      /*
+      * in calibration mode, calculate residuals between TPC and fitted tracks, 
+      * store in dedicated structure for distortion correction
+      */
+      auto residuals = new PHTpcResiduals;
+      residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+      residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+      residuals->Verbosity(verbosity);
+      se->registerSubsystem(residuals);
+      
+    }
+    
+  }
+
+  if (!G4TRACKING::SC_CALIBMODE)
+  {
     
     /* 
      * in full tracking mode, run track cleaner, vertex finder, 
@@ -226,15 +255,19 @@ void Tracking_Reco_TrackFit()
     
     vertexing();
     
-    // Propagate track positions to the vertex position
-    auto vtxProp = new PHActsVertexPropagator;
-    vtxProp->Verbosity(verbosity);
-    se->registerSubsystem(vtxProp);
-
-    // project tracks to EMCAL
-    auto projection = new PHActsTrackProjection;
-    projection->Verbosity(verbosity);
-    se->registerSubsystem(projection);
+    if( !G4TRACKING::use_genfit_track_fitter )
+    {
+    
+      // Propagate track positions to the vertex position
+      auto vtxProp = new PHActsVertexPropagator;
+      vtxProp->Verbosity(verbosity);
+      se->registerSubsystem(vtxProp);
+      
+      // project tracks to EMCAL
+      auto projection = new PHActsTrackProjection;
+      projection->Verbosity(verbosity);
+      se->registerSubsystem(projection);
+    }
   }
   
 }
