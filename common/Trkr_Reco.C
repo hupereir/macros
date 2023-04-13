@@ -30,6 +30,7 @@
 #include <tpc/TpcLoadDistortionCorrection.h>
 
 #include <tpccalib/PHTpcResiduals.h>
+#include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 #include <trackermillepedealignment/MakeMilleFiles.h>
 #include <trackermillepedealignment/HelicalFitter.h>
@@ -202,8 +203,6 @@ void Tracking_Reco_TrackFit()
       auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
       tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS); 
       tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-      tpcSpaceChargeReconstruction->set_save_histograms(G4TRACKING::SC_SAVEHISTOGRAMS);
-      tpcSpaceChargeReconstruction->set_histogram_outputfile( G4TRACKING::SC_HISTOGRAMOUTPUT_FILENAME );
       se->registerSubsystem(tpcSpaceChargeReconstruction);
     }
     
