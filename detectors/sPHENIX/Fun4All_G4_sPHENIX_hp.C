@@ -16,7 +16,10 @@
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
-#include "G4_Tracking.C"
+
+#include "Trkr_RecoInit.C"
+#include "Trkr_Clustering.C"
+#include "Trkr_Reco.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
@@ -69,7 +72,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_vertexing = true;
 
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
   // server
@@ -195,14 +198,14 @@ int Fun4All_G4_sPHENIX_hp(
   }
 
   // QA
-  Enable::QA = true;
+  Enable::QA = false;
   if( Enable::QA )
   {  
 //     Intt_QA();
 //     Mvtx_QA();
 //     Micromegas_QA();
 //     Tracking_QA();
-    Distortions_QA();
+//     Distortions_QA();
   }
  
   // for single particle generators we just need something which drives
