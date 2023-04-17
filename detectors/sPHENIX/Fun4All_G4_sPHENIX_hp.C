@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
+  const int nEvents = 1000,
   const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
@@ -72,7 +72,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4TRACKING::use_full_truth_track_seeding = false;
   G4TRACKING::use_truth_vertexing = true;
 
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
   // server
