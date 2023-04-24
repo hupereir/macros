@@ -84,10 +84,14 @@ int Fun4All_G4_sPHENIX_hp(
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_StringFlag("CDB_GLOBALTAG","pinkenbu");
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
+  // condition database
+  Enable::CDB = true;
+  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
+  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
+  
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
