@@ -11,28 +11,41 @@
 #include <micromegas/MicromegasRawDataDecoder.h>
 #include <micromegas/MicromegasRawDataCalibration.h>
 
+// // own modules
+// #include <g4eval/EventCounter_hp.h>
+// #include <g4eval/SimEvaluator_hp.h>
+// #include <g4eval/MicromegasEvaluator_hp.h>
+// #include <g4eval/TrackingEvaluator_hp.h>
+
 // own modules
-#include <g4eval/EventCounter_hp.h>
-#include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/MicromegasEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/SimEvaluator_hp.h>
+#include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
-#include "G4_Tracking.C"
+
+#include "Trkr_RecoInit.C"
+#include "Trkr_Clustering.C"
+#include "Trkr_Reco.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
-static constexpr bool calibrate = false;
+R__LOAD_LIBRARY(libmicromegas.so)
+
+static constexpr bool calibrate = true;
 
 //____________________________________________________________________
 int Fun4All_G4_ReadRawData_hp(
   const int nEvents = 0,
-  const char* inputFile = "RAW/TPC_junk-00002583-0000.evt",
+  // const char* inputFile = "RAW/TPC_junk-00002583-0000.evt",
+  const char* inputFile = "RAW/TPOT_junk-00005144-0000.prdf",
   const char* outputFile = "DST/dst_eval.root"
   )
 {

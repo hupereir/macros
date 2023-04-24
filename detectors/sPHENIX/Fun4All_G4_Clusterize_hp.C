@@ -10,26 +10,29 @@
 #include <qa_modules/QAHistManagerDef.h>
 
 // own modules
-#include <g4eval/EventCounter_hp.h>
-#include <g4eval/MicromegasEvaluator_hp.h>
-#include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/SimEvaluator_hp.h>
+#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
 #include "G4_Bbc.C"
 #include "G4_Global.C"
-#include "G4_Tracking.C"
+
+#include "Trkr_RecoInit.C"
+#include "Trkr_Clustering.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 
 //________________________________________________________________________________________________
 int Fun4All_G4_Clusterize_hp(
-  const int nEvents = 50,
+  const int nEvents = 100,
   const int nSkipEvents = 0,
-  const char* inputFile = "/sphenix/sim/sim01/sphnxpro/mdc2/shijing_hepmc/fm_0_20/trkrhit/DST_TRKR_HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000.root",
-  const char* outputFile = "DST/CONDOR_hijing_micromegas/trkrcluster/DST_TRKR_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000004-00000_test.root"
+  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+  const char* outputFile = "DST/dst_clusters.root"
   )
 {
 
@@ -84,7 +87,7 @@ int Fun4All_G4_Clusterize_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   // cells
-  if( false )
+  if( true )
   {
     Mvtx_Cells();
     Intt_Cells();
@@ -99,7 +102,6 @@ int Fun4All_G4_Clusterize_hp(
   Micromegas_Clustering();
 
   // needed for makeActsGeometry
-  // MagnetFieldInit();
   TrackingInit();
   
   // input manager
