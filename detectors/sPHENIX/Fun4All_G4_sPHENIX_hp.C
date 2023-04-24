@@ -27,7 +27,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1000,
+  const int nEvents = 100,
   const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
@@ -77,13 +77,14 @@ int Fun4All_G4_sPHENIX_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(2);
+  se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
 
   // reco const
   auto rc = recoConsts::instance();
+  rc->set_StringFlag("CDB_GLOBALTAG","pinkenbu");
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
