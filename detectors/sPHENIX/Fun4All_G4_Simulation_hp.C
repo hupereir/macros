@@ -28,7 +28,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_Simulation_hp(
-  const int nEvents = 1,
+  const int nEvents = 10,
   const char *outputFile = "DST/G4Hits_realistic.root"
   )
 {
