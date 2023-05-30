@@ -10,12 +10,10 @@
 
 #include <micromegas/MicromegasRawDataDecoder.h>
 #include <micromegas/MicromegasRawDataCalibration.h>
+#include <micromegas/MicromegasRawDataEvaluation.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
-#include <g4eval_hp/SimEvaluator_hp.h>
-#include <g4eval_hp/MicromegasEvaluator_hp.h>
-#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
@@ -29,21 +27,15 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
-R__LOAD_LIBRARY(libqa_modules.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
-static constexpr bool calibrate = true;
-
 //____________________________________________________________________
 int Fun4All_G4_ReadRawData_hp(
-  const int nEvents = 0,
-  // const char* inputFile = "RAW/TPC_junk-00002583-0000.evt",
-  // const char* inputFile = "RAW/TPOT_junk-00005144-0000.prdf",
-  // const char* inputFile = "RAW/TPC_ebdc39_junk-00010061-0000.prdf",
-  const char* inputFile = "RAW/TPOT_junk-00006314-0000.prdf",
-  const char* outputFile = "DST/dst_eval-00006314-0000.root",
-  const char* evaluationFile = "DST/MicromegasRawDataCalibration-00006314-0000.root"
+  const int nEvents = 1000,
+  const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007363-0000.prdf",
+  const char* outputFile = "DST/dst_eval-00007363-0000.root",
+  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007363-0000.root"
   )
 {
 
@@ -84,33 +76,62 @@ int Fun4All_G4_ReadRawData_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  // Geant4 initialization
-  G4Init();
-//   G4Setup();
-
-  if( calibrate )
-  {
-    // raw data calibration
-    auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
-    micromegasRawDataCalibration->set_save_histograms( true );
-    micromegasRawDataCalibration->set_histogram_outputfile( evaluationFile );
-    se->registerSubsystem( micromegasRawDataCalibration );
-  } else {  
-    // raw data decoding
-    auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-    micromegasRawDataDecoder->Verbosity(1);
-    se->registerSubsystem( micromegasRawDataDecoder );
-    
-  }
-  
-  // Micromegas evaluation
   if( false )
   {
-    auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits|MicromegasEvaluator_hp::PrintGeometry );
-    se->registerSubsystem(micromegasEvaluator);
+
+    // Geant4 initialization
+    G4Init();
+    
+    // raw data calibration
+    auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
+    se->registerSubsystem( micromegasRawDataCalibration );
   }
   
+  if( true )
+  {  
+    // condition database
+    Enable::CDB = true;
+    rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
+    rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
+
+    G4Init();
+    G4Setup();
+
+    ACTSGEOM::ActsGeomInit();
+
+    // raw data decoding
+    auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
+    // micromegasRawDataDecoder->Verbosity(1);
+    micromegasRawDataDecoder->set_sample_min( 30 );
+    micromegasRawDataDecoder->set_sample_max( 50 );
+    se->registerSubsystem( micromegasRawDataDecoder );
+    
+    // Micromegas clustering
+    auto mm_clus = new MicromegasClusterizer;
+    mm_clus->set_cluster_version(G4TRACKING::cluster_version);
+    se->registerSubsystem(mm_clus);
+    
+  }
+      
+  if( false )
+  {  
+    // raw data evaluation
+    auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
+    micromegasRawDataEvaluation->Verbosity(1);
+    micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
+    se->registerSubsystem( micromegasRawDataEvaluation );
+  }
+
+  if( true )
+  {
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      |TrackingEvaluator_hp::EvalClusters
+      );
+
+    se->registerSubsystem(trackingEvaluator);
+  }
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllPrdfInputManager;
@@ -118,9 +139,12 @@ int Fun4All_G4_ReadRawData_hp(
   se->registerInputManager(in);
 
   // output manager
-  auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  se->registerOutputManager(out);
-
+  if( true )
+  {
+    auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+    se->registerOutputManager(out);
+  }
+  
   // process events
   se->run(nEvents);
 
