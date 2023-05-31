@@ -33,9 +33,10 @@ R__LOAD_LIBRARY(libmicromegas.so)
 //____________________________________________________________________
 int Fun4All_G4_ReadRawData_hp(
   const int nEvents = 1000,
-  const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007363-0000.prdf",
-  const char* outputFile = "DST/dst_eval-00007363-0000.root",
-  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007363-0000.root"
+  // const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007389-0000.prdf",
+  const char* inputFile = "RAW/TPOT_ebdc39_physics-00007393-0000.prdf",
+  const char* outputFile = "DST/dst_eval-00007393-0000.root",
+  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007393-0000.root"
   )
 {
 
@@ -87,7 +88,7 @@ int Fun4All_G4_ReadRawData_hp(
     se->registerSubsystem( micromegasRawDataCalibration );
   }
   
-  if( true )
+  if( false )
   {  
     // condition database
     Enable::CDB = true;
@@ -101,7 +102,6 @@ int Fun4All_G4_ReadRawData_hp(
 
     // raw data decoding
     auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-    // micromegasRawDataDecoder->Verbosity(1);
     micromegasRawDataDecoder->set_sample_min( 30 );
     micromegasRawDataDecoder->set_sample_max( 50 );
     se->registerSubsystem( micromegasRawDataDecoder );
@@ -109,11 +109,10 @@ int Fun4All_G4_ReadRawData_hp(
     // Micromegas clustering
     auto mm_clus = new MicromegasClusterizer;
     mm_clus->set_cluster_version(G4TRACKING::cluster_version);
-    se->registerSubsystem(mm_clus);
-    
+    se->registerSubsystem(mm_clus);   
   }
       
-  if( false )
+  if( true )
   {  
     // raw data evaluation
     auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
@@ -122,11 +121,11 @@ int Fun4All_G4_ReadRawData_hp(
     se->registerSubsystem( micromegasRawDataEvaluation );
   }
 
-  if( true )
+  if( false )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
-      |TrackingEvaluator_hp::EvalClusters
+      TrackingEvaluator_hp::EvalClusters
       );
 
     se->registerSubsystem(trackingEvaluator);
