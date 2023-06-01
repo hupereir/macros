@@ -14,8 +14,6 @@
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-#include "G4_Global.C"
 
 #include "Trkr_RecoInit.C"
 #include "Trkr_Clustering.C"

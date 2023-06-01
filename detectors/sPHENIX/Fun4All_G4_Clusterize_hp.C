@@ -17,8 +17,6 @@
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-#include "G4_Global.C"
 
 #include "Trkr_RecoInit.C"
 #include "Trkr_Clustering.C"
@@ -31,7 +29,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 int Fun4All_G4_Clusterize_hp(
   const int nEvents = 100,
   const int nSkipEvents = 0,
-  const char* inputFile = "DST/CONDOR_realistic_micromegas/G4Hits/G4Hits_realistic_micromegas_0.root",
+  const char* inputFile = "DST/G4Hits_realistic.root",
   const char* outputFile = "DST/dst_clusters.root"
   )
 {
@@ -81,7 +79,8 @@ int Fun4All_G4_Clusterize_hp(
 
   // reco const
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -94,6 +93,10 @@ int Fun4All_G4_Clusterize_hp(
     TPC_Cells();
     Micromegas_Cells();
   }
+
+  Enable::CDB = true;
+  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
+  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
   
   // digitizer and clustering
   Mvtx_Clustering();
@@ -103,6 +106,16 @@ int Fun4All_G4_Clusterize_hp(
 
   // needed for makeActsGeometry
   TrackingInit();
+
+  if( true )
+  {
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalClusters
+      );
+
+    se->registerSubsystem(trackingEvaluator);
+  }
   
   // input manager
   auto in = new Fun4AllDstInputManager("DSTin");
@@ -114,6 +127,7 @@ int Fun4All_G4_Clusterize_hp(
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
   out->AddNode("TRKR_CLUSTER"); 
   out->AddNode("TRKR_CLUSTERCROSSINGASSOC");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // skip events if any specified

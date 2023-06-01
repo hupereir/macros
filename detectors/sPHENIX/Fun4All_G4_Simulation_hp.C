@@ -18,9 +18,10 @@
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-#include "G4_Global.C"
-#include "G4_Tracking.C"
+
+#include "Trkr_RecoInit.C"
+#include "Trkr_Clustering.C"
+#include "Trkr_Reco.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
@@ -28,7 +29,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_Simulation_hp(
-  const int nEvents = 10,
+  const int nEvents = 1000,
   const char *outputFile = "DST/G4Hits_realistic.root"
   )
 {
@@ -142,14 +143,15 @@ int Fun4All_G4_Simulation_hp(
   }
 
   // local evaluation
-  if( false )
+  if( true )
   {
     auto simEvaluator = new SimEvaluator_hp;
-    simEvaluator->set_flags(
-      SimEvaluator_hp::EvalEvent|
-      SimEvaluator_hp::EvalHits|
-      SimEvaluator_hp::EvalVertices|
-      SimEvaluator_hp::EvalParticles );
+//     simEvaluator->set_flags(
+//       SimEvaluator_hp::EvalEvent|
+//       SimEvaluator_hp::EvalHits|
+//       SimEvaluator_hp::EvalVertices|
+//       SimEvaluator_hp::EvalParticles );
+    simEvaluator->set_flags( SimEvaluator_hp::EvalHits );
     se->registerSubsystem(simEvaluator);
   }
   

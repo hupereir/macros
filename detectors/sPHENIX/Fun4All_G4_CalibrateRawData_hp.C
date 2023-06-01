@@ -8,7 +8,7 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
-#include <micromegas/MicromegasRawDataDecoder.h>
+#include <micromegas/MicromegasRawDataCalibration.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -83,36 +83,12 @@ int Fun4All_G4_ReadRawData_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  // condition database
-  Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
-  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
-  
+  // Geant4 initialization
   G4Init();
-  G4Setup();
   
-  ACTSGEOM::ActsGeomInit();
-  
-  // raw data decoding
-  auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-  micromegasRawDataDecoder->set_sample_min( 30 );
-  micromegasRawDataDecoder->set_sample_max( 50 );
-  se->registerSubsystem( micromegasRawDataDecoder );
-  
-  // Micromegas clustering
-  auto mm_clus = new MicromegasClusterizer;
-  mm_clus->set_cluster_version(G4TRACKING::cluster_version);
-  se->registerSubsystem(mm_clus);   
-
-  if( true )
-  {
-    auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalClusters
-      );
-
-    se->registerSubsystem(trackingEvaluator);
-  }
+  // raw data calibration
+  auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
+  se->registerSubsystem( micromegasRawDataCalibration );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that

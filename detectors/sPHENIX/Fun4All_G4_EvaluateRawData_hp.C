@@ -8,7 +8,7 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
-#include <micromegas/MicromegasRawDataDecoder.h>
+#include <micromegas/MicromegasRawDataEvaluation.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -39,17 +39,19 @@ R__LOAD_LIBRARY(libmicromegas.so)
 // {
 
 //____________________________________________________________________
-int Fun4All_G4_ReadRawData_hp(
+int Fun4All_G4_EvaluateRawData_hp(
   const int nEvents = 1000,
   const int runNumber = 7365
   )
 {
   const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
-  const char* outputFile = Form( "DST/dst_eval-%08i-0000.root", runNumber );
+  const char* evaluationFile = Form( "DST/MicromegasRawDataEvaluation-%08i-0000.root", runNumber );
 
   // print inputs
   std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - runNumber: " << runNumber << std::endl;
   std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - evaluationFile: " << evaluationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -83,36 +85,11 @@ int Fun4All_G4_ReadRawData_hp(
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
-  // condition database
-  Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
-  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
-  
-  G4Init();
-  G4Setup();
-  
-  ACTSGEOM::ActsGeomInit();
-  
-  // raw data decoding
-  auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-  micromegasRawDataDecoder->set_sample_min( 30 );
-  micromegasRawDataDecoder->set_sample_max( 50 );
-  se->registerSubsystem( micromegasRawDataDecoder );
-  
-  // Micromegas clustering
-  auto mm_clus = new MicromegasClusterizer;
-  mm_clus->set_cluster_version(G4TRACKING::cluster_version);
-  se->registerSubsystem(mm_clus);   
-
-  if( true )
-  {
-    auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalClusters
-      );
-
-    se->registerSubsystem(trackingEvaluator);
-  }
+  // raw data evaluation
+  auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
+  micromegasRawDataEvaluation->Verbosity(1);
+  micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
+  se->registerSubsystem( micromegasRawDataEvaluation );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
@@ -120,13 +97,6 @@ int Fun4All_G4_ReadRawData_hp(
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
-  // output manager
-  if( true )
-  {
-    auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-    se->registerOutputManager(out);
-  }
-  
   // process events
   se->run(nEvents);
 
