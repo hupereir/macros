@@ -40,16 +40,21 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_G4_ReadRawData_hp(
-  const int nEvents = 1000,
-  const int runNumber = 7365
+  const int nEvents = 100,
+  const int runNumber = 9416
   )
 {
-  const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
+  // const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
+  const char* inputFile = Form( "LUSTRE/beam/TPOT_ebdc39_beam-%08i-0000.prdf", runNumber );
   const char* outputFile = Form( "DST/dst_eval-%08i-0000.root", runNumber );
-
+  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root";
+  
   // print inputs
   std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - runNumber: " << runNumber << std::endl;
   std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -81,7 +86,7 @@ int Fun4All_G4_ReadRawData_hp(
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   // condition database
   Enable::CDB = true;
@@ -94,26 +99,31 @@ int Fun4All_G4_ReadRawData_hp(
   ACTSGEOM::ActsGeomInit();
   
   // raw data decoding
-  auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-  micromegasRawDataDecoder->set_sample_min( 30 );
-  micromegasRawDataDecoder->set_sample_max( 50 );
-  se->registerSubsystem( micromegasRawDataDecoder );
-  
-  // Micromegas clustering
-  auto mm_clus = new MicromegasClusterizer;
-  mm_clus->set_cluster_version(G4TRACKING::cluster_version);
-  se->registerSubsystem(mm_clus);   
-
+  if( true )
+  {
+    auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
+    micromegasRawDataDecoder->set_calibration_file(calibrationFile);
+    micromegasRawDataDecoder->set_sample_min( 15 );
+    micromegasRawDataDecoder->set_sample_max( 35 );
+//     micromegasRawDataDecoder->set_sample_min( 0 );
+//     micromegasRawDataDecoder->set_sample_max( 30 );
+    se->registerSubsystem( micromegasRawDataDecoder );
+    
+    // Micromegas clustering
+    auto mm_clus = new MicromegasClusterizer;
+    mm_clus->set_cluster_version(G4TRACKING::cluster_version);
+    se->registerSubsystem(mm_clus);   
+    
+  }
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalClusters
       );
-
     se->registerSubsystem(trackingEvaluator);
   }
-
+  
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllPrdfInputManager;

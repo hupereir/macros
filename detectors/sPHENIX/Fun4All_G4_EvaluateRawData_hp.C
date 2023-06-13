@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libmicromegas.so)
 
 // //____________________________________________________________________
-// int Fun4All_G4_ReadRawData_hp(
+// int Fun4All_G4_EvaluateRawData_hp(
 //   const int nEvents = 1000,
 //   // const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007389-0000.prdf",
 //   const char* inputFile = "RAW/TPOT_ebdc39_physics-00007393-0000.prdf",
@@ -40,18 +40,23 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_G4_EvaluateRawData_hp(
-  const int nEvents = 1000,
-  const int runNumber = 7365
+  const int nEvents = 500,
+  const int runNumber = 9467
   )
 {
-  const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
+  // const char* inputFile = Form( "RAW/TPOT_ebdc39_junk-%08i-0000.prdf", runNumber );
+  // const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
+  const char* inputFile = Form( "LUSTRE/junk/TPOT_ebdc39_junk-%08i-0000.prdf", runNumber );
+  // const char* inputFile = Form( "LUSTRE/beam/TPOT_ebdc39_beam-%08i-0000.prdf", runNumber );
   const char* evaluationFile = Form( "DST/MicromegasRawDataEvaluation-%08i-0000.root", runNumber );
+  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root";
 
   // print inputs
-  std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - runNumber: " << runNumber << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - evaluationFile: " << evaluationFile << std::endl;
+  std::cout << "Fun4All_G4_EvaluateRawData_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_G4_EvaluateRawData_hp - runNumber: " << runNumber << std::endl;
+  std::cout << "Fun4All_G4_EvaluateRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_G4_EvaluateRawData_hp - evaluationFile: " << evaluationFile << std::endl;
+  std::cout << "Fun4All_G4_EvaluateRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -83,11 +88,14 @@ int Fun4All_G4_EvaluateRawData_hp(
   // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   // raw data evaluation
   auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
-  micromegasRawDataEvaluation->Verbosity(1);
+  micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
+  micromegasRawDataEvaluation->set_sample_min( 15 );
+  micromegasRawDataEvaluation->set_sample_max( 35 );
+  micromegasRawDataEvaluation->set_max_waveforms( 4096 );
   micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
   se->registerSubsystem( micromegasRawDataEvaluation );
 

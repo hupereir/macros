@@ -29,27 +29,25 @@ R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libmicromegas.so)
 
 // //____________________________________________________________________
-// int Fun4All_G4_ReadRawData_hp(
-//   const int nEvents = 1000,
-//   // const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007389-0000.prdf",
-//   const char* inputFile = "RAW/TPOT_ebdc39_physics-00007393-0000.prdf",
-//   const char* outputFile = "DST/dst_eval-00007393-0000.root",
-//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007393-0000.root"
+// int Fun4All_G4_CalibrateRawData_hp(
+//   const int nEvents = 100,
+//   const char* inputFile = "RAW/TPOT_ebdc39_pedestal-00007354-0000.prdf",
+//   const char* calibrationFile = "DST/TPOT_Pedestal-00007354-0000.root"
 //   )
-// {
 
 //____________________________________________________________________
-int Fun4All_G4_ReadRawData_hp(
-  const int nEvents = 1000,
-  const int runNumber = 7365
+int Fun4All_G4_CalibrateRawData_hp(
+  const int nEvents = 100,
+  const int runNumber = 9416
   )
 {
-  const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
-  const char* outputFile = Form( "DST/dst_eval-%08i-0000.root", runNumber );
+  const char* inputFile = Form( "LUSTRE/beam/TPOT_ebdc39_beam-%08i-0000.prdf", runNumber );
+  const char* calibrationFile = Form( "DST/TPOT_Pedestal-%08i-0000.root", runNumber );
 
   // print inputs
   std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_G4_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -88,6 +86,10 @@ int Fun4All_G4_ReadRawData_hp(
   
   // raw data calibration
   auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
+  micromegasRawDataCalibration->set_calibration_file(calibrationFile);
+  micromegasRawDataCalibration->set_sample_min(0);
+  micromegasRawDataCalibration->set_sample_max(15);
+
   se->registerSubsystem( micromegasRawDataCalibration );
 
   // for single particle generators we just need something which drives
@@ -96,13 +98,6 @@ int Fun4All_G4_ReadRawData_hp(
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
-  // output manager
-  if( true )
-  {
-    auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-    se->registerOutputManager(out);
-  }
-  
   // process events
   se->run(nEvents);
 
