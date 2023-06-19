@@ -28,20 +28,10 @@ R__LOAD_LIBRARY(libfun4allraw.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
-// //____________________________________________________________________
-// int Fun4All_G4_EvaluateRawData_hp(
-//   const int nEvents = 1000,
-//   // const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007389-0000.prdf",
-//   const char* inputFile = "RAW/TPOT_ebdc39_physics-00007393-0000.prdf",
-//   const char* outputFile = "DST/dst_eval-00007393-0000.root",
-//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007393-0000.root"
-//   )
-// {
-
 //____________________________________________________________________
 int Fun4All_G4_EvaluateRawData_hp(
   const int nEvents = 500,
-  const int runNumber = 9467
+  const int runNumber = 13013
   )
 {
   // const char* inputFile = Form( "RAW/TPOT_ebdc39_junk-%08i-0000.prdf", runNumber );
