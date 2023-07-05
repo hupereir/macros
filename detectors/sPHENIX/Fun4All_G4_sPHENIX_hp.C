@@ -25,7 +25,7 @@ R__LOAD_LIBRARY(libqa_modules.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 1,
   const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"

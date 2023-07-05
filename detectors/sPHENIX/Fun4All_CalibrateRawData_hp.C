@@ -28,26 +28,17 @@ R__LOAD_LIBRARY(libfun4allraw.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
-// //____________________________________________________________________
-// int Fun4All_G4_CalibrateRawData_hp(
-//   const int nEvents = 100,
-//   const char* inputFile = "RAW/TPOT_ebdc39_pedestal-00007354-0000.prdf",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00007354-0000.root"
-//   )
-
 //____________________________________________________________________
-int Fun4All_G4_CalibrateRawData_hp(
-  const int nEvents = 100,
-  const int runNumber = 9416
+int Fun4All_CalibrateRawData_hp(
+  const int nEvents = 2000,
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
+  const char* calibrationFile = "DST/TPOT_Pedestal-00020121-0000.root"
   )
 {
-  const char* inputFile = Form( "LUSTRE/beam/TPOT_ebdc39_beam-%08i-0000.prdf", runNumber );
-  const char* calibrationFile = Form( "DST/TPOT_Pedestal-%08i-0000.root", runNumber );
-
   // print inputs
-  std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;

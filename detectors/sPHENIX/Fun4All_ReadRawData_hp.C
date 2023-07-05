@@ -28,33 +28,19 @@ R__LOAD_LIBRARY(libfun4allraw.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
-// //____________________________________________________________________
-// int Fun4All_G4_ReadRawData_hp(
-//   const int nEvents = 1000,
-//   // const char* inputFile = "LUSTRE/physics/TPOT_ebdc39_physics-00007389-0000.prdf",
-//   const char* inputFile = "RAW/TPOT_ebdc39_physics-00007393-0000.prdf",
-//   const char* outputFile = "DST/dst_eval-00007393-0000.root",
-//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00007393-0000.root"
-//   )
-// {
-
 //____________________________________________________________________
-int Fun4All_G4_ReadRawData_hp(
+int Fun4All_ReadRawData_hp(
   const int nEvents = 100,
-  const int runNumber = 9416
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00013013-0000.prdf",
+  const char* outputFile = "DST/dst_eval-00013013-0000.root",
+  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   )
-{
-  // const char* inputFile = Form( "LUSTRE/physics/TPOT_ebdc39_physics-%08i-0000.prdf", runNumber );
-  const char* inputFile = Form( "LUSTRE/beam/TPOT_ebdc39_beam-%08i-0000.prdf", runNumber );
-  const char* outputFile = Form( "DST/dst_eval-%08i-0000.root", runNumber );
-  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root";
-  
+{  
   // print inputs
-  std::cout << "Fun4All_G4_ReadRawData_hp - nEvents: " << nEvents << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - runNumber: " << runNumber << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - inputFile: " << inputFile << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_G4_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;
