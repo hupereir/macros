@@ -4,10 +4,9 @@
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <g4main/PHG4SimpleEventGenerator.h>
 #include <phool/recoConsts.h>
+
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-#include "G4_Global.C"
 #include "DisplayOn.C"
 
 R__LOAD_LIBRARY(libfun4all.so)
@@ -17,9 +16,9 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
 {
 
   // options
-  Enable::PIPE = true;
+  Enable::PIPE = false;
   // Enable::BBC = true;
-  Enable::BBCFAKE = true;
+  Enable::BBCFAKE = false;
   Enable::MAGNET = false;
   Enable::PLUGDOOR = false;
 
@@ -31,11 +30,12 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   Enable::CEMC = false;
   Enable::HCALOUT = false;
   Enable::HCALIN = false;
-  Enable::MVTX = true;
-  Enable::INTT = true;
-  Enable::TPC = true;
+  Enable::MVTX = false;
+  Enable::INTT = false;
+  Enable::TPC = false;
+  Enable::TPC_ENDCAP = true;
   Enable::MICROMEGAS = true;
-  Enable::BLACKHOLE = true;
+  Enable::BLACKHOLE = false;
 
   // server
   auto se = Fun4AllServer::instance();
@@ -44,19 +44,10 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   G4Init();
   G4Setup();
 
-  // DisplayOn();
-  QTGui();
-  
-// 
-//   gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
-//   gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
-//   
-//   cout << "-------------------------------------------------" << endl;
-//   cout << "You are in event display mode. Run one event with" << endl;
-//   cout << "se->run(1)" << endl;
-//   cout << "Run Geant4 command with following examples" << endl;
-//   gROOT->ProcessLine("displaycmd()");
-    
+  auto g4reco = DisplayOn();
+  g4reco->Dump_G4_GDML("sPHENIX_TPOT.gdml");
+
+  // QTGui();    
   return 0;
 }
 
