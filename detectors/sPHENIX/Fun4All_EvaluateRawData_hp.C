@@ -30,13 +30,13 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 1000,  
+  const int nEvents = 100,  
 //   const char* inputFile = "LUSTRE/beam/TPOT_ebdc39_beam-00020981-0000.prdf",
 //   const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00020981-0000.root",
 //   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00024029-0004.evt",
-  const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00024029-0000.root",
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00024080-0000.evt",
+  const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00024080-0000-test.root",
   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
 
   )
@@ -81,6 +81,7 @@ int Fun4All_EvaluateRawData_hp(
 
   // raw data evaluation
   auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
+  // micromegasRawDataEvaluation->Verbosity(1);
   micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
   micromegasRawDataEvaluation->set_sample_min( 15 );
   micromegasRawDataEvaluation->set_sample_max( 35 );
