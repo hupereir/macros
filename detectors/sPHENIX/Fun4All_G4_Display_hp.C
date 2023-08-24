@@ -31,9 +31,13 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   Enable::HCALOUT = false;
   Enable::HCALIN = false;
   Enable::MVTX = false;
-  Enable::INTT = false;
+
+  Enable::INTT = true;
+  Enable::INTT_ABSORBER = false;
+  Enable::INTT_SUPPORT = false;
+  
   Enable::TPC = false;
-  Enable::TPC_ENDCAP = true;
+  Enable::TPC_ENDCAP = false;
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = false;
 
@@ -45,7 +49,7 @@ int Fun4All_G4_Display_hp( const int nEvents = 1 )
   G4Setup();
 
   auto g4reco = DisplayOn();
-  g4reco->Dump_G4_GDML("sPHENIX_TPOT.gdml");
+  g4reco->Dump_G4_GDML("sPHENIX_TPOT_INTT.gdml");
 
   // QTGui();    
   return 0;

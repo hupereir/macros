@@ -30,13 +30,17 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 100,  
+  const int nEvents = 500,  
 //   const char* inputFile = "LUSTRE/beam/TPOT_ebdc39_beam-00020981-0000.prdf",
 //   const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00020981-0000.root",
 //   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00024080-0000.evt",
-  const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00024080-0000-test.root",
+//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00024080-0000.evt",
+//   const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00024080-0000-test.root",
+//   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
+  
+  const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00025475-0000.evt",
+  const char* evaluationFile =  "DST/MicromegasRawDataEvaluation-00025475-0000-test.root",
   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
 
   )
@@ -111,3 +115,4 @@ int Fun4All_EvaluateRawData_hp(
 // This function is only used to test if we can load this as root6 macro
 // without running into unresolved libraries and include files
 void RunFFALoadTest() {}
+
