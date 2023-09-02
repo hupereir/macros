@@ -1,8 +1,6 @@
 #ifndef MACRO_TRKRRECO_C
 #define MACRO_TRKRRECO_C
 
-#include <GlobalVariables.C>
-
 #include <G4_TrkrVariables.C>
 //#include <G4_ActsGeom.C>
 
@@ -37,6 +35,8 @@
 
 #include <fun4all/Fun4AllServer.h>
 
+#include <string>
+
 R__LOAD_LIBRARY(libtrack_reco.so)
 R__LOAD_LIBRARY(libtpccalib.so)
 R__LOAD_LIBRARY(libtpc.so)
@@ -51,6 +51,7 @@ void convert_seeds()
   // Default set to full SvtxTrackSeeds. Can be set to 
   // SiliconTrackSeedContainer or TpcTrackSeedContainer 
   converter->setTrackSeedName("SvtxTrackSeedContainer");
+  converter->setFieldMap(G4MAGNET::magfield);
   converter->Verbosity(verbosity);
   se->registerSubsystem(converter);
 }
@@ -62,13 +63,12 @@ void Tracking_Reco_TrackSeed()
   
   // get fun4all server instance
   auto se = Fun4AllServer::instance();
-
+  
   // Assemble silicon clusters into track stubs 
   
   auto silicon_Seeding = new PHActsSiliconSeeding;
   silicon_Seeding->Verbosity(verbosity);
   se->registerSubsystem(silicon_Seeding);
-
 
   auto merger = new PHSiliconSeedMerger;
   merger->Verbosity(verbosity);
@@ -77,16 +77,23 @@ void Tracking_Reco_TrackSeed()
   
   auto seeder = new PHCASeeding("PHCASeeding");
   seeder->set_field_dir(G4MAGNET::magfield_rescale);  // to get charge sign right
+  
   if (G4MAGNET::magfield.find("3d") != std::string::npos)
     {
       seeder->set_field_dir(-1 * G4MAGNET::magfield_rescale);
+      seeder->useConstBField(false);
+    }
+  if(G4MAGNET::magfield.find(".root") == std::string::npos)
+    {
+      //! constant field
+      seeder->useConstBField(true);
+      seeder->constBField(std::stod(G4MAGNET::magfield));
     }
   seeder->Verbosity(verbosity);
   seeder->SetLayerRange(7, 55);
   seeder->SetSearchWindow(1.5, 0.05);  // (z width, phi width)
   seeder->SetMinHitsPerCluster(0);
   seeder->SetMinClustersPerTrack(3);
-  seeder->useConstBField(false);
   seeder->useFixedClusterError(true);
   se->registerSubsystem(seeder);
   
@@ -97,7 +104,11 @@ void Tracking_Reco_TrackSeed()
     {
       cprop->set_field_dir(-1 * G4MAGNET::magfield_rescale);
     }
-  cprop->useConstBField(false);
+  if(G4MAGNET::magfield.find(".root") == std::string::npos)
+    {
+      cprop->useConstBField(false);
+      cprop->setConstBField(std::stod(G4MAGNET::magfield));
+    }
   cprop->useFixedClusterError(true);
   cprop->set_max_window(5.);
   cprop->Verbosity(verbosity);
@@ -203,6 +214,7 @@ void Tracking_Reco_TrackFit()
     }
     
   } else {
+
     // perform final track fit with ACTS
     auto actsFit = new PHActsTrkFitter;
     actsFit->Verbosity(verbosity);
@@ -211,6 +223,9 @@ void Tracking_Reco_TrackFit()
     actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
     actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
     actsFit->set_pp_mode(TRACKING::pp_mode);
+    actsFit->useActsEvaluator(false);
+    actsFit->useOutlierFinder(false);
+    actsFit->setFieldMap(G4MAGNET::magfield);
     se->registerSubsystem(actsFit);
     
     if (G4TRACKING::SC_CALIBMODE)
@@ -250,15 +265,19 @@ void Tracking_Reco_TrackFit()
     
     if( !G4TRACKING::use_genfit_track_fitter )
     {
-    
       // Propagate track positions to the vertex position
       auto vtxProp = new PHActsVertexPropagator;
       vtxProp->Verbosity(verbosity);
+      vtxProp->fieldMap(G4MAGNET::magfield);
       se->registerSubsystem(vtxProp);
       
       // project tracks to EMCAL
       auto projection = new PHActsTrackProjection;
       projection->Verbosity(verbosity);
+      if(G4MAGNET::magfield.find(".root") == std::string::npos)
+      {
+        projection->setConstFieldVal(std::stod(G4MAGNET::magfield));
+      }
       se->registerSubsystem(projection);
     }
   }
@@ -390,7 +409,7 @@ void Tracking_Reco()
     {
       Tracking_Reco_TrackSeed();
     }
-
+ 
   if(G4TRACKING::convert_seeds_to_svtxtracks)
     {
       vertexing();
