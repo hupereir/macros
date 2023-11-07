@@ -15,7 +15,6 @@
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
 #include "G4_Global.C"
 
 #include "Trkr_RecoInit.C"
@@ -25,32 +24,16 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
+R__LOAD_LIBRARY(libmbd.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 20,
-
+  const int nEvents = 0,
   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00020121-0000-test.root",
   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
-
-//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00009443-0000.prdf",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00009443-0000-test.root",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
-  
-//   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00026197-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00026197-0000-test.root",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
-
-//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00024341-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00024341-0000-test.root",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
-
-//   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00024248-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00024248-0000-test.root",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   )
 {
   // print inputs
@@ -61,7 +44,7 @@ int Fun4All_EvaluateRawData_hp(
 
   // options
   Enable::PIPE = true;
-  Enable::BBC = true;
+  Enable::MBD = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 

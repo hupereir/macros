@@ -12,10 +12,10 @@
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/MicromegasClusterEvaluator_hp.h>
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
 #include "G4_Global.C"
 
 #include "Trkr_RecoInit.C"
@@ -26,13 +26,15 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
 
+R__LOAD_LIBRARY(libmbd.so)
+
 R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_ReadRawData_hp(
-  const int nEvents = 100,
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00013013-0000.prdf",
-  const char* outputFile = "DST/dst_eval-00013013-0000.root",
+  const int nEvents = 0,
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
+  const char* outputFile =  "DST/CONDOR_RawDataEvaluation/dst_eval-00020121-0000-test.root",
   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   )
 {  
@@ -44,7 +46,7 @@ int Fun4All_ReadRawData_hp(
 
   // options
   Enable::PIPE = true;
-  Enable::BBC = true;
+  Enable::MBD = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 
@@ -84,31 +86,19 @@ int Fun4All_ReadRawData_hp(
   
   ACTSGEOM::ActsGeomInit();
   
-  // raw data decoding
-  if( true )
-  {
-    auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-    micromegasRawDataDecoder->set_calibration_file(calibrationFile);
-    micromegasRawDataDecoder->set_sample_min( 15 );
-    micromegasRawDataDecoder->set_sample_max( 35 );
-//     micromegasRawDataDecoder->set_sample_min( 0 );
-//     micromegasRawDataDecoder->set_sample_max( 30 );
-    se->registerSubsystem( micromegasRawDataDecoder );
+  auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
+  micromegasRawDataDecoder->set_calibration_file(calibrationFile);
+//   micromegasRawDataDecoder->set_sample_min( 15 );
+//   micromegasRawDataDecoder->set_sample_max( 35 );
+  micromegasRawDataDecoder->set_sample_min( 20 );
+  micromegasRawDataDecoder->set_sample_max( 45 );
+  se->registerSubsystem( micromegasRawDataDecoder );
     
-    // Micromegas clustering
-    auto mm_clus = new MicromegasClusterizer;
-    mm_clus->set_cluster_version(G4TRACKING::cluster_version);
-    se->registerSubsystem(mm_clus);   
-    
-  }
-  if( true )
-  {
-    auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalClusters
-      );
-    se->registerSubsystem(trackingEvaluator);
-  }
+  // Micromegas clustering
+  se->registerSubsystem(new MicromegasClusterizer);   
+  
+  // evaluation
+  se->registerSubsystem( new MicromegasClusterEvaluator_hp );
   
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
