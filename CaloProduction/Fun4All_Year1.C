@@ -11,6 +11,10 @@
 #include <caloreco/RawClusterPositionCorrection.h>
 #include <caloreco/TowerInfoDeadHotMask.h>
 
+#include <mbd/MbdReco.h>
+
+#include <globalvertex/GlobalVertexReco.h>
+
 #include <ffamodules/CDBInterface.h>
 #include <ffamodules/FlagHandler.h>
 #include <ffamodules/HeadReco.h>
@@ -26,9 +30,6 @@
 #include <fun4all/Fun4AllUtils.h>
 #include <fun4all/SubsysReco.h>
 
-#include <mbd/MbdReco.h>
-#include <globalvertex/GlobalVertexReco.h>
-
 #include <phool/recoConsts.h>
 
 R__LOAD_LIBRARY(libfun4all.so)
@@ -38,9 +39,10 @@ R__LOAD_LIBRARY(libffamodules.so)
 R__LOAD_LIBRARY(libmbd.so)
 R__LOAD_LIBRARY(libglobalvertex.so)
 
-void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/aligned_prdf/beam-00021796-0076.prdf", int nEvents = 5)
+void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/aligned_prdf/beam-00021796-0076.prdf", int nEvents = 10)
 {
   bool enableMasking = 0;
+  bool addZeroSupCaloNodes = 1;
   // v1 uncomment:
   // CaloTowerDefs::BuilderType buildertype = CaloTowerDefs:::kPRDFTowerv1;
   // v2 uncomment:
@@ -64,17 +66,27 @@ void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commis
   //===============
   // ENABLE::CDB = true;
   // global tag
-  rc->set_StringFlag("CDB_GLOBALTAG", "2023p003");
+  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2023");
   // // 64 bit timestamp
   rc->set_uint64Flag("TIMESTAMP", runnumber);
   CDBInterface::instance()->Verbosity(1);
+
+  // Sync Headers and Flags
+  SyncReco *sync = new SyncReco();
+  se->registerSubsystem(sync);
+
+  HeadReco *head = new HeadReco();
+  se->registerSubsystem(head);
+
+  FlagHandler *flag = new FlagHandler();
+  se->registerSubsystem(flag);
 
   // MBD/BBC Reconstruction
   MbdReco *mbdreco = new MbdReco();
   se->registerSubsystem(mbdreco);
 
   // Official vertex storage
-  GlobalVertexReco* gvertex = new GlobalVertexReco();
+  GlobalVertexReco *gvertex = new GlobalVertexReco();
   se->registerSubsystem(gvertex);
 
   /////////////////
@@ -103,6 +115,7 @@ void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commis
   CaloTowerBuilder *ca4 = new CaloTowerBuilder("zdc");
   ca4->set_detector_type(CaloTowerDefs::ZDC);
   ca4->set_nsamples(31);
+  ca4->set_builder_type(CaloTowerDefs::kPRDFWaveform);
   ca4->set_processing_type(CaloWaveformProcessing::FAST);
   se->registerSubsystem(ca4);
 
@@ -111,14 +124,17 @@ void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commis
   std::cout << "status setters" << std::endl;
   CaloTowerStatus *statusEMC = new CaloTowerStatus("CEMCSTATUS");
   statusEMC->set_detector_type(CaloTowerDefs::CEMC);
+  statusEMC->set_time_cut(1);
   se->registerSubsystem(statusEMC);
 
   CaloTowerStatus *statusHCalIn = new CaloTowerStatus("HCALINSTATUS");
   statusHCalIn->set_detector_type(CaloTowerDefs::HCALIN);
+  statusHCalIn->set_time_cut(2);
   se->registerSubsystem(statusHCalIn);
 
   CaloTowerStatus *statusHCALOUT = new CaloTowerStatus("HCALOUTSTATUS");
   statusHCALOUT->set_detector_type(CaloTowerDefs::HCALOUT);
+  statusHCALOUT->set_time_cut(2);
   se->registerSubsystem(statusHCALOUT);
 
   ////////////////////
@@ -207,6 +223,53 @@ void Fun4All_Year1(const std::string &fname = "/sphenix/lustre01/sphnxpro/commis
   RawClusterPositionCorrection *clusterCorrection = new RawClusterPositionCorrection("CEMC");
   clusterCorrection->set_UseTowerInfo(1);  // to use towerinfo objects rather than old RawTower
   se->registerSubsystem(clusterCorrection);
+
+  ///////////////////////////////////////////
+  // Calo node with software zero supression
+  if (addZeroSupCaloNodes)
+  {
+    CaloTowerBuilder *ctbEMCal_SZ = new CaloTowerBuilder("EMCalBUILDER_ZS");
+    ctbEMCal_SZ->set_detector_type(CaloTowerDefs::CEMC);
+    ctbEMCal_SZ->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    ctbEMCal_SZ->set_nsamples(8);
+    ctbEMCal_SZ->set_outputNodePrefix("TOWERS_SZ_");
+    ctbEMCal_SZ->set_softwarezerosuppression(true, 100000000);
+    se->registerSubsystem(ctbEMCal_SZ);
+
+    CaloTowerBuilder *ctbIHCal_SZ = new CaloTowerBuilder("HCALINBUILDER_ZS");
+    ctbIHCal_SZ->set_detector_type(CaloTowerDefs::HCALIN);
+    ctbIHCal_SZ->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    ctbIHCal_SZ->set_nsamples(8);
+    ctbIHCal_SZ->set_outputNodePrefix("TOWERS_SZ_");
+    ctbIHCal_SZ->set_softwarezerosuppression(true, 100000000);
+    se->registerSubsystem(ctbIHCal_SZ);
+
+    CaloTowerBuilder *ctbOHCal_SZ = new CaloTowerBuilder("HCALOUTBUILDER_SZ");
+    ctbOHCal_SZ->set_detector_type(CaloTowerDefs::HCALOUT);
+    ctbOHCal_SZ->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    ctbOHCal_SZ->set_nsamples(8);
+    ctbOHCal_SZ->set_outputNodePrefix("TOWERS_SZ_");
+    ctbOHCal_SZ->set_softwarezerosuppression(true, 100000000);
+    se->registerSubsystem(ctbOHCal_SZ);
+
+    CaloTowerCalib *calibEMC_SZ = new CaloTowerCalib("CEMCCALIB_SZ");
+    calibEMC_SZ->set_detector_type(CaloTowerDefs::CEMC);
+    calibEMC_SZ->set_inputNodePrefix("TOWERS_SZ_");
+    calibEMC_SZ->set_outputNodePrefix("TOWERINFO_SZ_CALIB_");
+    se->registerSubsystem(calibEMC_SZ);
+
+    CaloTowerCalib *calibIHCal_SZ = new CaloTowerCalib("IHCALCALIB_SZ");
+    calibIHCal_SZ->set_detector_type(CaloTowerDefs::HCALIN);
+    calibIHCal_SZ->set_inputNodePrefix("TOWERS_SZ_");
+    calibIHCal_SZ->set_outputNodePrefix("TOWERINFO_SZ_CALIB_");
+    se->registerSubsystem(calibIHCal_SZ);
+
+    CaloTowerCalib *calibOHCal_SZ = new CaloTowerCalib("OHCALCALIB_SZ");
+    calibOHCal_SZ->set_detector_type(CaloTowerDefs::HCALOUT);
+    calibOHCal_SZ->set_inputNodePrefix("TOWERS_SZ_");
+    calibOHCal_SZ->set_outputNodePrefix("TOWERINFO_SZ_CALIB_");
+    se->registerSubsystem(calibOHCal_SZ);
+  }
 
   Fun4AllInputManager *In = new Fun4AllPrdfInputManager("in");
   In->AddFile(fname);
