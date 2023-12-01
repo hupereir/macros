@@ -30,9 +30,9 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 0,
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
-  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00020121-0000-test.root",
+  const int nEvents = 2000,
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00009467-0000.prdf",
+  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00009467-0000-test.root",
   const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
   )
 {
