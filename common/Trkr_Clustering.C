@@ -12,7 +12,10 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundefined-internal"
+
 #include <tpc/TpcClusterizer.h>
+#include <tpc/TpcSimpleClusterizer.h>
+
 #pragma GCC diagnostic pop
 
 #include <tpc/TpcClusterCleaner.h>
@@ -83,15 +86,27 @@ void TPC_Clustering()
   // For the Tpc
   //==========
 
-  auto tpcclusterizer = new TpcClusterizer;
-  tpcclusterizer->Verbosity(verbosity);
-  tpcclusterizer->set_do_hit_association( G4TPC::DO_HIT_ASSOCIATION );
-  se->registerSubsystem(tpcclusterizer);
-  
-  auto tpcclustercleaner = new TpcClusterCleaner;
-  tpcclustercleaner->Verbosity(verbosity);
-  se->registerSubsystem(tpcclustercleaner);
+  if( G4TPC::USE_SIMPLE_CLUSTERIZER )
+  {
 
+    std::cout << "TPC_Clustering - using simple clusterizer" << std::endl;
+    auto tpcclusterizer = new TpcSimpleClusterizer;
+    tpcclusterizer->Verbosity(verbosity);
+    tpcclusterizer->set_do_hit_association( G4TPC::DO_HIT_ASSOCIATION );
+    se->registerSubsystem(tpcclusterizer);
+
+  } else {
+
+    auto tpcclusterizer = new TpcClusterizer;
+    tpcclusterizer->Verbosity(verbosity);
+    tpcclusterizer->set_do_hit_association( G4TPC::DO_HIT_ASSOCIATION );
+    se->registerSubsystem(tpcclusterizer);
+
+    auto tpcclustercleaner = new TpcClusterCleaner;
+    tpcclustercleaner->Verbosity(verbosity);
+    se->registerSubsystem(tpcclustercleaner);
+
+  }
 }
 
 void Micromegas_Clustering()
