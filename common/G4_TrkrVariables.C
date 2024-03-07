@@ -16,7 +16,6 @@ namespace Enable
   bool MVTX_QA = false;
   bool MVTX_SUPPORT = false;
 
->>>>>>> master
   int MVTX_VERBOSITY = 0;
 
   bool INTT = false;
