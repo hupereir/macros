@@ -32,9 +32,9 @@ R__LOAD_LIBRARY(libmicromegas.so)
 int Fun4All_CalibrateRawData_hp(
   const int nEvents = 2000,
 //   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
-//   const char* calibrationFile = "DST/TPOT_Pedestal-00020121-0000.root"
+//   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00020121-0000.root"
   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00026174-0000.evt",
-  const char* calibrationFile = "DST/TPOT_Pedestal-00026174-0000.root"
+  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00026174-0000.root"
   )
 {
   // print inputs
@@ -76,7 +76,7 @@ int Fun4All_CalibrateRawData_hp(
 
   // Geant4 initialization
   G4Init();
-  
+
   // raw data calibration
   auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
   micromegasRawDataCalibration->set_calibration_file(calibrationFile);

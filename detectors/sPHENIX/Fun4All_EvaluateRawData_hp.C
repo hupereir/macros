@@ -37,7 +37,7 @@ int Fun4All_EvaluateRawData_hp(
   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020469-0000.prdf",
   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00020469-0000-test.root",
 
-  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
+  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00009416-0000.root"
   )
 {
   // print inputs

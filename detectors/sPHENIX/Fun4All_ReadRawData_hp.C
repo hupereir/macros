@@ -9,40 +9,38 @@
 #include <phool/recoConsts.h>
 
 #include <micromegas/MicromegasRawDataDecoder.h>
-
-// own modules
-#include <g4eval_hp/EventCounter_hp.h>
-#include <g4eval_hp/MicromegasClusterEvaluator_hp.h>
+#include <micromegas/MicromegasRawDataCalibration.h>
+#include <micromegas/MicromegasRawDataEvaluation.h>
 
 // local macros
-#include "G4Setup_sPHENIX.C"
-#include "G4_Global.C"
+#include <G4Setup_sPHENIX.C>
+#include <G4_Global.C>
 
-#include "Trkr_RecoInit.C"
-#include "Trkr_Clustering.C"
-#include "Trkr_Reco.C"
+#include <Trkr_RecoInit.C>
+#include <Trkr_Clustering.C>
+#include <Trkr_Reco.C>
 
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
-
-R__LOAD_LIBRARY(libmbd.so)
+R__LOAD_LIBRARY(libqa_modules.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
+R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 
 //____________________________________________________________________
 int Fun4All_ReadRawData_hp(
-  const int nEvents = 0,
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
-  const char* outputFile =  "DST/CONDOR_RawDataEvaluation/dst_eval-00020121-0000-test.root",
-  const char* calibrationFile = "DST/TPOT_Pedestal-00009416-0000.root"
+  int nEvents = 500,
+//   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00031513-0000.evt",
+//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00031459-0000-test.root"
+
+  const char* inputFile = "/sphenix/lustre01/sphnxpro/commissioning/TPOT/beam/TPOT_ebdc39_cosmics-00031590-0000.evt",
+  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00031590-0000-test.root"
   )
-{  
+{
   // print inputs
-  std::cout << "Fun4All_ReadRawData_hp - nEvents: " << nEvents << std::endl;
-  std::cout << "Fun4All_ReadRawData_hp - inputFile: " << inputFile << std::endl;
-  std::cout << "Fun4All_ReadRawData_hp - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
+  std::cout << "Fun4All_ReadRawData - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_ReadRawData - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_ReadRawData - evaluationFile: " << evaluationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -63,7 +61,7 @@ int Fun4All_ReadRawData_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
+  se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -73,46 +71,23 @@ int Fun4All_ReadRawData_hp(
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
 
-  // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
-
-  // condition database
-  Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
-  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
-  
+  // Geant4 initialization
   G4Init();
-  G4Setup();
-  
-  ACTSGEOM::ActsGeomInit();
-  
-  auto micromegasRawDataDecoder = new MicromegasRawDataDecoder;
-  micromegasRawDataDecoder->set_calibration_file(calibrationFile);
-//   micromegasRawDataDecoder->set_sample_min( 15 );
-//   micromegasRawDataDecoder->set_sample_max( 35 );
-  micromegasRawDataDecoder->set_sample_min( 20 );
-  micromegasRawDataDecoder->set_sample_max( 45 );
-  se->registerSubsystem( micromegasRawDataDecoder );
-    
-  // Micromegas clustering
-  se->registerSubsystem(new MicromegasClusterizer);   
-  
-  // evaluation
-  se->registerSubsystem( new MicromegasClusterEvaluator_hp );
-  
-  // for single particle generators we just need something which drives
-  // the event loop, the Dummy Input Mgr does just that
+
+  if( true )
+  {
+    // raw data evaluation
+    auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
+    micromegasRawDataEvaluation->Verbosity(1);
+    micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
+    se->registerSubsystem( micromegasRawDataEvaluation );
+  }
+
+  // input manager
   auto in = new Fun4AllPrdfInputManager;
   in->fileopen(inputFile);
   se->registerInputManager(in);
 
-  // output manager
-  if( true )
-  {
-    auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-    se->registerOutputManager(out);
-  }
-  
   // process events
   se->run(nEvents);
 
