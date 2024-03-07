@@ -54,10 +54,11 @@ void MvtxInit()
 }
 
 double Mvtx(PHG4Reco* g4Reco, double radius,
-            const int absorberactive = 0)
+            const int supportactive = 0)
 {
   bool maps_overlapcheck = Enable::OVERLAPCHECK || Enable::MVTX_OVERLAPCHECK;
   int verbosity = std::max(Enable::VERBOSITY, Enable::MVTX_VERBOSITY);
+  bool SupportActive = Enable::SUPPORT || Enable::MVTX_SUPPORT;
 
   PHG4MvtxSubsystem* mvtx = new PHG4MvtxSubsystem("MVTX");
   mvtx->Verbosity(verbosity);
@@ -76,6 +77,10 @@ double Mvtx(PHG4Reco* g4Reco, double radius,
   mvtx->set_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/mvtx_stave.gdml"));
 
   mvtx->SetActive();
+  if (SupportActive)
+  {
+    mvtx->SetSupportActive();
+  }
   mvtx->OverlapCheck(maps_overlapcheck);
   g4Reco->registerSubsystem(mvtx);
   radius += G4MVTX::radius_offset;
@@ -149,11 +154,11 @@ double Intt(PHG4Reco* g4Reco, double radius,
   sitrack->Verbosity(verbosity);
   sitrack->SetActive(1);
   sitrack->OverlapCheck(intt_overlapcheck);
-  if (Enable::INTT_ABSORBER)
+  if (Enable::INTT_ABSORBER || Enable::ABSORBER)
   {
     sitrack->SetAbsorberActive();
   }
-  if (Enable::INTT_SUPPORT)
+  if (Enable::INTT_SUPPORT || Enable::SUPPORT)
   {
     sitrack->set_int_param(PHG4InttDefs::SUPPORTPARAMS, "supportactive", 1);
   }
@@ -341,8 +346,16 @@ double TPC(PHG4Reco* g4Reco,
     {
       tpc->SetAbsorberActive();
     }
-  tpc->OverlapCheck(OverlapCheck);
 
+  double extended_readout_time = 0.0;
+  if(TRACKING::pp_mode)
+  {
+    extended_readout_time = TRACKING::pp_extended_readout_time;
+  }
+
+  tpc->set_double_param("extended_readout_time", extended_readout_time);
+
+  tpc->OverlapCheck(OverlapCheck);
   g4Reco->registerSubsystem(tpc);
 
   if (Enable::TPC_ENDCAP)
@@ -400,6 +413,9 @@ void TPC_Cells()
 
   auto padplane = new PHG4TpcPadPlaneReadout;
   padplane->Verbosity(verbosity);
+  double extended_readout_time = 0.0;
+  if(TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
+  padplane->SetReadoutTime(extended_readout_time);
 
   auto edrift = new PHG4TpcElectronDrift;
   edrift->Detector("TPC");
@@ -421,9 +437,8 @@ void TPC_Cells()
   }
 
   double tpc_readout_time = 105.5/ G4TPC::tpc_drift_velocity_sim;  // ns
-  double extended_readout_time = 0.0;
-  if(TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
-  edrift->set_double_param("max_time", tpc_readout_time + extended_readout_time);
+  edrift->set_double_param("max_time", tpc_readout_time);
+  edrift->set_double_param("extended_readout_time", extended_readout_time);
   std::cout << "PHG4TpcElectronDrift readout window is from 0 to " <<  tpc_readout_time + extended_readout_time << std::endl;
 
   // override the default drift velocity parameter specification
@@ -433,6 +448,7 @@ void TPC_Cells()
   // fudge factors to get drphi 150 microns (in mid and outer Tpc) and dz 500 microns cluster resolution
   // They represent effects not due to ideal gas properties and ideal readout plane behavior
   // defaults are 0.085 and 0.105, they can be changed here to get a different resolution
+
   edrift->registerPadPlane(padplane);
   se->registerSubsystem(edrift);
 
@@ -474,9 +490,17 @@ void MicromegasInit()
 
 void Micromegas(PHG4Reco* g4Reco)
 {
+  bool overlapcheck = Enable::OVERLAPCHECK || Enable::MICROMEGAS_OVERLAPCHECK;
+  int verbosity = std::max(Enable::VERBOSITY, Enable::MICROMEGAS_VERBOSITY);
+  bool SupportActive = Enable::SUPPORT || Enable::MICROMEGAS_SUPPORT;
   const int mm_layer = G4MVTX::n_maps_layer + G4INTT::n_intt_layer + G4TPC::n_gas_layer;
   auto mm = new PHG4MicromegasSubsystem("MICROMEGAS", mm_layer);
-  mm->OverlapCheck( Enable::OVERLAPCHECK );
+  mm->Verbosity(verbosity);
+  if (SupportActive)
+  {
+    mm->SetSupportActive();
+  }
+  mm->OverlapCheck(overlapcheck );
   mm->SetActive();
   g4Reco->registerSubsystem(mm);
 }
@@ -486,9 +510,14 @@ void Micromegas_Cells()
 // the acts geometry needs to go here since it will be used by the PHG4MicromegasHitReco
   ACTSGEOM::ActsGeomInit();
   auto se = Fun4AllServer::instance();
+  int verbosity = std::max(Enable::VERBOSITY, Enable::MICROMEGAS_VERBOSITY);
   // micromegas
   auto reco = new PHG4MicromegasHitReco;
-  reco->Verbosity(0);
+  reco->Verbosity(verbosity);
+  double extended_readout_time = 0.0;
+  if (TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
+
+  reco->set_double_param("micromegas_tmax", 800.0+extended_readout_time);
   se->registerSubsystem(reco);
 
   se->registerSubsystem(new PHG4MicromegasDigitizer);

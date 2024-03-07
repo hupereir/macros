@@ -14,8 +14,9 @@ namespace Enable
   bool MVTX_CELL = false;
   bool MVTX_CLUSTER = false;
   bool MVTX_QA = false;
-  bool MVTX_ABSORBER = false;
+  bool MVTX_SUPPORT = false;
 
+>>>>>>> master
   int MVTX_VERBOSITY = 0;
 
   bool INTT = false;
@@ -38,9 +39,12 @@ namespace Enable
 
   int TPC_VERBOSITY = 0;
 
+  bool MICROMEGAS_OVERLAPCHECK = false;
   bool MICROMEGAS_CELL = false;
   bool MICROMEGAS_CLUSTER = false;
   bool MICROMEGAS_QA = false;
+  bool MICROMEGAS_SUPPORT = false;
+  int MICROMEGAS_VERBOSITY = 0;
 
   bool TRACKING_TRACK = false;
   bool TRACKING_EVAL = false;
@@ -172,6 +176,9 @@ namespace G4TRACKING
   // Runs a converter from TrackSeed object to SvtxTrack object to enable
   // use of the various evaluation tools already available
   bool convert_seeds_to_svtxtracks = false;
+
+  // Runs a second pass of seeding to pick up missed seeds in the first pass
+  bool iterative_seeding = false;
 
   // Flag to run commissioning seeding workflow with tuned parameters for
   // misaligned + distorted tracks
