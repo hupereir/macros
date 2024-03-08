@@ -388,6 +388,7 @@ void TPC_Cells()
   if( G4TPC::ENABLE_DIRECT_LASER_HITS )
   {
     auto directLaser = new PHG4TpcDirectLaser;
+    directLaser->Verbosity(1);
 
     // setup phi and theta steps
     /* use 5deg steps */
