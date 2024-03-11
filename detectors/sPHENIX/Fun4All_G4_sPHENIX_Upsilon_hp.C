@@ -17,8 +17,8 @@
 #include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
-#include "G4Setup_sPHENIX.C"
-#include "G4_Global.C"
+#include <G4Setup_sPHENIX.C>
+#include <G4_Global.C>
 
 #include <Trkr_RecoInit.C>
 #include <Trkr_Clustering.C>
@@ -79,12 +79,12 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // TPC
   // space charge distortions
   G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  G4TPC::ENABLE_CORRECTIONS = true;
+  G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_inverted_10.root";
 
   // tracking configuration

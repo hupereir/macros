@@ -7,23 +7,28 @@
 #include <phool/recoConsts.h>
 
 // own modules
-#include <g4eval/EventCounter_hp.h>
-#include <g4eval/SimEvaluator_hp.h>
-#include <g4eval/MicromegasEvaluator_hp.h>
-#include <g4eval/TrackingEvaluator_hp.h>
+#include <g4eval_hp/EventCounter_hp.h>
+#include <g4eval_hp/SimEvaluator_hp.h>
+#include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
-#include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
-#include "G4_Global.C"
-#include "G4_Tracking.C"
+#include <G4Setup_sPHENIX.C>
+#include <G4_Global.C>
+// #include "G4_Tracking.C"
+
+#include <G4_TrkrSimulation.C>
+#include <Trkr_RecoInit.C>
+#include <Trkr_Clustering.C>
+#include <Trkr_Reco.C>
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libqa_modules.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_DirectLasers_hp(
-  const int nEvents = 1224,  
+  const int nEvents = 100,
   const char* outputFile = "DST/dst_reco_all_directlasers.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_all_directlasers.root",
   const char* evaluationFile = "DST/TpcDirectLaserReconstruction_all_directlasers.root"
@@ -32,10 +37,10 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
 
   std::cout << "Fun4All_G4_sPHENIX_DirectLasers_hp - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_DirectLasers_hp - evaluationFile: " << evaluationFile << std::endl;
-  
+
   // options
   Enable::PIPE = true;
-  Enable::BBC = true;
+  Enable::MBD = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 
@@ -53,12 +58,12 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   // TPC
   // space charge distortions
   G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  
+
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
 
   G4TPC::ENABLE_CENTRAL_MEMBRANE_HITS = false;
-  
+
   G4TPC::ENABLE_DIRECT_LASER_HITS = true;
   G4TPC::DIRECT_LASER_SAVEHISTOGRAMS = true;
   G4TPC::DIRECT_LASER_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -82,6 +87,9 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   auto rc = recoConsts::instance();
   // rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
   // rc->set_IntFlag("RANDOMSEED",1);
+  Enable::CDB = true;
+  rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
+  rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
@@ -90,9 +98,9 @@ int Fun4All_G4_sPHENIX_DirectLasers_hp(
   G4Init();
   G4Setup();
 
-  // BBC
-  BbcInit();
-  Bbc_Reco();
+  // MBD
+  // Mbd_Init();
+  // Mbd_Reco();
 
   // cells
   Mvtx_Cells();
