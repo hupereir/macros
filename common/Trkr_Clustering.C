@@ -72,6 +72,7 @@ void Intt_HitUnpacking()
 
   auto inttunpacker = new InttCombinedRawDataDecoder;
   inttunpacker->Verbosity(verbosity);
+  inttunpacker->LoadHotChannelMapRemote("INTT_HotMap");
   se->registerSubsystem(inttunpacker);
 }
 void Intt_Clustering()

@@ -22,6 +22,7 @@
 #include <trackreco/PHTrackSeeding.h>
 #include <trackreco/SecondaryVertexFinder.h>
 #include <trackreco/TrackingIterationCounter.h>
+#include <trackreco/PrelimDistortionCorrection.h>
 
 #include <tpc/TpcLoadDistortionCorrection.h>
 
@@ -95,6 +96,7 @@ void Tracking_Reco_TrackSeed()
   seeder->SetMinHitsPerCluster(0);
   seeder->SetMinClustersPerTrack(3);
   seeder->useFixedClusterError(true);
+  seeder->set_pp_mode(TRACKING::pp_mode);
   se->registerSubsystem(seeder);
 
   // expand stubs in the TPC using simple kalman filter
@@ -112,7 +114,18 @@ void Tracking_Reco_TrackSeed()
   cprop->useFixedClusterError(true);
   cprop->set_max_window(5.);
   cprop->Verbosity(verbosity);
+  cprop->set_pp_mode(TRACKING::pp_mode);
   se->registerSubsystem(cprop);
+
+ if(TRACKING::pp_mode)
+    {
+      // for pp mode, apply preliminary distortion corrections to TPC clusters before crossing is known
+      // and refit the trackseeds. Replace KFProp fits with the new fit parameters in the TPC seeds.
+      auto prelim_distcorr = new PrelimDistortionCorrection;
+      prelim_distcorr->set_pp_mode(TRACKING::pp_mode);
+      prelim_distcorr->Verbosity(verbosity);
+      se->registerSubsystem(prelim_distcorr);
+    }
 
   std::cout << "Tracking_Reco_TrackSeed - Using stub matching for Si matching " << std::endl;
   // The normal silicon association methods
@@ -245,13 +258,11 @@ void Tracking_Reco_TrackFit()
     auto actsFit = new PHActsTrkFitter;
     actsFit->Verbosity(verbosity);
     actsFit->commissioning(G4TRACKING::use_alignment);
-
-    actsFit->set_use_clustermover(true);
-
     // in calibration mode, fit only Silicons and Micromegas hits
     actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
     actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
     actsFit->set_pp_mode(TRACKING::pp_mode);
+    actsFit->set_use_clustermover(true); // default is true for now
     actsFit->useActsEvaluator(false);
     actsFit->useOutlierFinder(false);
     actsFit->setFieldMap(G4MAGNET::magfield);
@@ -286,6 +297,7 @@ void Tracking_Reco_TrackFit()
       /* this breaks in truth_track seeding mode because there is no TpcSeed */
       auto cleaner = new PHTrackCleaner;
       cleaner->Verbosity(verbosity);
+      //cleaner->set_quality_cut(30.0);
       se->registerSubsystem(cleaner);
     }
 
@@ -345,6 +357,7 @@ void Tracking_Reco_CommissioningTrackSeed()
   seeder->SetMinClustersPerTrack(3);
   seeder->useConstBField(false);
   seeder->useFixedClusterError(true);
+  seeder->set_pp_mode(TRACKING::pp_mode);
   se->registerSubsystem(seeder);
 
   // expand stubs in the TPC using simple kalman filter
@@ -358,7 +371,18 @@ void Tracking_Reco_CommissioningTrackSeed()
   cprop->useFixedClusterError(true);
   cprop->set_max_window(5.);
   cprop->Verbosity(verbosity);
+  cprop->set_pp_mode(TRACKING::pp_mode);
   se->registerSubsystem(cprop);
+
+ if(TRACKING::pp_mode)
+    {
+      // for pp mode, apply preliminary distortion corrections to TPC clusters before crossing is known
+      // and refit the trackseeds. Replace KFProp fits with the new fit parameters in the TPC seeds.
+      auto prelim_distcorr = new PrelimDistortionCorrection;
+      prelim_distcorr->set_pp_mode(TRACKING::pp_mode);
+      prelim_distcorr->Verbosity(verbosity);
+      se->registerSubsystem(prelim_distcorr);
+    }
 
   // match silicon track seeds to TPC track seeds
 
@@ -408,7 +432,7 @@ void alignment(std::string datafilename = "mille_output_data_file",
   se->registerSubsystem(mille);
 
   auto helical = new HelicalFitter;
-  helical->Verbosity(0);
+  helical->Verbosity(verbosity);
   helical->set_datafile_name(datafilename + "_helical.bin");
   helical->set_steeringfile_name(steeringfilename + "_helical.txt");
   se->registerSubsystem(helical);
@@ -459,8 +483,10 @@ void Tracking_Reco()
 void Filter_Conversion_Electrons(std::string ntuple_outfile)
 {
   Fun4AllServer* se = Fun4AllServer::instance();
+  int verbosity = std::max(Enable::VERBOSITY, Enable::TRACKING_VERBOSITY);
+
   SecondaryVertexFinder* secvert = new SecondaryVertexFinder;
-  secvert->Verbosity(0);
+  secvert->Verbosity(verbosity);
   //  secvert->set_write_electrons_node(true);  // writes copy of filtered electron tracks to node tree
   //  secvert->set_write_ntuple(false);  // writes ntuple for tuning cuts
   secvert->setDecayParticleMass(0.000511);  // for electrons
