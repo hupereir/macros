@@ -78,14 +78,17 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
+  // G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
+  G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = true;
   G4TPC::ENABLE_STATIC_DISTORTIONS = true;
-  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  G4TPC::static_distortion_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root");
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = true;
   G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_inverted_10.root";
+  G4TPC::correction_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root");
 
   // tracking configuration
   G4TRACKING::use_full_truth_track_seeding = true;
