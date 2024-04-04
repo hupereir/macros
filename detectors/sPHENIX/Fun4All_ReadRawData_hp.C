@@ -30,11 +30,11 @@ R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 //____________________________________________________________________
 int Fun4All_ReadRawData_hp(
   int nEvents = 500,
-//   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00031513-0000.evt",
-//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00031459-0000-test.root"
+//   const char* inputFile = "LUSTRE/beam/TPOT_ebdc39_calib-00034596-0000.evt",
+//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00034596-0000-test.root"
 
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/commissioning/TPOT/beam/TPOT_ebdc39_cosmics-00031590-0000.evt",
-  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00031590-0000-test.root"
+  const char* inputFile = "/sphenix/lustre01/sphnxpro/commissioning/TPOT/junk/TPOT_ebdc39_junk-00035556-0000.evt",
+  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00035556-0000-test.root"
   )
 {
   // print inputs
@@ -80,6 +80,8 @@ int Fun4All_ReadRawData_hp(
     auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
     micromegasRawDataEvaluation->Verbosity(1);
     micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
+    micromegasRawDataEvaluation->set_sample_min(0);
+    micromegasRawDataEvaluation->set_sample_max(360);
     se->registerSubsystem( micromegasRawDataEvaluation );
   }
 

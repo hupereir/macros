@@ -13,22 +13,34 @@
 #include <g4eval_hp/TrackingEvaluator_hp.h>
 
 // local macros
-#include "G4Setup_sPHENIX.C"
+#include <G4Setup_sPHENIX.C>
+#include <G4_Global.C>
 
-#include "Trkr_RecoInit.C"
-#include "Trkr_Clustering.C"
-#include "Trkr_Reco.C"
+#include <Trkr_RecoInit.C>
+#include <Trkr_Clustering.C>
+
+#define USE_TRUTH_TRACK_FINDING
+
+#ifdef USE_TRUTH_TRACK_FINDING
+#include <Trkr_TruthReco.C>
+#else
+#include <Trkr_Reco.C>
+#endif
+
+#include <Trkr_QA.C>
+#include <Trkr_Eval.C>
 
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libg4eval_hp.so)
 R__LOAD_LIBRARY(libqa_modules.so)
+R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
-  const char* outputFile = "DST/dst_eval_acts_full_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_full_notpc_nodistortion.root",
-  const char* qaOutputFile = "DST/qa_acts_full_notpc_nodistortion.root"
+  const int nEvents = 100,
+  const char* outputFile = "DST/dst_eval_acts_truth_notpc_nodistortion.root",
+  const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root",
+  const char* qaOutputFile = "DST/qa_acts_truth_notpc_nodistortion.root"
   )
 {
 
@@ -40,7 +52,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // options
   Enable::PIPE = true;
-  Enable::BBC = true;
+  // Enable::MBD = true;
+  Enable::MBDFAKE = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 
@@ -57,25 +70,32 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
-  // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_converted.root";
-  // G4TPC::static_distortion_filename = "/star/u/rcorliss/sphenix/trackingStudySampleNov2021/static_only.distortion_map.hist.root";
+  G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  //  G4TPC::static_distortion_filename = "/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root";
 
   // space charge corrections
   G4TPC::ENABLE_CORRECTIONS = false;
-  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/average_minus_static_distortion_inverted_10-new.root";
-  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps-new/static_only_inverted_10-new.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_inverted_10.root";
+  // G4TPC::correction_filename = "/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root";
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.inverted_10.root";
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = false;
-  G4TRACKING::use_truth_vertexing = true;
+  #ifdef USE_TRUTH_TRACK_FINDING
+  G4TRACKING::use_full_truth_track_seeding = true;
+  #endif
 
-  G4TRACKING::SC_CALIBMODE = false;
+  // distortion reconstruction
+  // G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  // se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -89,18 +109,18 @@ int Fun4All_G4_sPHENIX_hp(
   Enable::CDB = true;
   rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
   rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
-  
+
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
 
   {
     // event generation
     auto gen = new PHG4SimpleEventGenerator;
-    gen->add_particles("pi+",1);
-    gen->add_particles("pi-",1);
+    gen->add_particles("pi+",10);
+    gen->add_particles("pi-",10);
 
     gen->set_eta_range(-1.0, 1.0);
-    gen->set_phi_range(-1.0 * TMath::Pi(), 1.0 * TMath::Pi());
+    gen->set_phi_range(-M_PI, M_PI);
 
     if( false )
     {
@@ -111,28 +131,26 @@ int Fun4All_G4_sPHENIX_hp(
       const std::vector<double> yield_int = {2.23, 1.46, 0.976, 0.663, 0.457, 0.321, 0.229, 0.165, 0.119, 0.0866, 0.0628, 0.0458, 0.0337, 0.0248, 0.0183, 0.023, 0.0128, 0.00724, 0.00412, 0.00238, 0.00132, 0.00106, 0.000585, 0.00022, 0.000218, 9.64e-05, 4.48e-05, 2.43e-05, 1.22e-05, 7.9e-06, 4.43e-06, 4.05e-06, 1.45e-06, 9.38e-07};
       gen->set_pt_range(pt_bins,yield_int);
 
-    } else if( true ) {
-      
+    } else if( false ) {
+
       // use power law
       gen->set_pt_range(0.5, 20.0);
       gen->set_power_law_n(-4);
 
     } else {
-      
+
       // flat pt distribution
-      gen->set_pt_range(0.2, 20.0);
-      
+      gen->set_pt_range(0.1, 10.0);
+
     }
 
     // vertex
     gen->set_vertex_distribution_function(
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform,
-      PHG4SimpleEventGenerator::Uniform);
+      PHG4SimpleEventGenerator::Gaus,
+      PHG4SimpleEventGenerator::Gaus,
+      PHG4SimpleEventGenerator::Gaus);
     gen->set_vertex_distribution_mean(0.0, 0.0, 0.0);
-    gen->set_vertex_distribution_width(0.0, 0.0, 5.0);
-    gen->set_vertex_size_function(PHG4SimpleEventGenerator::Uniform);
-    gen->set_vertex_size_parameters(0.0, 0.0);
+    gen->set_vertex_distribution_width(0.01, 0.01, 5.0);
 
     gen->Embed(2);
     se->registerSubsystem(gen);
@@ -143,25 +161,26 @@ int Fun4All_G4_sPHENIX_hp(
   G4Setup();
 
   // BBC
-  BbcInit();
-  Bbc_Reco();
+  // MbdInit();
+  Mbd_Reco();
 
   // cells
   Mvtx_Cells();
   Intt_Cells();
   TPC_Cells();
-  if( Enable::MICROMEGAS )
-  { Micromegas_Cells(); }
+  Micromegas_Cells();
+
+  // tracking initialization
+  TrackingInit();
 
   // digitizer and clustering
   Mvtx_Clustering();
   Intt_Clustering();
   TPC_Clustering();
-  if( Enable::MICROMEGAS )
-  { Micromegas_Clustering(); }
+  Micromegas_Clustering();
 
-  TrackingInit();
   Tracking_Reco();
+  Global_Reco();
 
   // local evaluation
   if( false )
@@ -175,7 +194,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( Enable::MICROMEGAS )
+  if( false )
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
@@ -183,14 +202,13 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(micromegasEvaluator);
   }
 
-  if( false )
+  if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalClusters
       |TrackingEvaluator_hp::EvalTracks
-      |TrackingEvaluator_hp::PrintTracks
       );
 
     // special track map is used for space charge calibrations
@@ -200,17 +218,21 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(trackingEvaluator);
   }
 
+  if( false )
+  {
+    // tracking evaluation
+    Tracking_Eval(trackingEvaluationFile);
+  }
+
   // QA
   Enable::QA = false;
   if( Enable::QA )
-  {  
-//     Intt_QA();
-//     Mvtx_QA();
-//     Micromegas_QA();
-//     Tracking_QA();
-//     Distortions_QA();
+  {
+    // QA
+    Enable::TRACKING_QA = true;
+    Tracking_QA();
   }
- 
+
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");

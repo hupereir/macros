@@ -22,19 +22,16 @@
 
 #include <Trkr_RecoInit.C>
 #include <Trkr_Clustering.C>
-
-// #include <Trkr_Reco.C>
-#include <Trkr_TruthReco.C>
-
-#include <Trkr_Eval.C>
+#include <Trkr_Reco.C>
+// #include <Trkr_TruthReco.C>
 #include <Trkr_QA.C>
+#include <Trkr_Eval.C>
 
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 R__LOAD_LIBRARY(libqa_modules.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 
-#define USE_ACTS
+// #define USE_ACTS
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
@@ -49,18 +46,18 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 //   #endif
 
   #ifdef USE_ACTS
-  const char *outputFile = "DST/dst_eval_upsilon_acts_truth_no_distortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_truth_no_distortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_nodistortion.root",
+  const char* qaOutputFile = "DST/qa_upsilon_acts_full_nodistortion.root"
   #else
-  const char *outputFile = "DST/dst_eval_upsilon_genfit_truth_no_distortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_genfit_truth_no_distortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_genfit_full_nodistortion.root",
+  const char* qaOutputFile = "DST/qa_upsilon_genfit_full_nodistortion.root"
   #endif
   )
 {
 
   // options
   Enable::PIPE = true;
-  Enable::MBD = false;
+  // Enable::MBD = false;
   Enable::MBDFAKE = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
@@ -78,20 +75,20 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // TPC
   // space charge distortions
-  // G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
   G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = true;
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   // G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   G4TPC::static_distortion_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root");
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = true;
-  G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  G4TPC::ENABLE_CORRECTIONS = false;
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_inverted_10.root";
   G4TPC::correction_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root");
+  // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.inverted_10.root";
 
   // tracking configuration
-  G4TRACKING::use_full_truth_track_seeding = true;
+  G4TRACKING::use_full_truth_track_seeding = false;
 
   #ifndef USE_ACTS
   G4TRACKING::use_genfit_track_fitter = true;
@@ -165,26 +162,27 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // tracking
   Tracking_Reco();
+  Global_Reco();
 
-  // global vertex reconstruction
-  Global_FastSim();
+  if( true )
+  {
+    auto trackingEvaluator = new TrackingEvaluator_hp;
+    trackingEvaluator->set_flags(
+      TrackingEvaluator_hp::EvalEvent|
+      // TrackingEvaluator_hp::EvalClusters|
+      TrackingEvaluator_hp::EvalTracks|
+      TrackingEvaluator_hp::EvalTrackPairs);
+    se->registerSubsystem(trackingEvaluator);
+  }
 
-  auto trackingEvaluator = new TrackingEvaluator_hp;
-  trackingEvaluator->set_flags(
-    TrackingEvaluator_hp::EvalEvent|
-    // TrackingEvaluator_hp::EvalClusters|
-    TrackingEvaluator_hp::EvalTracks|
-    TrackingEvaluator_hp::EvalTrackPairs);
-  se->registerSubsystem(trackingEvaluator);
+  // tracking evaluation
+  Tracking_Eval("DST/tracking_evaluation.root");
 
   // QA
-  Enable::QA = false;
-  Enable::TRACKING_QA = Enable::QA && true;
-  if( Enable::TRACKING_QA )
-  {
-    // Tracking_QA();
-    se->registerSubsystem(new QAG4SimulationUpsilon);
-  }
+  Enable::QA = true;
+  Enable::TRACKING_QA = true;
+  Tracking_QA();
+  se->registerSubsystem( new QAG4SimulationUpsilon );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
