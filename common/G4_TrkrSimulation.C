@@ -496,6 +496,7 @@ void Micromegas(PHG4Reco* g4Reco)
   bool SupportActive = Enable::SUPPORT || Enable::MICROMEGAS_SUPPORT;
   const int mm_layer = G4MVTX::n_maps_layer + G4INTT::n_intt_layer + G4TPC::n_gas_layer;
   auto mm = new PHG4MicromegasSubsystem("MICROMEGAS", mm_layer);
+  mm->set_int_param("apply_survey", 1);
   mm->Verbosity(verbosity);
   if (SupportActive)
   {
