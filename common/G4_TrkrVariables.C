@@ -169,9 +169,6 @@ namespace G4TRACKING
   // genfit track fitter
   bool use_genfit_track_fitter = false;
 
-  // This is the setup we have been using  - smeared truth vertex for a single collision per event. Make it the default for now.
-  std::string vmethod("avf-smoothing:1");  // only good for 1 vertex events // vmethod is a string used to set the Rave final-vertexing method:
-
   // Runs a converter from TrackSeed object to SvtxTrack object to enable
   // use of the various evaluation tools already available
   bool convert_seeds_to_svtxtracks = false;
