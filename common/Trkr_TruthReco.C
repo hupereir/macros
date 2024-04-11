@@ -32,6 +32,7 @@
 #include <tpc/TpcLoadDistortionCorrection.h>
 
 #include <tpccalib/PHTpcResiduals.h>
+#include <tpccalib/TpcSpaceChargeReconstruction.h>
 
 #include <trackermillepedealignment/MakeMilleFiles.h>
 #include <trackermillepedealignment/HelicalFitter.h>
@@ -251,8 +252,6 @@ void Tracking_Reco_TrackFit()
     std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
     auto genfitFit = new PHGenFitTrkFitter;
     genfitFit->Verbosity(verbosity);
-    genfitFit->set_vertexing_method(G4TRACKING::vmethod);
-    genfitFit->set_use_truth_vertex(false);
     genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
     se->registerSubsystem(genfitFit);
 
@@ -290,8 +289,9 @@ void Tracking_Reco_TrackFit()
       */
       auto residuals = new PHTpcResiduals;
       residuals->setOutputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-
       residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+      // reconstructed distortion grid size (phi, r, z)
+      residuals->setGridDimensions(36, 48, 80);
       residuals->Verbosity(verbosity);
       se->registerSubsystem(residuals);
     }
