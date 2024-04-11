@@ -20,6 +20,7 @@
 #include <Trkr_Clustering.C>
 
 #define USE_TRUTH_TRACK_FINDING
+// #define USE_ACTS
 
 #ifdef USE_TRUTH_TRACK_FINDING
 #include <Trkr_TruthReco.C>
@@ -37,10 +38,17 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 100,
+  #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_notpc_nodistortion.root",
   const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root",
   const char* qaOutputFile = "DST/qa_acts_truth_notpc_nodistortion.root"
+  #else
+  const char* outputFile = "DST/dst_eval_genfit_truth_notpc_nodistortion.root",
+  const char* trackingEvaluationFile = "DST/tracking_evaluation_genfit_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_notpc_nodistortion.root",
+  const char* qaOutputFile = "DST/qa_genfit_truth_notpc_nodistortion.root"
+  #endif
   )
 {
 
@@ -85,6 +93,10 @@ int Fun4All_G4_sPHENIX_hp(
   // tracking configuration
   #ifdef USE_TRUTH_TRACK_FINDING
   G4TRACKING::use_full_truth_track_seeding = true;
+  #endif
+
+  #ifndef USE_ACTS
+  G4TRACKING::use_genfit_track_fitter = true;
   #endif
 
   // distortion reconstruction
@@ -240,6 +252,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
