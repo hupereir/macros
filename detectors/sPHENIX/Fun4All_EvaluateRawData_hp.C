@@ -30,12 +30,10 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 2000,
-//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00009467-0000.prdf",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00009467-0000-test.root",
+  const int nEvents = 0,
 
-  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020469-0000.prdf",
-  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00020469-0000-test.root",
+  const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00039065-0001.evt",
+  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00039065-0001.root",
 
   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00009416-0000.root"
   )
@@ -80,10 +78,11 @@ int Fun4All_EvaluateRawData_hp(
 
   // raw data evaluation
   auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
-  micromegasRawDataEvaluation->Verbosity(1);
-  micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
-  micromegasRawDataEvaluation->set_sample_min( 15 );
-  micromegasRawDataEvaluation->set_sample_max( 35 );
+  micromegasRawDataEvaluation->set_flags(MicromegasRawDataEvaluation::EvalTagger);
+//   micromegasRawDataEvaluation->Verbosity(1);
+//   micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
+//   micromegasRawDataEvaluation->set_sample_min( 15 );
+//   micromegasRawDataEvaluation->set_sample_max( 35 );
   micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
   se->registerSubsystem( micromegasRawDataEvaluation );
 
