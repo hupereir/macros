@@ -315,6 +315,7 @@ void Tracking_Reco_TrackFit()
       // project tracks to EMCAL
       auto projection = new PHActsTrackProjection;
       projection->Verbosity(verbosity);
+      double fieldstrength = std::numeric_limits<double>::quiet_NaN();
       if (isConstantField(G4MAGNET::magfield_tracking,fieldstrength))
       {
         projection->setConstFieldVal(fieldstrength);
