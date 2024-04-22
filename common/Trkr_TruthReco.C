@@ -109,7 +109,7 @@ void Tracking_Reco_TrackSeed()
       double fieldstrength = std::numeric_limits<double>::quiet_NaN(); // set by isConstantField if constant
       bool ConstField = isConstantField(G4MAGNET::magfield_tracking,fieldstrength);
 
-      if (!ConstField))
+      if (!ConstField)
       {
         seeder->set_field_dir(-1 * G4MAGNET::magfield_rescale);
         seeder->useConstBField(false);
