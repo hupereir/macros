@@ -248,6 +248,8 @@ void Tracking_Reco_TrackFit()
       auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
       tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS);
       tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
+      // reconstructed distortion grid size (phi, r, z)
+      tpcSpaceChargeReconstruction->set_grid_dimensions(36, 48, 80);
       se->registerSubsystem(tpcSpaceChargeReconstruction);
     }
 
