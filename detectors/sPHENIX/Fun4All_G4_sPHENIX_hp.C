@@ -20,7 +20,7 @@
 #include <Trkr_Clustering.C>
 
 #define USE_TRUTH_TRACK_FINDING
-// #define USE_ACTS
+#define USE_ACTS
 
 #ifdef USE_TRUTH_TRACK_FINDING
 #include <Trkr_TruthReco.C>
@@ -28,26 +28,20 @@
 #include <Trkr_Reco.C>
 #endif
 
-#include <Trkr_QA.C>
-#include <Trkr_Eval.C>
-
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libqa_modules.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 1,
   #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_notpc_nodistortion.root",
   const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root",
-  const char* qaOutputFile = "DST/qa_acts_truth_notpc_nodistortion.root"
   #else
   const char* outputFile = "DST/dst_eval_genfit_truth_notpc_nodistortion.root",
   const char* trackingEvaluationFile = "DST/tracking_evaluation_genfit_notpc_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_notpc_nodistortion.root",
-  const char* qaOutputFile = "DST/qa_genfit_truth_notpc_nodistortion.root"
   #endif
   )
 {
@@ -56,7 +50,6 @@ int Fun4All_G4_sPHENIX_hp(
   std::cout << "Fun4All_G4_sPHENIX_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_hp - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_hp - spaceChargeMatricesFile: " << spaceChargeMatricesFile << std::endl;
-  std::cout << "Fun4All_G4_sPHENIX_hp - qaOutputFile: " << qaOutputFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -101,8 +94,8 @@ int Fun4All_G4_sPHENIX_hp(
   #endif
 
   // distortion reconstruction
-  // G4TRACKING::SC_CALIBMODE = false;
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
+  // G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
@@ -211,7 +204,8 @@ int Fun4All_G4_sPHENIX_hp(
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits|MicromegasEvaluator_hp::PrintGeometry );
+    // micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits|MicromegasEvaluator_hp::PrintGeometry );
+    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::PrintGeometry );
     se->registerSubsystem(micromegasEvaluator);
   }
 
@@ -237,15 +231,6 @@ int Fun4All_G4_sPHENIX_hp(
     Tracking_Eval(trackingEvaluationFile);
   }
 
-  // QA
-  Enable::QA = false;
-  if( Enable::QA )
-  {
-    // QA
-    Enable::TRACKING_QA = true;
-    Tracking_QA();
-  }
-
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
   auto in = new Fun4AllDummyInputManager("JADE");
@@ -258,9 +243,6 @@ int Fun4All_G4_sPHENIX_hp(
 
   // process events
   se->run(nEvents);
-
-  // QA output
-  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();

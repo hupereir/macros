@@ -15,7 +15,6 @@
 
 // local macros
 #include "G4Setup_sPHENIX.C"
-#include "G4_Bbc.C"
 #include "G4_Global.C"
 
 #include "Trkr_RecoInit.C"
@@ -33,8 +32,8 @@ int Fun4All_CalibrateRawData_hp(
   const int nEvents = 2000,
 //   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
 //   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00020121-0000.root"
-  const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00026174-0000.evt",
-  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00026174-0000.root"
+  const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00039495-0000.evt",
+  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00039495-0000.root"
   )
 {
   // print inputs
@@ -44,7 +43,7 @@ int Fun4All_CalibrateRawData_hp(
 
   // options
   Enable::PIPE = true;
-  Enable::BBC = true;
+  Enable::MBD = true;
   Enable::MAGNET = true;
   Enable::PLUGDOOR = false;
 
