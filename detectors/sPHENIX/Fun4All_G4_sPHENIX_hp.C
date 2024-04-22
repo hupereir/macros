@@ -20,7 +20,7 @@
 #include <Trkr_Clustering.C>
 
 #define USE_TRUTH_TRACK_FINDING
-#define USE_ACTS
+// #define USE_ACTS
 
 #ifdef USE_TRUTH_TRACK_FINDING
 #include <Trkr_TruthReco.C>
@@ -37,11 +37,11 @@ int Fun4All_G4_sPHENIX_hp(
   #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_notpc_nodistortion.root",
   const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root"
   #else
   const char* outputFile = "DST/dst_eval_genfit_truth_notpc_nodistortion.root",
   const char* trackingEvaluationFile = "DST/tracking_evaluation_genfit_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_notpc_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_notpc_nodistortion.root"
   #endif
   )
 {
@@ -94,14 +94,14 @@ int Fun4All_G4_sPHENIX_hp(
   #endif
 
   // distortion reconstruction
-  G4TRACKING::SC_CALIBMODE = false;
-  // G4TRACKING::SC_CALIBMODE = true;
+  // G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  // se->Verbosity(2);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -223,12 +223,6 @@ int Fun4All_G4_sPHENIX_hp(
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
 
     se->registerSubsystem(trackingEvaluator);
-  }
-
-  if( false )
-  {
-    // tracking evaluation
-    Tracking_Eval(trackingEvaluationFile);
   }
 
   // for single particle generators we just need something which drives
