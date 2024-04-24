@@ -179,7 +179,6 @@ void Tracking_Reco_TrackSeed()
     mm_match->set_test_windows_printout(false);  // used for tuning search windows only
     se->registerSubsystem(mm_match);
   }
-
 }
 
 void Tracking_Reco_TrackSeed_pass1()
@@ -221,7 +220,6 @@ void vertexing()
   auto vtxfinder = new PHSimpleVertexFinder;
   vtxfinder->Verbosity(verbosity);
   se->registerSubsystem(vtxfinder);
-
 }
 
 void Tracking_Reco_TrackFit()
@@ -236,7 +234,7 @@ void Tracking_Reco_TrackFit()
 
   if( G4TRACKING::use_genfit_track_fitter )
   {
-    std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
+    // perform final track fit with GENFIT
     auto genfitFit = new PHGenFitTrkFitter;
     genfitFit->Verbosity(verbosity);
     genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
@@ -287,7 +285,6 @@ void Tracking_Reco_TrackFit()
 
   if (!G4TRACKING::SC_CALIBMODE)
   {
-
     /*
      * in full tracking mode, run track cleaner, vertex finder,
      * propagete tracks to vertex
@@ -325,7 +322,6 @@ void Tracking_Reco_TrackFit()
       se->registerSubsystem(projection);
     }
   }
-
 }
 
 void Tracking_Reco_CommissioningTrackSeed()

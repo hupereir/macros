@@ -252,7 +252,7 @@ void Tracking_Reco_TrackFit()
 
   if( G4TRACKING::use_genfit_track_fitter )
   {
-    std::cout << "Tracking_Reco_TrackFit - Using Genfit track fitting " << std::endl;
+    // perform final track fit with GENFIT
     auto genfitFit = new PHGenFitTrkFitter;
     genfitFit->Verbosity(verbosity);
     genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
@@ -264,7 +264,6 @@ void Tracking_Reco_TrackFit()
       auto tpcSpaceChargeReconstruction = new TpcSpaceChargeReconstruction;
       tpcSpaceChargeReconstruction->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS);
       tpcSpaceChargeReconstruction->set_outputfile(G4TRACKING::SC_ROOTOUTPUT_FILENAME);
-
       // reconstructed distortion grid size (phi, r, z)
       tpcSpaceChargeReconstruction->set_grid_dimensions(36, 48, 80);
       se->registerSubsystem(tpcSpaceChargeReconstruction);
@@ -275,7 +274,7 @@ void Tracking_Reco_TrackFit()
     // perform final track fit with ACTS
     auto actsFit = new PHActsTrkFitter;
     actsFit->Verbosity(verbosity);
-    actsFit->commissioning(G4TRACKING::use_alignment);
+    //actsFit->commissioning(G4TRACKING::use_alignment);
 
     // in calibration mode, fit only Silicons and Micromegas hits
     actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
@@ -333,7 +332,7 @@ void Tracking_Reco_TrackFit()
       // project tracks to EMCAL
       auto projection = new PHActsTrackProjection;
       projection->Verbosity(verbosity);
-      double fieldstrength = std::numeric_limits<double>::quiet_NaN(); // set by isConstantField if constant
+      double fieldstrength = std::numeric_limits<double>::quiet_NaN();
       if (isConstantField(G4MAGNET::magfield_tracking,fieldstrength))
       {
         projection->setConstFieldVal(fieldstrength);
@@ -341,7 +340,6 @@ void Tracking_Reco_TrackFit()
       se->registerSubsystem(projection);
     }
   }
-
 }
 
 void Tracking_Reco_CommissioningTrackSeed()
