@@ -22,7 +22,7 @@
 #include <caloreco/RawClusterBuilderTemplate.h>
 #include <caloreco/RawClusterPositionCorrection.h>
 #include <caloreco/RawTowerCalibration.h>
-#include <qa_modules/QAG4SimulationCalorimeter.h>
+// #include <qa_modules/QAG4SimulationCalorimeter.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -373,10 +373,10 @@ void CEMC_QA()
 {
   int verbosity = std::max(Enable::QA_VERBOSITY, Enable::CEMC_VERBOSITY);
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-  QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("CEMC");
-  qa->Verbosity(verbosity);
-  se->registerSubsystem(qa);
+//   Fun4AllServer *se = Fun4AllServer::instance();
+//   QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("CEMC");
+//   qa->Verbosity(verbosity);
+//   se->registerSubsystem(qa);
 
   return;
 }

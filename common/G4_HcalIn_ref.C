@@ -22,7 +22,7 @@
 #include <caloreco/RawClusterBuilderTemplate.h>
 #include <caloreco/RawTowerCalibration.h>
 
-#include <qa_modules/QAG4SimulationCalorimeter.h>
+// #include <qa_modules/QAG4SimulationCalorimeter.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -83,7 +83,7 @@ namespace G4HCALIN
 
     kHCalInTemplateClusterizer
   };
-  
+
   bool useTowerInfoV2 = false;
   //! template clusterizer, RawClusterBuilderTemplate, as developed by Sasha Bazilevsky
   enu_HCalIn_clusterizer HCalIn_clusterizer = kHCalInTemplateClusterizer;
@@ -370,10 +370,10 @@ void HCALInner_QA()
 {
   int verbosity = std::max(Enable::QA_VERBOSITY, Enable::HCALIN_VERBOSITY);
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-  QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("HCALIN");
-  qa->Verbosity(verbosity);
-  se->registerSubsystem(qa);
+//   Fun4AllServer *se = Fun4AllServer::instance();
+//   QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("HCALIN");
+//   qa->Verbosity(verbosity);
+//   se->registerSubsystem(qa);
 
   return;
 }
