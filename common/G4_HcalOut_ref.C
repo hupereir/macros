@@ -20,7 +20,7 @@
 #include <caloreco/RawClusterBuilderTemplate.h>
 #include <caloreco/RawTowerCalibration.h>
 
-// #include <qa_modules/QAG4SimulationCalorimeter.h>
+#include <simqa_modules/QAG4SimulationCalorimeter.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -405,10 +405,10 @@ void HCALOuter_QA()
 {
   int verbosity = std::max(Enable::QA_VERBOSITY, Enable::HCALOUT_VERBOSITY);
 
-//   Fun4AllServer *se = Fun4AllServer::instance();
-//   QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("HCALOUT");
-//   qa->Verbosity(verbosity);
-//   se->registerSubsystem(qa);
+  Fun4AllServer *se = Fun4AllServer::instance();
+  QAG4SimulationCalorimeter *qa = new QAG4SimulationCalorimeter("HCALOUT");
+  qa->Verbosity(verbosity);
+  se->registerSubsystem(qa);
 
   return;
 }
