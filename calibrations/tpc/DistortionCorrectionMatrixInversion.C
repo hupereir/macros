@@ -43,7 +43,7 @@ void DistortionCorrectionMatrixInversion()
    * that needs to be inverted, to get track-based, beam-induced distortions inside
    * TPOT acceptance
    */
-  const TString tag = "_flat_genfit_truth_notpc_distorted-new";
+  const TString tag = "_flat_genfit_truth_notpc_distorted";
   const TString inputFile = Form( "DST/CONDOR%s/TpcSpaceChargeMatrices%s_*.root", tag.Data(), tag.Data() );
 
   // Central membrane distortion corrections

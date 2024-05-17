@@ -20,7 +20,7 @@
 #include <Trkr_Clustering.C>
 
 #define USE_TRUTH_TRACK_FINDING
-// #define USE_ACTS
+#define USE_ACTS
 
 #ifdef USE_TRUTH_TRACK_FINDING
 #include <Trkr_TruthReco.C>
