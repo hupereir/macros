@@ -3,6 +3,13 @@
 //
 #include <TSpectrum.h>
 #include "get_runstr.h"
+#include <mbd/MbdCalib.h>
+
+
+#if defined(__CLING__)
+//R__LOAD_LIBRARY(libmbd_io.so)
+R__LOAD_LIBRARY(libmbd.so)
+#endif
 
 //using namespace MBDRUNS;
 
@@ -100,6 +107,44 @@ Double_t langaufun(Double_t *x, Double_t *par)
 }
 
 
+// find the threshold
+void FindThreshold(TH1 *h, double& threshold)
+{
+  double absolute_min = 10.;
+  int bin = h->FindBin( absolute_min );
+  int maxbin = h->FindBin( qmax );
+  //cout << bin << "\t" << maxbin << endl;
+
+  // now look for peak after first min
+  double prev_val = 0.;
+  int ibin = bin;
+  while ( ibin<=maxbin )
+  {
+    double val = h->GetBinContent( ibin );
+    //cout << val << endl;
+    if ( val<=0. )
+    {
+      prev_val = val;
+      ibin++;
+      continue;
+    }
+    else if ( val>0. && prev_val>0. )
+    {
+      double ratio = val/prev_val;
+      //cout << ibin << "\t" << ratio << endl;
+      if ( ratio<1.05 )
+      {
+        threshold = h->GetBinCenter( ibin );
+        break;
+      }
+    }
+
+    prev_val = val;
+    ibin++;
+  }
+
+}
+
 // xmin and xmax are the min and max range of the peak
 void FindPeakRange(TH1 *h, double& xmin, double& peak, double& xmax)
 {
@@ -135,7 +180,7 @@ void FindPeakRange(TH1 *h, double& xmin, double& peak, double& xmax)
 
   // now look for peak after first min
   double ymax = 0; // the minimum y val
-  int nbelow = 0;     // num points above the min
+  int nbelow = 0;     // num points below the max
   while ( ibin<=maxbin )
   {
     double val = h->GetBinContent( ibin );
@@ -149,7 +194,7 @@ void FindPeakRange(TH1 *h, double& xmin, double& peak, double& xmax)
       nbelow++;
     }
 
-    // if we see this many above the min, the signal is rising
+    // if we see this many below the max, the signal is falling
     if ( nbelow==20 )
     {
       peak = h->GetBinCenter( ibin-20 );
@@ -199,7 +244,8 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
     h_q[ipmt] = (TH1*)oldfile->Get(name);
     if ( type == MBDRUNS::PP200 )
     {
-      h_q[ipmt]->Rebin(4);
+      //h_q[ipmt]->Rebin(4);  // b-off
+      h_q[ipmt]->Rebin(2);
     }
 
     name = "h_tq"; name += ipmt;
@@ -230,10 +276,12 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
   }
 
   ofstream cal_mip_file;
+  TString calfname;
   if ( pass==3 ) 
   {
-    name = dir + "mbd_qfit.calib";
-    cal_mip_file.open( name );
+    calfname = dir; calfname += "mbd_qfit.calib";
+    cal_mip_file.open( calfname );
+    std::cout << "Writing to " << calfname << std::endl;
   }
 
   // Fit ranges
@@ -243,8 +291,11 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
 
   if ( type==MBDRUNS::PP200 )
   {
-    qmin = 200;
-    qmax = 10000;       // Run24pp
+    //qmin = 200;
+    //qmax = 10000;       // Run24pp boff
+    //qmin = 100;
+    qmin = 50;
+    qmax = 2000;       // Run24pp bon
   }
 
   if ( type==MBDRUNS::SIMAUAU200 || type==MBDRUNS::SIMPP200 )
@@ -270,7 +321,10 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
       h_bkg[ipmt]->SetName( name );
       h_bkg[ipmt]->SetTitle( name );
       h_bkg[ipmt]->SetLineColor(2);
-      h_q[ipmt]->GetXaxis()->SetRangeUser( qmin, qmax );
+      double threshold = qmin + 2.;
+      FindThreshold( h_q[ipmt], threshold );
+      cout << "threshold " << ipmt << "\t" << threshold << endl;
+      h_q[ipmt]->GetXaxis()->SetRangeUser( threshold, qmax );
       h_q[ipmt]->Sumw2();
 
       double sigma = 20;
@@ -302,7 +356,7 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
         */
 
       }
-      else if (type==MBDRUNS::PP200)
+      else if (type==MBDRUNS::AUAU200)
       {
 
         FindPeakRange( h_bkg[ipmt], minrej, peak, maxrej );
@@ -360,7 +414,9 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
       }
       else if ( type==MBDRUNS::PP200 )
       {
-        seedsigma = 200;
+        seedsigma = seedmean*(116./719.);  // b-on
+        //seedsigma = 50;  // b-on
+        //seedsigma = 200;  // b-off
       }
 
       mipfit[ipmt]->SetLineColor(4);
@@ -461,6 +517,12 @@ void recal_mbd_mip(const char *tfname = "DST_MBDUNCAL-00020869-0000.root", const
   if ( pass==3 )
   {
     cal_mip_file.close();
+
+    // Convert to CDB format
+    MbdCalib mcal;
+    mcal.Download_Gains( calfname.Data() );
+    calfname.ReplaceAll(".calib",".root");
+    mcal.Write_CDB_Gains( calfname.Data() );
   }
 
   savefile->Write();
