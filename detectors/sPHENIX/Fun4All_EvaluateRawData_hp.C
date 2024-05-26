@@ -9,6 +9,7 @@
 #include <phool/recoConsts.h>
 
 #include <micromegas/MicromegasRawDataEvaluation.h>
+#include <micromegas/MicromegasRawDataEvaluation_old.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -30,13 +31,19 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 500,
+  const int nEvents = 10,
 
 //   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00041227-0000.evt",
 //   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00041227-0000.root",
 
-  const char* inputFile = "LUSTRE/beam/TPOT_ebdc39_beam-00041277-0000.evt",
-  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00041277-0000.root",
+//   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00043402-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043402-0000.root",
+
+//   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00043472-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043472-0000.root",
+
+  const char* inputFile = "LUSTRE_PHYSICS/beam/TPOT_ebdc39_beam-00043817-0002.evt",
+  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043817-0002.root",
 
   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00009416-0000.root"
   )
@@ -80,6 +87,7 @@ int Fun4All_EvaluateRawData_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   // raw data evaluation
+  // auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation_old;
   auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
   micromegasRawDataEvaluation->Verbosity(1);
   micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
