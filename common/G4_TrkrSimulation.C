@@ -1,3 +1,5 @@
+
+
 #ifndef MACRO_G4TRKRSIM_C
 #define MACRO_G4TRKRSIM_C
 
@@ -539,6 +541,7 @@ void Micromegas_Cells()
   ACTSGEOM::ActsGeomInit();
   auto se = Fun4AllServer::instance();
   int verbosity = std::max(Enable::VERBOSITY, Enable::MICROMEGAS_VERBOSITY);
+
   // micromegas
   auto reco = new PHG4MicromegasHitReco;
   reco->Verbosity(verbosity);
@@ -546,8 +549,8 @@ void Micromegas_Cells()
   if (TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
 
   reco->set_double_param("micromegas_tmax", 800.0 + extended_readout_time);
-  se->registerSubsystem(reco);
 
+  se->registerSubsystem(reco);
   se->registerSubsystem(new PHG4MicromegasDigitizer);
 }
 
