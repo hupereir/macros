@@ -8,8 +8,8 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
-#include <micromegas/MicromegasRawDataEvaluation.h>
-#include <micromegas/MicromegasRawDataEvaluation_old.h>
+#include <fun4allraw/MicromegasBcoMatchingInformation.h>
+#include <micromegas/MicromegasRawDataTimingEvaluation.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -31,28 +31,36 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_EvaluateRawData_hp(
-  const int nEvents = 10,
-
-//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00041227-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00041227-0000.root",
+  const int nEvents = 500,
 
 //   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00043402-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043402-0000.root",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00043402-0000-test.root"
 
-//   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00043472-0000.evt",
-//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043472-0000.root",
+//   const char* inputFile = "LUSTRE_PHYSICS/physics/TPOT_ebdc39_physics-00044284-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00044284-0000.root"
 
-  const char* inputFile = "LUSTRE_PHYSICS/beam/TPOT_ebdc39_beam-00043817-0002.evt",
-  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataEvaluation-00043817-0002.root",
+//   const char* inputFile = "LUSTRE_PHYSICS/beam/TPOT_ebdc39_beam-00043817-0024.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00043817-0000.root"
 
-  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00009416-0000.root"
-  )
+//   const char* inputFile = "LUSTRE_PHYSICS/physics/TPOT_ebdc39_physics-00044380-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00044380-0000.root"
+
+
+//   const char* inputFile ="LUSTRE_PHYSICS/physics/TPOT_ebdc39_physics-00045288-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00045288-0000-test.root"
+
+//   const char* inputFile ="LUSTRE_PHYSICS/physics/TPOT_ebdc39_physics-00045490-0000.evt",
+//   const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00045490-0000-test.root"
+
+  const char* inputFile ="LUSTRE_PHYSICS/physics/TPOT_ebdc39_physics-00045550-0000.evt",
+  const char* evaluationFile =  "DST/CONDOR_RawDataEvaluation/MicromegasRawDataTimingEvaluation-00045550-0000-test.root"
+
+)
 {
   // print inputs
   std::cout << "Fun4All_EvaluateRawData_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_EvaluateRawData_hp - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_EvaluateRawData_hp - evaluationFile: " << evaluationFile << std::endl;
-  std::cout << "Fun4All_EvaluateRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -87,14 +95,13 @@ int Fun4All_EvaluateRawData_hp(
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   // raw data evaluation
-  // auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation_old;
-  auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
-  micromegasRawDataEvaluation->Verbosity(1);
-  micromegasRawDataEvaluation->set_calibration_file(calibrationFile);
-  micromegasRawDataEvaluation->set_sample_min( 20 );
-  micromegasRawDataEvaluation->set_sample_max( 40 );
-  micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
-  se->registerSubsystem( micromegasRawDataEvaluation );
+  // MicromegasBcoMatchingInformation::set_gtm_clock_multiplier( 4.262916255 ); // for run 43817
+  // MicromegasBcoMatchingInformation::set_gtm_clock_multiplier( 4.26291675 );  // for run 43402
+  // MicromegasBcoMatchingInformation::set_gtm_clock_multiplier( 4.26291667 ); // for run 45288
+  auto micromegasRawDataTimingEvaluation = new MicromegasRawDataTimingEvaluation;
+  // micromegasRawDataTimingEvaluation->Verbosity(1);
+  micromegasRawDataTimingEvaluation->set_evaluation_outputfile(evaluationFile);
+  se->registerSubsystem( micromegasRawDataTimingEvaluation );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that

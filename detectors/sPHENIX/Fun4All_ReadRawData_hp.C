@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 
 //____________________________________________________________________
 int Fun4All_ReadRawData_hp(
-  int nEvents = 500,
+  int nEvents = 5000,
 //   const char* inputFile = "LUSTRE/beam/TPOT_ebdc39_calib-00034596-0000.evt",
 //   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00034596-0000-test.root"
 

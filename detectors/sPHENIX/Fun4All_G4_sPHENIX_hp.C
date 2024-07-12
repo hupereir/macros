@@ -33,15 +33,15 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 1,
+  const int nEvents = 200,
   #ifdef USE_ACTS
-  const char* outputFile = "DST/dst_eval_acts_truth_notpc_nodistortion.root",
-  const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_notpc_nodistortion.root"
+  const char* outputFile = "DST/dst_eval_acts_truth_nodistortion.root",
+  const char* trackingEvaluationFile = "DST/tracking_evaluation_acts_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_nodistortion.root"
   #else
-  const char* outputFile = "DST/dst_eval_genfit_truth_notpc_nodistortion.root",
-  const char* trackingEvaluationFile = "DST/tracking_evaluation_genfit_notpc_nodistortion.root",
-  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_notpc_nodistortion.root"
+  const char* outputFile = "DST/dst_eval_genfit_truth_nodistortion.root",
+  const char* trackingEvaluationFile = "DST/tracking_evaluation_genfit_nodistortion.root",
+  const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_genfit_truth_nodistortion.root"
   #endif
   )
 {
@@ -73,7 +73,7 @@ int Fun4All_G4_sPHENIX_hp(
   // space charge distortions
   G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
   G4TPC::ENABLE_REACHES_READOUT = false;
-  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
+  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
   G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   //  G4TPC::static_distortion_filename = "/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root";
 
@@ -94,7 +94,6 @@ int Fun4All_G4_sPHENIX_hp(
   #endif
 
   // distortion reconstruction
-  // G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
@@ -146,7 +145,8 @@ int Fun4All_G4_sPHENIX_hp(
     } else {
 
       // flat pt distribution
-      gen->set_pt_range(0.1, 10.0);
+      // gen->set_pt_range(0.1, 10.0);
+      gen->set_pt_range(0.1, 50.0);
 
     }
 

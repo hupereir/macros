@@ -29,11 +29,11 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CalibrateRawData_hp(
-  const int nEvents = 2000,
+  const int nEvents = 10000,
 //   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
 //   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00020121-0000.root"
-  const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00039495-0000.evt",
-  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00039495-0000.root"
+  const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00045955-0000.evt",
+  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00045955-0000.root"
   )
 {
   // print inputs
