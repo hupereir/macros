@@ -1,3 +1,5 @@
+#include <GlobalVariables.C>
+#include <Trkr_TpcReadoutInit.C>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllOutputManager.h>
@@ -27,8 +29,8 @@ R__LOAD_LIBRARY(libffarawmodules.so)
 
 bool isGood(const string &infile);
 
-void Fun4All_Stream_Combiner(int nEvents = 0,
-                             const string &input_gl1file = "gl1.list",
+void Fun4All_Stream_Combiner(int nEvents = 5, int RunNumber = 41989,
+                             const string &input_gl1file = "gl1daq.list",
                              const string &input_inttfile00 = "intt0.list",
                              const string &input_inttfile01 = "intt1.list",
                              const string &input_inttfile02 = "intt2.list",
@@ -123,6 +125,13 @@ void Fun4All_Stream_Combiner(int nEvents = 0,
   vector<string> tpot_infile;
   tpot_infile.push_back(input_tpotfile);
 
+  TpcReadoutInit( RunNumber );
+  std::cout<< " run: " << RunNumber
+	   << " samples: " << TRACKING::reco_tpc_maxtime_sample
+	   << " pre: " << TRACKING::reco_tpc_time_presample
+	   << " vdrift: " << G4TPC::tpc_drift_velocity_reco
+	   << std::endl;
+
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
   recoConsts *rc = recoConsts::instance();
@@ -166,8 +175,8 @@ void Fun4All_Stream_Combiner(int nEvents = 0,
     {
     SingleMvtxPoolInput *mvtx_sngl = new SingleMvtxPoolInput("MVTX_" + to_string(i));
 //    mvtx_sngl->Verbosity(5);
-    mvtx_sngl->SetBcoRange(1000);
-    mvtx_sngl->SetNegativeBco(1000);
+    mvtx_sngl->SetBcoRange(100);
+    mvtx_sngl->SetNegativeBco(100);
     mvtx_sngl->AddListFile(iter);
     in->registerStreamingInput(mvtx_sngl, InputManagerType::MVTX);
     i++;
@@ -181,8 +190,9 @@ void Fun4All_Stream_Combiner(int nEvents = 0,
     SingleTpcPoolInput *tpc_sngl = new SingleTpcPoolInput("TPC_" + to_string(i));
 //    tpc_sngl->Verbosity(2);
     //   tpc_sngl->DryRun();
-    tpc_sngl->SetBcoRange(130);
+    tpc_sngl->SetBcoRange(5);
     tpc_sngl->AddListFile(iter);
+    tpc_sngl->SetMaxTpcTimeSamples(TRACKING::reco_tpc_maxtime_sample);
     in->registerStreamingInput(tpc_sngl, InputManagerType::TPC);
     i++;
     }
@@ -195,7 +205,7 @@ void Fun4All_Stream_Combiner(int nEvents = 0,
     {
     SingleMicromegasPoolInput *mm_sngl = new SingleMicromegasPoolInput("MICROMEGAS_" + to_string(i));
     //   sngl->Verbosity(3);
-    mm_sngl->SetBcoRange(100);
+    mm_sngl->SetBcoRange(5);
     mm_sngl->SetNegativeBco(2);
     mm_sngl->AddListFile(iter);
     in->registerStreamingInput(mm_sngl, InputManagerType::MICROMEGAS);

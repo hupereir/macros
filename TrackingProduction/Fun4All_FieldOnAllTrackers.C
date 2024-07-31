@@ -15,6 +15,7 @@
 #include <Trkr_Clustering.C>
 #include <Trkr_Reco.C>
 #include <Trkr_RecoInit.C>
+#include <Trkr_TpcReadoutInit.C>
 
 #include <ffamodules/CDBInterface.h>
 #include <fun4all/Fun4AllDstInputManager.h>
@@ -45,7 +46,7 @@ R__LOAD_LIBRARY(libmicromegas.so)
 R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 R__LOAD_LIBRARY(libtrackingqa.so)
 void Fun4All_FieldOnAllTrackers(
-    const int nEvents = 0,
+    const int nEvents = 10,
     const std::string tpcfilename = "DST_BEAM_run2pp_new_2023p013-00041989-0000.root",
     const std::string tpcdir = "/sphenix/lustre01/sphnxpro/commissioning/slurp/tpcbeam/run_00041900_00042000/",
     const std::string outfilename = "clusters_seeds",
@@ -59,6 +60,13 @@ void Fun4All_FieldOnAllTrackers(
       runseg = Fun4AllUtils::GetRunSegment(tpcfilename);
   int runnumber = runseg.first;
   int segment = runseg.second;
+
+  TpcReadoutInit( runnumber );
+  std::cout<< " run: " << runnumber
+	   << " samples: " << TRACKING::reco_tpc_maxtime_sample
+	   << " pre: " << TRACKING::reco_tpc_time_presample
+	   << " vdrift: " << G4TPC::tpc_drift_velocity_reco
+	   << std::endl;
 
   ACTSGEOM::mvtxMisalignment = 100;
   ACTSGEOM::inttMisalignment = 100.;
@@ -79,7 +87,11 @@ void Fun4All_FieldOnAllTrackers(
   ingeo->AddFile(geofile);
   se->registerInputManager(ingeo);
 
-  G4TPC::tpc_drift_velocity_reco = (8.0 / 1000) * 107.0 / 105.0;
+  //  G4TPC::tpc_drift_velocity_reco = (8.0 / 1000) * 107.0 / 105.0;
+  G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = true;
+  //to turn on the default static corrections, enable the two lines below
+  //G4TPC::ENABLE_STATIC_CORRECTIONS = true;
+  //G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
 
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
@@ -143,7 +155,9 @@ void Fun4All_FieldOnAllTrackers(
   }
   seeder->Verbosity(0);
   seeder->SetLayerRange(7, 55);
-  seeder->SetSearchWindow(1.5, 0.05);  // (z width, phi width)
+  seeder->SetSearchWindow(2.,0.05); // z-width and phi-width, default in macro at 1.5 and 0.05
+  seeder->SetClusAdd_delta_window(3.0,0.06); //  (0.5, 0.005) are default; sdzdr_cutoff, d2/dr2(phi)_cutoff
+  //seeder->SetNClustersPerSeedRange(4,60); // default is 6, 6
   seeder->SetMinHitsPerCluster(0);
   seeder->SetMinClustersPerTrack(3);
   seeder->useFixedClusterError(true);
@@ -176,19 +190,22 @@ void Fun4All_FieldOnAllTrackers(
   // Match the TPC track stubs from the CA seeder to silicon track stubs from PHSiliconTruthTrackSeeding
   auto silicon_match = new PHSiliconTpcTrackMatching;
   silicon_match->Verbosity(0);
-  silicon_match->set_pp_mode(TRACKING::pp_mode);
-  silicon_match->set_phi_search_window(0.04);
-  silicon_match->set_eta_search_window(0.008);
-  silicon_match->set_test_windows_printout(false);  // used for tuning search windows
+  silicon_match->set_x_search_window(2.);
+  silicon_match->set_y_search_window(2.);
+  silicon_match->set_z_search_window(5.);
+  silicon_match->set_phi_search_window(0.2);
+  silicon_match->set_eta_search_window(0.1);
+  silicon_match->set_use_old_matching(true);
+  silicon_match->set_pp_mode(true);
   se->registerSubsystem(silicon_match);
 
   // Match TPC track stubs from CA seeder to clusters in the micromegas layers
   auto mm_match = new PHMicromegasTpcTrackMatching;
   mm_match->Verbosity(0);
-  mm_match->set_rphi_search_window_lyr1(0.2);
+  mm_match->set_rphi_search_window_lyr1(0.4);
   mm_match->set_rphi_search_window_lyr2(13.0);
   mm_match->set_z_search_window_lyr1(26.0);
-  mm_match->set_z_search_window_lyr2(0.2);
+  mm_match->set_z_search_window_lyr2(0.4);
 
   mm_match->set_min_tpc_layer(38);             // layer in TPC to start projection fit
   mm_match->set_test_windows_printout(false);  // used for tuning search windows only
@@ -207,7 +224,7 @@ void Fun4All_FieldOnAllTrackers(
     auto converter = new TrackSeedTrackMapConverter;
     // Default set to full SvtxTrackSeeds. Can be set to
     // SiliconTrackSeedContainer or TpcTrackSeedContainer
-    converter->setTrackSeedName("TpcTrackSeedContainer");
+    converter->setTrackSeedName("SvtxTrackSeedContainer");
     converter->setFieldMap(G4MAGNET::magfield_tracking);
     converter->Verbosity(0);
     se->registerSubsystem(converter);
@@ -250,11 +267,12 @@ void Fun4All_FieldOnAllTrackers(
   resid->alignment(false);
   resid->clusterTree();
   resid->hitTree();
+  resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
   resid->Verbosity(0);
   se->registerSubsystem(resid);
 
-  auto ntuplizer = new TrkrNtuplizer("TrkrNtuplizer");
-  se->registerSubsystem(ntuplizer);
+  //auto ntuplizer = new TrkrNtuplizer("TrkrNtuplizer");
+  //se->registerSubsystem(ntuplizer);
 
   // Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", "/sphenix/tg/tg01/hf/jdosbo/tracking_development/Run24/Beam/41626/hitsets.root");
   // se->registerOutputManager(out);
