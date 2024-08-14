@@ -121,8 +121,11 @@ int Fun4All_G4_sPHENIX_hp(
   {
     // event generation
     auto gen = new PHG4SimpleEventGenerator;
-    gen->add_particles("pi+",10);
-    gen->add_particles("pi-",10);
+//     gen->add_particles("pi+",10);
+//     gen->add_particles("pi-",10);
+
+    gen->add_particles("pi+",1);
+    gen->add_particles("pi-",1);
 
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-M_PI, M_PI);
