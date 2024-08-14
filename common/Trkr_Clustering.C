@@ -157,6 +157,19 @@ void Micromegas_Clustering()
 {
   auto se = Fun4AllServer::instance();
   auto mm_clus = new MicromegasClusterizer;
+
+  // additional smearing
+  mm_clus->set_added_smear_sigma_rphi(0);
+  mm_clus->set_added_smear_sigma_z(0);
+
+//   // realistic micromegas resolution
+//   mm_clus->set_added_smear_sigma_rphi(0.0243);
+//   mm_clus->set_added_smear_sigma_z(0.0314);
+
+//   // mimic calorimeter cells
+//   mm_clus->set_added_smear_sigma_rphi(2.5/std::sqrt(12));
+//   mm_clus->set_added_smear_sigma_z(2.5/std::sqrt(12));
+
   se->registerSubsystem(mm_clus);
 }
 
