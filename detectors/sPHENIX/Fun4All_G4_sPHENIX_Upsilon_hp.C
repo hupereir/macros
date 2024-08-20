@@ -7,9 +7,6 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
-#include <qa_modules/QAG4SimulationIntt.h>
-#include <qa_modules/QAG4SimulationMvtx.h>
-
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
 #include <g4eval_hp/SimEvaluator_hp.h>
@@ -24,33 +21,20 @@
 #include <Trkr_Clustering.C>
 #include <Trkr_Reco.C>
 // #include <Trkr_TruthReco.C>
-#include <Trkr_QA.C>
 #include <Trkr_Eval.C>
 
 R__LOAD_LIBRARY(libfun4all.so)
-R__LOAD_LIBRARY(libqa_modules.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 
-// #define USE_ACTS
+#define USE_ACTS
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
   const int nEvents = 100,
-
-//   #ifdef USE_ACTS
-//   const char *outputFile = "DST/dst_eval_upsilon_acts_full_distorted.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_acts_full_distorted.root"
-//   #else
-//   const char *outputFile = "DST/dst_eval_upsilon_genfit_full_distorted.root",
-//   const char* qaOutputFile = "DST/qa_upsilon_genfit_full_distorted.root"
-//   #endif
-
   #ifdef USE_ACTS
-  const char *outputFile = "DST/dst_eval_upsilon_acts_full_nodistortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_acts_full_nodistortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_acts_full_nodistortion.root"
   #else
-  const char *outputFile = "DST/dst_eval_upsilon_genfit_full_nodistortion.root",
-  const char* qaOutputFile = "DST/qa_upsilon_genfit_full_nodistortion.root"
+  const char *outputFile = "DST/dst_eval_upsilon_genfit_full_nodistortion.root"
   #endif
   )
 {
@@ -81,10 +65,10 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   G4TPC::static_distortion_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root");
 
   // space charge corrections
-  G4TPC::ENABLE_CORRECTIONS = false;
+  G4TPC::ENABLE_STATIC_CORRECTIONS = false;
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_inverted_10.root";
-  G4TPC::correction_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root");
+  G4TPC::static_correction_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root");
   // G4TPC::correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.inverted_10.root";
 
   // tracking configuration
@@ -178,11 +162,11 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   // tracking evaluation
   Tracking_Eval("DST/tracking_evaluation.root");
 
-  // QA
-  Enable::QA = true;
-  Enable::TRACKING_QA = true;
-  Tracking_QA();
-  se->registerSubsystem( new QAG4SimulationUpsilon );
+//   // QA
+//   Enable::QA = true;
+//   Enable::TRACKING_QA = true;
+//   Tracking_QA();
+//   se->registerSubsystem( new QAG4SimulationUpsilon );
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
@@ -196,9 +180,6 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
 
   // process events
   se->run(nEvents);
-
-  // QA output
-  if (Enable::QA) QA_Output(qaOutputFile);
 
   // terminate
   se->End();
