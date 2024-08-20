@@ -158,10 +158,9 @@ void TPC_Clustering()
 void Micromegas_HitUnpacking()
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::MICROMEGAS_VERBOSITY);
-  Fun4AllServer* se = Fun4AllServer::instance();
-
+  auto se = Fun4AllServer::instance();
   auto tpotunpacker = new MicromegasCombinedDataDecoder;
-  std::string calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
+  const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
   tpotunpacker->set_calibration_file(calibrationFile);
   se->registerSubsystem(tpotunpacker);
 }
@@ -170,6 +169,9 @@ void Micromegas_Clustering()
 {
   auto se = Fun4AllServer::instance();
   auto mm_clus = new MicromegasClusterizer;
+
+  const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
+  mm_clus->set_calibration_file(calibrationFile);
 
   // additional smearing
   mm_clus->set_added_smear_sigma_rphi(0);
