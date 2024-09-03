@@ -350,23 +350,25 @@ double TPC(PHG4Reco* g4Reco,
   double drift_vel = G4TPC::tpc_drift_velocity_sim;
   if (G4TPC::TPC_GAS_MIXTURE == "NeCF4")
   {
-   drift_vel = G4TPC::NeCF4_drift_velocity;  
+   drift_vel = G4TPC::NeCF4_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4")
   {
-   drift_vel = G4TPC::ArCF4_drift_velocity;  
+   drift_vel = G4TPC::ArCF4_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4N2")
   {
-   drift_vel = G4TPC::ArCF4N2_drift_velocity;  
+   drift_vel = G4TPC::ArCF4N2_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4Isobutane")
   {
-   drift_vel = G4TPC::ArCF4Isobutane_drift_velocity;  
+   drift_vel = G4TPC::ArCF4Isobutane_drift_velocity;
   }
   else
   {
   }
+
+  std::cout << "G4_TrkrSimulation::TPC - drift_vel: " << drift_vel << std::endl;
 
   PHG4TpcSubsystem* tpc = new PHG4TpcSubsystem("TPC");
   tpc->SetActive();
@@ -390,7 +392,7 @@ double TPC(PHG4Reco* g4Reco,
   }
 
   tpc->set_double_param("extended_readout_time", extended_readout_time);
- 
+
    //Note that we default to 75:20:05 Ar:CF4:i-C4H10
   if (G4TPC::TPC_GAS_MIXTURE == "NeCF4")
   {
@@ -452,19 +454,19 @@ void TPC_Cells()
   double drift_vel = G4TPC::tpc_drift_velocity_sim;
   if (G4TPC::TPC_GAS_MIXTURE == "NeCF4")
   {
-   drift_vel = G4TPC::NeCF4_drift_velocity;  
+   drift_vel = G4TPC::NeCF4_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4")
   {
-   drift_vel = G4TPC::ArCF4_drift_velocity;  
+   drift_vel = G4TPC::ArCF4_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4N2")
   {
-   drift_vel = G4TPC::ArCF4N2_drift_velocity;  
+   drift_vel = G4TPC::ArCF4N2_drift_velocity;
   }
   else if (G4TPC::TPC_GAS_MIXTURE == "ArCF4Isobutane")
   {
-   drift_vel = G4TPC::ArCF4Isobutane_drift_velocity;  
+   drift_vel = G4TPC::ArCF4Isobutane_drift_velocity;
   }
   else
   {
