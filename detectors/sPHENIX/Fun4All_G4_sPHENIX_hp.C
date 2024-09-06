@@ -10,6 +10,7 @@
 #include <g4eval_hp/EventCounter_hp.h>
 #include <g4eval_hp/SimEvaluator_hp.h>
 #include <g4eval_hp/MicromegasEvaluator_hp.h>
+#include <g4eval_hp/MicromegasTrackEvaluator_hp.h>
 #include <g4eval_hp/TrackingEvaluator_hp.h>
 
 #include <trackingdiagnostics/TrackResiduals.h>
@@ -21,7 +22,7 @@
 #include <Trkr_RecoInit.C>
 #include <Trkr_Clustering.C>
 
-#define USE_TRUTH_TRACK_FINDING
+// #define USE_TRUTH_TRACK_FINDING
 #define USE_ACTS
 
 #ifdef USE_TRUTH_TRACK_FINDING
@@ -35,7 +36,7 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
-  const int nEvents = 100,
+  const int nEvents = 1,
   #ifdef USE_ACTS
   const char* outputFile = "DST/dst_eval_acts_truth_nodistortion.root",
   const char* spaceChargeMatricesFile = "DST/TpcSpaceChargeMatrices_acts_truth_nodistortion.root",
@@ -85,9 +86,9 @@ int Fun4All_G4_sPHENIX_hp(
   // G4TPC::static_correction_filename = "/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_smoothed_average.correction_map.hist.root";
   // G4TPC::static_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.inverted_10.root";
 
-//   // drift velocity
-//   G4TPC::tpc_drift_velocity_sim = 0.008;
-//   G4TPC::tpc_drift_velocity_reco = 0.008;
+  // drift velocity (cm/ns)
+  // G4TPC::tpc_drift_velocity_reco = 0.008;
+  // G4TPC::tpc_drift_velocity_reco = 0.007984;
 
   // tracking configuration
   #ifdef USE_TRUTH_TRACK_FINDING
@@ -99,13 +100,16 @@ int Fun4All_G4_sPHENIX_hp(
   #endif
 
   // distortion reconstruction
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::SC_USE_MICROMEGAS = true;
   G4TRACKING::SC_ROOTOUTPUT_FILENAME = spaceChargeMatricesFile;
 
+  std::cout<< "Fun4All_CombinedDataReconstruction - tpc_drift_velocity_sim: " << G4TPC::tpc_drift_velocity_sim << std::endl;
+  std::cout<< "Fun4All_CombinedDataReconstruction - tpc_drift_velocity_reco: " << G4TPC::tpc_drift_velocity_reco << std::endl;
+
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(2);
+  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);
@@ -121,7 +125,7 @@ int Fun4All_G4_sPHENIX_hp(
   rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
 
   // event counter
-  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
+  se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 1 ) );
 
   {
     // event generation
@@ -135,7 +139,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-M_PI, M_PI);
 
-    if( false )
+    if( true )
     {
 
       // use specific distribution to generate pt
@@ -208,7 +212,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( false )
+  if( true )
   {
     // Micromegas evaluation
     auto micromegasEvaluator = new MicromegasEvaluator_hp;
@@ -233,6 +237,9 @@ int Fun4All_G4_sPHENIX_hp(
 
     se->registerSubsystem(trackingEvaluator);
   }
+
+  if( true )
+  { se->registerSubsystem(new MicromegasTrackEvaluator_hp); }
 
   // residual tree from tony
   {
@@ -262,7 +269,8 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("TrackingEvaluator_hp::Container");
+  // out->AddNode("TrackingEvaluator_hp::Container");
+  out->AddNode("MicromegasTrackEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events

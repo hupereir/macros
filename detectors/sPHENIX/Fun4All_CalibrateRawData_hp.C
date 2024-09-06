@@ -9,6 +9,7 @@
 #include <phool/recoConsts.h>
 
 #include <micromegas/MicromegasRawDataCalibration.h>
+#include <micromegas/MicromegasRawDataEvaluation.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -29,16 +30,30 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CalibrateRawData_hp(
-  const int nEvents = 10000,
-//   const char* inputFile = "LUSTRE/junk/TPOT_ebdc39_junk-00020121-0000.prdf",
-//   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00020121-0000.root"
-  const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00045955-0000.evt",
-  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00045955-0000.root"
+  const int nEvents = 500,
+
+//   const char* inputFile = "LUSTRE/cosmics/TPOT_ebdc39_cosmics-00039495-0000.evt",
+//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00039495-0000.root",
+//   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00039495-0000.root"
+
+  const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00052123-0000.evt",
+  const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00052123-0000.root",
+  const char* calibrationFile = "Calibrations/TPOT_Pedestal-00052123-0000.root"
+
+//   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00045955-0000.evt",
+//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00045955-0000.root",
+//   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00045955-0000.root"
+
+//   const char* inputFile = "LUSTRE_PHYSICS/junk/TPOT_ebdc39_junk-00052122-0000.evt",
+//   const char* evaluationFile = "DST/MicromegasRawDataEvaluation-00052122-0000.root",
+//   const char* calibrationFile = "Calibrations/TPOT_Pedestal-00052122-0000.root"
+
   )
 {
   // print inputs
   std::cout << "Fun4All_ReadRawData_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_ReadRawData_hp - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_ReadRawData_hp - evaluationFile: " << evaluationFile << std::endl;
   std::cout << "Fun4All_ReadRawData_hp - calibrationFile: " << calibrationFile << std::endl;
 
   // options
@@ -76,16 +91,29 @@ int Fun4All_CalibrateRawData_hp(
   // Geant4 initialization
   G4Init();
 
-  // raw data calibration
-  auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
-  micromegasRawDataCalibration->set_calibration_file(calibrationFile);
-  micromegasRawDataCalibration->set_sample_min(0);
-  micromegasRawDataCalibration->set_sample_max(20);
+  // raw data evaluation
+  if( true )
+  {
+    // raw data evaluation
+    auto micromegasRawDataEvaluation = new MicromegasRawDataEvaluation;
+    // micromegasRawDataEvaluation->Verbosity(1);
+    micromegasRawDataEvaluation->set_evaluation_outputfile(evaluationFile);
+    micromegasRawDataEvaluation->set_sample_min(0);
+    micromegasRawDataEvaluation->set_sample_max(20);
+    se->registerSubsystem( micromegasRawDataEvaluation );
+  }
 
-  se->registerSubsystem( micromegasRawDataCalibration );
+  if( true )
+  {
+    // raw data calibration
+    auto micromegasRawDataCalibration = new MicromegasRawDataCalibration;
+    micromegasRawDataCalibration->set_calibration_file(calibrationFile);
+    micromegasRawDataCalibration->set_sample_min(0);
+    micromegasRawDataCalibration->set_sample_max(20);
+    se->registerSubsystem( micromegasRawDataCalibration );
+  }
 
-  // for single particle generators we just need something which drives
-  // the event loop, the Dummy Input Mgr does just that
+  // input manager
   auto in = new Fun4AllPrdfInputManager;
   in->fileopen(inputFile);
   se->registerInputManager(in);
