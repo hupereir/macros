@@ -102,22 +102,24 @@ namespace G4TPC
   int n_gas_layer = n_tpc_layer_inner + n_tpc_layer_mid + n_tpc_layer_outer;
   double tpc_outer_radius = 77. + 2.;
 
-  float laser_adc_threshold = 0.0;
 
   // use simple clusterizer
   bool USE_SIMPLE_CLUSTERIZER = false;
 
-  // distortions
+  // distortions in simulation
+  // set how to interpret the magnitude of phi distortions in simulation
   bool DISTORTIONS_USE_PHI_AS_RADIANS = true;
 
-  // static distortions
+  // apply static distortions in simulations
   bool ENABLE_STATIC_DISTORTIONS = false;
+
   std::string static_distortion_filename = "TPC_STATIC_DISTORTION";
 
-  // time-ordered distortion fluctuations
+  // apply time-ordered distortion fluctuations in simulation
   bool ENABLE_TIME_ORDERED_DISTORTIONS = false;
   std::string time_ordered_distortion_filename = "TPC_TIMEORDERED_DISTORTION";
 
+  // allow distortions to remove electrons that
   bool ENABLE_REACHES_READOUT = true;
 
   // module edge distortion corrections
@@ -127,20 +129,22 @@ namespace G4TPC
   // static distortion corrections
   bool ENABLE_STATIC_CORRECTIONS = false;
   std::string static_correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/static_only_inverted_10-new.root";
+  bool USE_PHI_AS_RAD_STATIC_CORRECTIONS = true;
 
   // average distortion corrections
   bool ENABLE_AVERAGE_CORRECTIONS = false;
   std::string average_correction_filename;
+  bool USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
 
   // enable central membrane g4hits generation
   bool ENABLE_CENTRAL_MEMBRANE_HITS = false;
 
-  // save histograms
-  bool CENTRAL_MEMBRANE_SAVEHISTOGRAMS = false;
+  //enable diffuse laser clustering
+  bool ENABLE_CENTRAL_MEMBRANE_CLUSTERING = true;
 
-  // central membrane output filenames
-  std::string CENTRAL_MEMBRANE_ROOTOUTPUT_FILENAME = "CMDistortionCorrections.root";
-  std::string CENTRAL_MEMBRANE_HISTOGRAMOUTPUT_FILENAME = "PHTpcCentralMembraneMatcher.root";
+  float laser_adc_threshold = 0.0;
+  std::string laser_clusterizer_debug_filename = "";
+  std::string laser_event_debug_filename = "";
 
   // enable direct laser g4hits generation
   bool ENABLE_DIRECT_LASER_HITS = false;
