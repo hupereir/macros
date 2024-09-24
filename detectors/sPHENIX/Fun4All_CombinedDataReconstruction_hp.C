@@ -125,6 +125,8 @@ int Fun4All_CombinedDataReconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
+  // se->Verbosity(2);
+
   PHRandomSeed::Verbosity(1);
 
   // event counter
@@ -141,13 +143,20 @@ int Fun4All_CombinedDataReconstruction_hp(
   // distortion correction
   if(true)
   {
+    // module edge corrections
     G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = true;
+
+    // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
-    // G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
+    G4TPC::USE_PHI_AS_RAD_STATIC_CORRECTIONS = false;
+
+//     // average distortions
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
   }
 
   // tpc zero suppression
-  TRACKING::tpc_zero_supp = true;
+  // TRACKING::tpc_zero_supp = true;
 
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
@@ -201,7 +210,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   }
 
 
-  const double fieldstrength = std::numeric_limits<double>::quiet_NaN();  // set by isConstantField if constant
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
   const bool ConstField = isConstantField(G4MAGNET::magfield_tracking, fieldstrength);
 
   {
