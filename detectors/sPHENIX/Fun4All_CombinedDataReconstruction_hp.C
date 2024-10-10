@@ -49,19 +49,21 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 100,
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/commissioning/slurp/tpcbeam/run_00041900_00042000/DST_BEAM_run2pp_new_2023p013-00041989-0000.root",
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction_corrected/dst_eval-00041989-0000.root",
-  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction_corrected/TrackResiduals-00041989-0000.root",
-  const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction_corrected/MicromegasCombinedDataEvaluation-00041989-0000.root"
+  const int nEvents = 1000,
+//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/fast/run_00050000_00050100/DST_STREAMING_EVENT_run2ppfast_new_2024p002-00050015-00000.root",
+//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00050015-0000_corrected.root",
+//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00050015-0000_corrected.root",
+//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00050015-0000_corrected.root"
 
-//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/fast/run_00050400_00050500/DST_STREAMING_EVENT_run2ppfast_new_2024p002-00050450-00000.root",
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction_corrected/dst_eval-00050450-0000-test.root",
-//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction_corrected/TrackResiduals-00050450-0000-test.root"
+//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00052400_00052500/DST_STREAMING_EVENT_run2pp_new_2024p002-00052401-00000.root",
+//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052401-0000_corrected.root",
+//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052401-0000_corrected.root",
+//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052401-0000_corrected.root"
 
-//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00051200_00051300/DST_STREAMING_EVENT_run2pp_new_2024p002-00051249-00000.root",
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction_corrected/dst_eval-00051249-0000-test.root",
-//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction_corrected/TrackResiduals-00051249-0000-test.root"
+  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_new_2024p002-00053285-00048.root",
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
+  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
+  const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00053285-0000_corrected.root"
 
   )
 {
@@ -84,10 +86,11 @@ int Fun4All_CombinedDataReconstruction_hp(
   TpcReadoutInit( runnumber );
 
   // Ar/CF4
-  G4TPC::tpc_drift_velocity_reco = 0.00815238095238;
+  // G4TPC::tpc_drift_velocity_reco = 0.00815238095238;
 
-  // Ar/iC4H10/CF4
+  // Ar/iC4H10/CF4 (default)
   // G4TPC::tpc_drift_velocity_reco = 0.00714;
+  G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
 
   // reco const
   auto rc = recoConsts::instance();
@@ -148,15 +151,13 @@ int Fun4All_CombinedDataReconstruction_hp(
 
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
-    G4TPC::USE_PHI_AS_RAD_STATIC_CORRECTIONS = false;
 
-//     // average distortions
-//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
-//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
+    // average distortions
+    G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
   }
 
   // tpc zero suppression
-  // TRACKING::tpc_zero_supp = true;
+  TRACKING::tpc_zero_supp = true;
 
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
@@ -171,7 +172,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   Intt_HitUnpacking();
   Tpc_HitUnpacking();
 
-  // Micromegas_HitUnpacking();
+  // micromegas unpacking
   {
     auto tpotunpacker = new MicromegasCombinedDataDecoder;
     const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
@@ -208,7 +209,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     merger->Verbosity(0);
     se->registerSubsystem(merger);
   }
-
 
   double fieldstrength = std::numeric_limits<double>::quiet_NaN();
   const bool ConstField = isConstantField(G4MAGNET::magfield_tracking, fieldstrength);
@@ -288,10 +288,16 @@ int Fun4All_CombinedDataReconstruction_hp(
     // matching with micromegas
     auto mm_match = new PHMicromegasTpcTrackMatching;
     mm_match->Verbosity(0);
-    mm_match->set_rphi_search_window_lyr1(0.4);
-    mm_match->set_rphi_search_window_lyr2(13.0);
-    mm_match->set_z_search_window_lyr1(26.0);
-    mm_match->set_z_search_window_lyr2(0.4);
+//     mm_match->set_rphi_search_window_lyr1(0.4);
+//     mm_match->set_rphi_search_window_lyr2(13.0);
+//     mm_match->set_z_search_window_lyr1(26.0);
+//     mm_match->set_z_search_window_lyr2(0.4);
+
+    mm_match->set_rphi_search_window_lyr1(3.0);
+    mm_match->set_rphi_search_window_lyr2(15.0);
+
+    mm_match->set_z_search_window_lyr1(30.0);
+    mm_match->set_z_search_window_lyr2(3.0);
 
     mm_match->set_min_tpc_layer(38);             // layer in TPC to start projection fit
     mm_match->set_test_windows_printout(false);  // used for tuning search windows only
@@ -358,7 +364,9 @@ int Fun4All_CombinedDataReconstruction_hp(
   }
 
   // residual tree from tony
-  if( true )
+  // disabled because it is very large
+  // achieves the same as TrackEvaluator_hp
+  if( false )
   {
     auto resid = new TrackResiduals("TrackResiduals");
     resid->outfileName(residualFile);
@@ -372,11 +380,11 @@ int Fun4All_CombinedDataReconstruction_hp(
     { resid->trackmapName("SvtxSiliconMMTrackMap"); }
 
     // discard all tracks that do not have micromegas hits
-    resid->set_doMicromegasOnly(true);
+    // resid->set_doMicromegasOnly(true);
 
     // resid->clusterTree();
     // resid->hitTree();
-    // resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
+    resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
     // resid->linefitAll();
     se->registerSubsystem(resid);
   }
@@ -396,7 +404,7 @@ int Fun4All_CombinedDataReconstruction_hp(
     trackingEvaluator->set_flags(
       TrackingEvaluator_hp::EvalEvent
       |TrackingEvaluator_hp::EvalTracks
-      |TrackingEvaluator_hp::MicromegasOnly
+//       |TrackingEvaluator_hp::MicromegasOnly
       );
 
     if( G4TRACKING::SC_CALIBMODE )
