@@ -49,7 +49,7 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 1000,
+  const int nEvents = 10,
 //   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/fast/run_00050000_00050100/DST_STREAMING_EVENT_run2ppfast_new_2024p002-00050015-00000.root",
 //   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00050015-0000_corrected.root",
 //   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00050015-0000_corrected.root",
@@ -90,7 +90,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 
   // Ar/iC4H10/CF4 (default)
   // G4TPC::tpc_drift_velocity_reco = 0.00714;
-  G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
+  // G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
 
   // reco const
   auto rc = recoConsts::instance();
