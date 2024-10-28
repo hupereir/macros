@@ -30,7 +30,7 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_Upsilon_hp(
-  const int nEvents = 500,
+  const int nEvents = 100,
   #ifdef USE_ACTS
   const char *outputFile = "DST/dst_eval_upsilon_acts_full_nodistortion.root"
   #else
@@ -93,6 +93,10 @@ int Fun4All_G4_sPHENIX_Upsilon_hp(
   Enable::CDB = true;
   rc->set_StringFlag("CDB_GLOBALTAG",CDB::global_tag);
   rc->set_uint64Flag("TIMESTAMP",CDB::timestamp);
+
+  // random seed, for reproducibility
+  rc->set_IntFlag("RANDOMSEED",PHRandomSeed());
+  // rc->set_IntFlag("RANDOMSEED",1);
 
   // event counter
   se->registerSubsystem( new EventCounter_hp( "EventCounter_hp", 10 ) );
