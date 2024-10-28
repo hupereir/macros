@@ -11,6 +11,8 @@ namespace Enable
   bool MVTX = false;
   bool MVTX_OVERLAPCHECK = false;
 
+  bool MVTX_TRIGGERED = false; // triggered mode or not (default is streaming mode)
+
   bool MVTX_CELL = false;
   bool MVTX_CLUSTER = false;
   bool MVTX_QA = false;
@@ -143,6 +145,7 @@ namespace G4TPC
   //enable diffuse laser clustering
   bool ENABLE_CENTRAL_MEMBRANE_CLUSTERING = true;
 
+  bool REJECT_LASER_EVENTS = true;
   float laser_adc_threshold = 0.0;
   std::string laser_clusterizer_debug_filename = "";
   std::string laser_event_debug_filename = "";
