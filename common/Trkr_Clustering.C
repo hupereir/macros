@@ -46,10 +46,8 @@ void Mvtx_HitUnpacking(const std::string& felix="")
   int verbosity = std::max(Enable::VERBOSITY, Enable::MVTX_VERBOSITY);
   Fun4AllServer* se = Fun4AllServer::instance();
 
-  auto mvtxunpacker = new MvtxCombinedRawDataDecoder;
+  auto mvtxunpacker = new MvtxCombinedRawDataDecoder("MvtxCombinedRawDataDecoder"+felix);
   mvtxunpacker->Verbosity(verbosity);
-  std::cout << "MvtxCombineRawDataDecoder: run triggered mode? " << Enable::MVTX_TRIGGERED << std::endl;
-  mvtxunpacker->runMvtxTriggered(Enable::MVTX_TRIGGERED);
   if(felix.length() > 0)
     {
       mvtxunpacker->useRawHitNodeName("MVTXRAWHIT_" + felix);
@@ -78,7 +76,7 @@ void Intt_HitUnpacking(const std::string& server="")
   int verbosity = std::max(Enable::VERBOSITY, Enable::INTT_VERBOSITY);
   Fun4AllServer* se = Fun4AllServer::instance();
 
-  auto inttunpacker = new InttCombinedRawDataDecoder;
+  auto inttunpacker = new InttCombinedRawDataDecoder("InttCombinedRawDataDecoder"+server);
   inttunpacker->Verbosity(verbosity);
   inttunpacker->LoadHotChannelMapRemote("INTT_HotMap");
    if(server.length() > 0)
@@ -111,8 +109,8 @@ void Tpc_HitUnpacking(const std::string& ebdc="")
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::TPC_VERBOSITY);
   Fun4AllServer* se = Fun4AllServer::instance();
-
-  auto tpcunpacker = new TpcCombinedRawDataUnpacker;
+  std::string name = "TpcCombinedRawDataUnpacker"+ebdc;
+  auto tpcunpacker = new TpcCombinedRawDataUnpacker("TpcCombinedRawDataUnpacker"+ebdc);
   tpcunpacker->set_presampleShift(TRACKING::reco_tpc_time_presample);
   if(ebdc.length() > 0)
     {
