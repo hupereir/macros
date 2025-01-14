@@ -51,20 +51,20 @@ R__LOAD_LIBRARY(libmicromegas.so)
 int Fun4All_CombinedDataReconstruction_hp(
   const int nEvents = 100,
 
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00052200_00052300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00052200-00000.root",
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052200-0000_corrected.root",
-  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052200-0000_corrected.root",
-  const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052200-0000_corrected.root"
+//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00052200_00052300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00052200-00000.root",
+//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052200-0000_corrected.root",
+//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052200-0000_corrected.root",
+//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052200-0000_corrected.root"
 
 //   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00052200_00052300/DST_STREAMING_EVENT_run2pp_new_2024p002-00052200-00000.root",
 //   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052200-0000_corrected.root",
 //   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052200-0000_corrected.root",
 //   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052200-0000_corrected.root"
 
-//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_new_2024p002-00053285-00048.root",
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
-//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
-//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00053285-0000_corrected.root"
+  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_new_2024p002-00053285-00048.root",
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
+  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
+  const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00053285-0000_corrected.root"
 
   )
 {
