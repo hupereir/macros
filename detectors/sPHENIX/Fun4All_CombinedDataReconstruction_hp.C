@@ -49,19 +49,8 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 100,
-
-//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00052200_00052300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00052200-00000.root",
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052200-0000_corrected.root",
-//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052200-0000_corrected.root",
-//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052200-0000_corrected.root"
-
-//   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00052200_00052300/DST_STREAMING_EVENT_run2pp_new_2024p002-00052200-00000.root",
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00052200-0000_corrected.root",
-//   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00052200-0000_corrected.root",
-//   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00052200-0000_corrected.root"
-
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/new_2024p002/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_new_2024p002-00053285-00048.root",
+  const int nEvents = 10,
+  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00053285-00000.root",
   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
   const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00053285-0000_corrected.root"
@@ -76,14 +65,25 @@ int Fun4All_CombinedDataReconstruction_hp(
   std::cout << "Fun4All_CombinedDataReconstruction - evaluationFile: " << evaluationFile << std::endl;
 
   TRACKING::pp_mode = true;
-  TRACKING::pp_extended_readout_time = 3000;  // ns
-
   G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::convert_seeds_to_svtxtracks = false;
+
+  // condition database
+  Enable::CDB = true;
 
   // readout initialization
   const auto [runnumber,segment] = Fun4AllUtils::GetRunSegment(inputFile);
   std::cout<< "Fun4All_CombinedDataReconstruction - runnumber: " << runnumber << std::endl;
   std::cout<< "Fun4All_CombinedDataReconstruction - segment: " << segment << std::endl;
+
+  // reco const
+  auto rc = recoConsts::instance();
+  rc->set_IntFlag("RUNNUMBER", runnumber);
+  rc->set_IntFlag("RUNSEGMENT", segment);
+  // rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "2024p008");
+  rc->set_uint64Flag("TIMESTAMP", runnumber);
+
   TpcReadoutInit( runnumber );
 
   // Ar/CF4
@@ -92,17 +92,6 @@ int Fun4All_CombinedDataReconstruction_hp(
   // Ar/iC4H10/CF4 (default)
   // G4TPC::tpc_drift_velocity_reco = 0.00714;
   // G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
-
-  // reco const
-  auto rc = recoConsts::instance();
-  rc->set_IntFlag("RUNNUMBER", runnumber);
-  rc->set_IntFlag("RUNSEGMENT", segment);
-
-  // condition database
-  Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
-  rc->set_uint64Flag("TIMESTAMP", runnumber);
-  // rc->set_uint64Flag("TIMESTAMP", 6);
 
   // try get drift velocity from CDB
   auto cdb = CDBInterface::instance();
@@ -117,6 +106,10 @@ int Fun4All_CombinedDataReconstruction_hp(
     cdbttree.LoadCalibrations();
     G4TPC::tpc_drift_velocity_reco = cdbttree.GetSingleFloatValue("tpc_drift_velocity");
     std::cout << "Fun4All_CombinedDataReconstruction - Use calibrated TPC drift velocity for Run " << runnumber << ": " << G4TPC::tpc_drift_velocity_reco << " cm/ns" << std::endl;
+
+    // need to apply proper scaling to match new TPC FEE clock frequency
+    G4TPC::tpc_drift_velocity_reco = G4TPC::tpc_drift_velocity_reco * 53.0/50.0;
+
   }
 
   std::cout<< "Fun4All_CombinedDataReconstruction - samples: " << TRACKING::reco_tpc_maxtime_sample << std::endl;
@@ -129,7 +122,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(2);
+  se->Verbosity(0);
 
   PHRandomSeed::Verbosity(1);
 
@@ -275,11 +268,22 @@ int Fun4All_CombinedDataReconstruction_hp(
     // matching to silicons
     auto silicon_match = new PHSiliconTpcTrackMatching;
     silicon_match->Verbosity(0);
-    silicon_match->set_x_search_window(2.);
-    silicon_match->set_y_search_window(2.);
-    silicon_match->set_z_search_window(5.);
-    silicon_match->set_phi_search_window(0.2);
-    silicon_match->set_eta_search_window(0.1);
+
+    // wide matching windows
+//     silicon_match->set_x_search_window(2.);
+//     silicon_match->set_y_search_window(2.);
+//     silicon_match->set_z_search_window(5.);
+//     silicon_match->set_phi_search_window(0.2);
+//     silicon_match->set_eta_search_window(0.1);
+
+    // narrow matching windows
+    silicon_match->set_x_search_window(0.36);
+    silicon_match->set_y_search_window(0.36);
+    silicon_match->set_z_search_window(2.5);
+    silicon_match->set_phi_search_window(0.014);
+    silicon_match->set_eta_search_window(0.0091);
+    silicon_match->set_test_windows_printout(false);
+
     silicon_match->set_pp_mode(TRACKING::pp_mode);
     se->registerSubsystem(silicon_match);
   }
