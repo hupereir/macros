@@ -80,9 +80,11 @@ int Fun4All_CombinedDataReconstruction_hp(
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runnumber);
   rc->set_IntFlag("RUNSEGMENT", segment);
-  // rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
-  rc->set_StringFlag("CDB_GLOBALTAG", "2024p008");
+  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
+
+  // try use hard coded geometry file
+  // /cvmfs/sphenix.sdcc.bnl.gov/calibrations/sphnxpro/cdb/Tracking_Geometry/./87/6a/876abfa36f58e100f29e6641f9ff4f5b_tracking_geometry_50nsclock.root
 
   TpcReadoutInit( runnumber );
 
@@ -105,10 +107,11 @@ int Fun4All_CombinedDataReconstruction_hp(
     CDBTTree cdbttree(tpc_dv_calib_dir);
     cdbttree.LoadCalibrations();
     G4TPC::tpc_drift_velocity_reco = cdbttree.GetSingleFloatValue("tpc_drift_velocity");
-    std::cout << "Fun4All_CombinedDataReconstruction - Use calibrated TPC drift velocity for Run " << runnumber << ": " << G4TPC::tpc_drift_velocity_reco << " cm/ns" << std::endl;
 
     // need to apply proper scaling to match new TPC FEE clock frequency
-    G4TPC::tpc_drift_velocity_reco = G4TPC::tpc_drift_velocity_reco * 53.0/50.0;
+    G4TPC::tpc_drift_velocity_reco = G4TPC::tpc_drift_velocity_reco * 53.0/50.0373;
+
+    std::cout << "Fun4All_CombinedDataReconstruction - Use calibrated TPC drift velocity for Run " << runnumber << ": " << G4TPC::tpc_drift_velocity_reco << " cm/ns" << std::endl;
 
   }
 
@@ -164,13 +167,32 @@ int Fun4All_CombinedDataReconstruction_hp(
   // hit unpackers
   Mvtx_HitUnpacking();
   Intt_HitUnpacking();
-  Tpc_HitUnpacking();
+  if( true )
+  {
+
+    // custom TPC unpacking
+    auto tpcunpacker = new TpcCombinedRawDataUnpacker("TpcCombinedRawDataUnpacker");
+    tpcunpacker->set_presampleShift(TRACKING::reco_tpc_time_presample);
+    tpcunpacker->set_t0(-4);
+    if(TRACKING::tpc_zero_supp)
+    { tpcunpacker->ReadZeroSuppressedData(); }
+
+    tpcunpacker->doBaselineCorr(TRACKING::tpc_baseline_corr);
+    se->registerSubsystem(tpcunpacker);
+
+  } else {
+
+    // official TPC unpacking
+    Tpc_HitUnpacking();
+
+  }
 
   // micromegas unpacking
   {
     auto tpotunpacker = new MicromegasCombinedDataDecoder;
     const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
     tpotunpacker->set_calibration_file(calibrationFile);
+    tpotunpacker->set_sample_max(1024);
     // tpotunpacker->set_hot_channel_map_file("Calibrations/TPOT_HotChannels-00041989-0000.root" );
     se->registerSubsystem(tpotunpacker);
   }
@@ -178,10 +200,11 @@ int Fun4All_CombinedDataReconstruction_hp(
   Mvtx_Clustering();
   Intt_Clustering();
 
+  // tpc clustering
   auto tpcclusterizer = new TpcClusterizer;
   tpcclusterizer->Verbosity(0);
-  tpcclusterizer->set_do_hit_association(G4TPC::DO_HIT_ASSOCIATION);
   tpcclusterizer->set_rawdata_reco();
+  tpcclusterizer->set_sampa_tbias(0);
   se->registerSubsystem(tpcclusterizer);
 
   Tpc_LaserEventIdentifying();
@@ -228,7 +251,8 @@ int Fun4All_CombinedDataReconstruction_hp(
     seeder->SetMinHitsPerCluster(0);
     seeder->SetMinClustersPerTrack(3);
     seeder->useFixedClusterError(true);
-    seeder->set_pp_mode(TRACKING::pp_mode);
+    seeder->set_pp_mode(true);
+    // seeder->set_pp_mode(TRACKING::pp_mode);
     se->registerSubsystem(seeder);
   }
 
@@ -249,7 +273,8 @@ int Fun4All_CombinedDataReconstruction_hp(
     cprop->useFixedClusterError(true);
     cprop->set_max_window(5.);
     cprop->Verbosity(0);
-    cprop->set_pp_mode(TRACKING::pp_mode);
+    // cprop->set_pp_mode(TRACKING::pp_mode);
+    cprop->set_pp_mode(true);
     se->registerSubsystem(cprop);
 
     if (TRACKING::pp_mode)
@@ -293,10 +318,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     // matching with micromegas
     auto mm_match = new PHMicromegasTpcTrackMatching;
     mm_match->Verbosity(0);
-//     mm_match->set_rphi_search_window_lyr1(0.4);
-//     mm_match->set_rphi_search_window_lyr2(13.0);
-//     mm_match->set_z_search_window_lyr1(26.0);
-//     mm_match->set_z_search_window_lyr2(0.4);
 
     mm_match->set_rphi_search_window_lyr1(3.0);
     mm_match->set_rphi_search_window_lyr2(15.0);
