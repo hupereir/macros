@@ -90,7 +90,7 @@ void Intt_HitUnpacking(const std::string& server="")
   auto inttunpacker = new InttCombinedRawDataDecoder("InttCombinedRawDataDecoder"+server);
   inttunpacker->Verbosity(verbosity);
   inttunpacker->LoadHotChannelMapRemote("INTT_HotMap");
-  inttunpacker->set_triggeredMode(!isStreaming); 
+  inttunpacker->set_triggeredMode(!isStreaming);
    if(server.length() > 0)
     {
       inttunpacker->useRawHitNodeName("INTTRAWHIT_" + server);
@@ -142,7 +142,7 @@ void Tpc_LaserEventIdentifying()
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::TPC_VERBOSITY);
   Fun4AllServer* se = Fun4AllServer::instance();
-  
+
   auto laserEventIdentifier = new LaserEventIdentifier;
   if(G4TPC::laser_event_debug_filename != "")
   {
@@ -196,6 +196,7 @@ void Micromegas_HitUnpacking()
   auto tpotunpacker = new MicromegasCombinedDataDecoder;
   const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
   tpotunpacker->set_calibration_file(calibrationFile);
+  tpotunpacker->set_sample_max(1024);
   se->registerSubsystem(tpotunpacker);
 }
 
