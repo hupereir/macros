@@ -50,6 +50,7 @@ R__LOAD_LIBRARY(libmicromegas.so)
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
   const int nEvents = 10,
+  const int nSkipEvents = 0,
   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00053285-00000.root",
   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
   const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
@@ -59,6 +60,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 {
   // print inputs
   std::cout << "Fun4All_CombinedDataReconstruction - nEvents: " << nEvents << std::endl;
+  std::cout << "Fun4All_CombinedDataReconstruction - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - residualFile: " << residualFile << std::endl;
@@ -201,11 +203,13 @@ int Fun4All_CombinedDataReconstruction_hp(
   Intt_Clustering();
 
   // tpc clustering
-  auto tpcclusterizer = new TpcClusterizer;
-  tpcclusterizer->Verbosity(0);
-  tpcclusterizer->set_rawdata_reco();
-  tpcclusterizer->set_sampa_tbias(0);
-  se->registerSubsystem(tpcclusterizer);
+  {
+    auto tpcclusterizer = new TpcClusterizer;
+    tpcclusterizer->Verbosity(0);
+    tpcclusterizer->set_rawdata_reco();
+    tpcclusterizer->set_sampa_tbias(0);
+    se->registerSubsystem(tpcclusterizer);
+  }
 
   Tpc_LaserEventIdentifying();
 
@@ -317,6 +321,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   {
     // matching with micromegas
     auto mm_match = new PHMicromegasTpcTrackMatching;
+    mm_match->set_pp_mode(TRACKING::pp_mode);
     mm_match->Verbosity(0);
 
     mm_match->set_rphi_search_window_lyr1(3.0);
@@ -461,6 +466,10 @@ int Fun4All_CombinedDataReconstruction_hp(
   }
 
   // process events
+  if( nSkipEvents > 0 ) {
+    se->skip(nSkipEvents);
+  }
+
   se->run(nEvents);
 
   // terminate
