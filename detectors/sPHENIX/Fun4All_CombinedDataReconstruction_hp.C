@@ -19,10 +19,7 @@
 
 // TPC
 #include <tpc/TpcCombinedRawDataUnpacker.h>
-
 #include <tpccalib/PHTpcResiduals.h>
-
-#include <trackingdiagnostics/TrackResiduals.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -53,8 +50,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   const int nSkipEvents = 0,
   const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00053285-00000.root",
   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
-  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction/TrackResiduals-00053285-0000_corrected.root",
-  const char* evaluationFile = "DST/CONDOR_CombinedDataReconstruction/MicromegasCombinedDataEvaluation-00053285-0000_corrected.root"
+  const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053285-0000.root"
 
   )
 {
@@ -63,11 +59,10 @@ int Fun4All_CombinedDataReconstruction_hp(
   std::cout << "Fun4All_CombinedDataReconstruction - nSkipEvents: " << nSkipEvents << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - inputFile: " << inputFile << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_CombinedDataReconstruction - residualFile: " << residualFile << std::endl;
-  std::cout << "Fun4All_CombinedDataReconstruction - evaluationFile: " << evaluationFile << std::endl;
+  std::cout << "Fun4All_CombinedDataReconstruction - tpcResidualsFile: " << tpcResidualsFile << std::endl;
 
   TRACKING::pp_mode = true;
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::convert_seeds_to_svtxtracks = false;
 
   // condition database
@@ -383,7 +378,7 @@ int Fun4All_CombinedDataReconstruction_hp(
     * store in dedicated structure for distortion correction
     */
     auto residuals = new PHTpcResiduals;
-    residuals->setOutputfile("PhTpcResiduals.root");
+    residuals->setOutputfile(tpcResidualsFile);
     residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
 
     // matches Tony's analysis
@@ -392,40 +387,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     // reconstructed distortion grid size (phi, r, z)
     residuals->setGridDimensions(36, 48, 80);
     se->registerSubsystem(residuals);
-  }
-
-  // residual tree from tony
-  // disabled because it is very large
-  // achieves the same as TrackEvaluator_hp
-  if( false )
-  {
-    auto resid = new TrackResiduals("TrackResiduals");
-    resid->outfileName(residualFile);
-    resid->Verbosity(0);
-    resid->alignment(false);
-
-    // resid->set_rejectLaserEvent(false);
-
-    // adjust track map made
-    if( G4TRACKING::SC_CALIBMODE )
-    { resid->trackmapName("SvtxSiliconMMTrackMap"); }
-
-    // discard all tracks that do not have micromegas hits
-    // resid->set_doMicromegasOnly(true);
-
-    // resid->clusterTree();
-    // resid->hitTree();
-    resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
-    // resid->linefitAll();
-    se->registerSubsystem(resid);
-  }
-
-  // official TPOT evaluator
-  if( false )
-  {
-    auto micromegasCombinedDataEvaluation = new MicromegasCombinedDataEvaluation;
-    micromegasCombinedDataEvaluation->set_evaluation_outputfile( evaluationFile );
-    se->registerSubsystem(micromegasCombinedDataEvaluation);
   }
 
   // own evaluator
