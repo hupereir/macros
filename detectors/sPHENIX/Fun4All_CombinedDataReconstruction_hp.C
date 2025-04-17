@@ -19,7 +19,10 @@
 
 // TPC
 #include <tpc/TpcCombinedRawDataUnpacker.h>
+
 #include <tpccalib/PHTpcResiduals.h>
+
+#include <trackingdiagnostics/TrackResiduals.h>
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
@@ -27,7 +30,6 @@
 #include <g4eval_hp/MicromegasClusterEvaluator_hp.h>
 #include <g4eval_hp/MicromegasTrackEvaluator_hp.h>
 #include <g4eval_hp/TrackingEvaluator_hp.h>
-
 
 // local macros
 #include "G4Setup_sPHENIX.C"
@@ -44,12 +46,18 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
+// tag = "ana464_nocdbtag_v001/"
+
+#include "make_filelist.C"
+
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
   const int nEvents = 10,
   const int nSkipEvents = 0,
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00053200_00053300/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00053285-00000.root",
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053285-0000_corrected.root",
+  const char* tag = "ana464_nocdbtag_v001",
+  const int runnumber = 53534,
+  const int segment = 0,
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053756-0000_corrected.root",
   const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053285-0000.root"
 
   )
@@ -57,21 +65,18 @@ int Fun4All_CombinedDataReconstruction_hp(
   // print inputs
   std::cout << "Fun4All_CombinedDataReconstruction - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - nSkipEvents: " << nSkipEvents << std::endl;
-  std::cout << "Fun4All_CombinedDataReconstruction - inputFile: " << inputFile << std::endl;
+  std::cout << "Fun4All_CombinedDataReconstruction - tag: " << tag << std::endl;
+  std::cout << "Fun4All_CombinedDataReconstruction - runnumber: " << runnumber << std::endl;
+  std::cout << "Fun4All_CombinedDataReconstruction - segment: " << segment << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - outputFile: " << outputFile << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - tpcResidualsFile: " << tpcResidualsFile << std::endl;
 
   TRACKING::pp_mode = true;
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::convert_seeds_to_svtxtracks = false;
 
   // condition database
   Enable::CDB = true;
-
-  // readout initialization
-  const auto [runnumber,segment] = Fun4AllUtils::GetRunSegment(inputFile);
-  std::cout<< "Fun4All_CombinedDataReconstruction - runnumber: " << runnumber << std::endl;
-  std::cout<< "Fun4All_CombinedDataReconstruction - segment: " << segment << std::endl;
 
   // reco const
   auto rc = recoConsts::instance();
@@ -80,49 +85,17 @@ int Fun4All_CombinedDataReconstruction_hp(
   rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
 
-  // try use hard coded geometry file
-  // /cvmfs/sphenix.sdcc.bnl.gov/calibrations/sphnxpro/cdb/Tracking_Geometry/./87/6a/876abfa36f58e100f29e6641f9ff4f5b_tracking_geometry_50nsclock.root
-
+  // tpc readout initialization
   TpcReadoutInit( runnumber );
 
-  // Ar/CF4
-  // G4TPC::tpc_drift_velocity_reco = 0.00815238095238;
-
-  // Ar/iC4H10/CF4 (default)
-  // G4TPC::tpc_drift_velocity_reco = 0.00714;
-  // G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
-
-  // try get drift velocity from CDB
-  auto cdb = CDBInterface::instance();
-  const auto tpc_dv_calib_dir = cdb->getUrl("TPC_DRIFT_VELOCITY");
-  if (tpc_dv_calib_dir.empty())
-  {
-    std::cout << "Fun4All_CombinedDataReconstruction - No calibrated TPC drift velocity for Run " << runnumber << ". Use default value " << G4TPC::tpc_drift_velocity_reco << " cm/ns" << std::endl;
-  }
-  else
-  {
-    CDBTTree cdbttree(tpc_dv_calib_dir);
-    cdbttree.LoadCalibrations();
-    G4TPC::tpc_drift_velocity_reco = cdbttree.GetSingleFloatValue("tpc_drift_velocity");
-
-    // need to apply proper scaling to match new TPC FEE clock frequency
-    G4TPC::tpc_drift_velocity_reco = G4TPC::tpc_drift_velocity_reco * 53.0/50.0373;
-
-    std::cout << "Fun4All_CombinedDataReconstruction - Use calibrated TPC drift velocity for Run " << runnumber << ": " << G4TPC::tpc_drift_velocity_reco << " cm/ns" << std::endl;
-
-  }
-
+  // printout
   std::cout<< "Fun4All_CombinedDataReconstruction - samples: " << TRACKING::reco_tpc_maxtime_sample << std::endl;
   std::cout<< "Fun4All_CombinedDataReconstruction - pre: " << TRACKING::reco_tpc_time_presample << std::endl;
   std::cout<< "Fun4All_CombinedDataReconstruction - vdrift: " << G4TPC::tpc_drift_velocity_reco << std::endl;
 
-  ACTSGEOM::mvtxMisalignment = 100;
-  ACTSGEOM::inttMisalignment = 100;
-  ACTSGEOM::tpotMisalignment = 100;
-
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity();
 
   PHRandomSeed::Verbosity(1);
 
@@ -146,8 +119,16 @@ int Fun4All_CombinedDataReconstruction_hp(
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
 
-    // average distortions
-    G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
+//     // average distortions
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
+
+    G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+    G4TPC::average_correction_filename = "/sphenix/u/xyu3/workarea/TPCdistortion/Si_TPOT_fit/staticCorrOn_scale1/jobB/Rootfiles/Distortions_2D_mm_53534_rz.root";
+    G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
+
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+//     G4TPC::average_correction_filename = "/sphenix/tg/tg01/jets/bkimelman/BenProduction/Feb21_2025/Laminations_run2pp_ana464_2024p011_v001-00053534.root";
+//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
   }
 
   // tpc zero suppression
@@ -156,41 +137,52 @@ int Fun4All_CombinedDataReconstruction_hp(
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
 
-  // input manager
-  auto in = new Fun4AllDstInputManager("DSTin");
-  in->fileopen(inputFile);
-  se->registerInputManager(in);
+  // input managers
+  {
+    const auto filelist = make_filelist( tag, runnumber, segment );
+    for( size_t i = 0; i < filelist.size(); ++i )
+    {
+      const auto& inputfile = filelist[i];
+      auto in = new Fun4AllDstInputManager(Form("DSTin_%zu", i));
+      in->fileopen(inputfile);
+      se->registerInputManager(in);
+    }
+  }
+  std::cout << "Fun4All_CombinedDataReconstruction_new_hp - done with input managers" << std::endl;
 
   // hit unpackers
-  Mvtx_HitUnpacking();
-  Intt_HitUnpacking();
-  if( true )
+  for(int felix=0; felix < 6; felix++)
+  { Mvtx_HitUnpacking(std::to_string(felix)); }
+
+  for(int server = 0; server < 8; server++)
+  { Intt_HitUnpacking(std::to_string(server)); }
+
   {
+    // TPC unpacking
+    for(int ebdc = 0; ebdc < 24; ebdc++)
+    {
+      const std::string ebdc_string = (Form( "%02i", ebdc ));
 
-    // custom TPC unpacking
-    auto tpcunpacker = new TpcCombinedRawDataUnpacker("TpcCombinedRawDataUnpacker");
-    tpcunpacker->set_presampleShift(TRACKING::reco_tpc_time_presample);
-    tpcunpacker->set_t0(-4);
-    if(TRACKING::tpc_zero_supp)
-    { tpcunpacker->ReadZeroSuppressedData(); }
+      auto tpcunpacker = new TpcCombinedRawDataUnpacker("TpcCombinedRawDataUnpacker"+ebdc_string);
+      tpcunpacker->useRawHitNodeName("TPCRAWHIT_" + ebdc_string);
+      tpcunpacker->set_presampleShift(TRACKING::reco_tpc_time_presample);
 
-    tpcunpacker->doBaselineCorr(TRACKING::tpc_baseline_corr);
-    se->registerSubsystem(tpcunpacker);
+      if(TRACKING::tpc_zero_supp)
+      { tpcunpacker->ReadZeroSuppressedData(); }
 
-  } else {
-
-    // official TPC unpacking
-    Tpc_HitUnpacking();
-
+      tpcunpacker->doBaselineCorr(TRACKING::tpc_baseline_corr);
+      se->registerSubsystem(tpcunpacker);
+    }
   }
 
-  // micromegas unpacking
+  std::cout << "Fun4All_CombinedDataReconstruction_new_hp - done with unpackers" << std::endl;
+
   {
+    // micromegas unpacking
     auto tpotunpacker = new MicromegasCombinedDataDecoder;
     const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
     tpotunpacker->set_calibration_file(calibrationFile);
     tpotunpacker->set_sample_max(1024);
-    // tpotunpacker->set_hot_channel_map_file("Calibrations/TPOT_HotChannels-00041989-0000.root" );
     se->registerSubsystem(tpotunpacker);
   }
 
@@ -251,7 +243,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     seeder->SetMinClustersPerTrack(3);
     seeder->useFixedClusterError(true);
     seeder->set_pp_mode(true);
-    // seeder->set_pp_mode(TRACKING::pp_mode);
     se->registerSubsystem(seeder);
   }
 
@@ -272,7 +263,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     cprop->useFixedClusterError(true);
     cprop->set_max_window(5.);
     cprop->Verbosity(0);
-    // cprop->set_pp_mode(TRACKING::pp_mode);
     cprop->set_pp_mode(true);
     se->registerSubsystem(cprop);
 
@@ -293,13 +283,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     auto silicon_match = new PHSiliconTpcTrackMatching;
     silicon_match->Verbosity(0);
 
-    // wide matching windows
-//     silicon_match->set_x_search_window(2.);
-//     silicon_match->set_y_search_window(2.);
-//     silicon_match->set_z_search_window(5.);
-//     silicon_match->set_phi_search_window(0.2);
-//     silicon_match->set_eta_search_window(0.1);
-
     // narrow matching windows
     silicon_match->set_x_search_window(0.36);
     silicon_match->set_y_search_window(0.36);
@@ -316,8 +299,8 @@ int Fun4All_CombinedDataReconstruction_hp(
   {
     // matching with micromegas
     auto mm_match = new PHMicromegasTpcTrackMatching;
-    mm_match->set_pp_mode(TRACKING::pp_mode);
     mm_match->Verbosity(0);
+    mm_match->set_pp_mode(TRACKING::pp_mode);
 
     mm_match->set_rphi_search_window_lyr1(3.0);
     mm_match->set_rphi_search_window_lyr2(15.0);
@@ -410,6 +393,9 @@ int Fun4All_CombinedDataReconstruction_hp(
   {
 
     auto micromegasTrackEvaluator = new MicromegasTrackEvaluator_hp;
+
+    // silicon only extrapolation
+    micromegasTrackEvaluator->set_use_silicon(false);
 
     if( G4TRACKING::SC_CALIBMODE )
     { micromegasTrackEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }

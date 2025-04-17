@@ -81,7 +81,8 @@ int Fun4All_G4_sPHENIX_single_sim_hp(
     gen->add_particles(pid,1);
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-M_PI, M_PI);
-    gen->set_pt_range(0.2, 20.0);
+    // gen->set_pt_range(0.2, 20.0);
+    gen->set_pt_range(0.2, 5);
 
     // vertex
     gen->set_vertex_distribution_function(
