@@ -204,7 +204,6 @@ void Micromegas_Clustering()
 {
   auto se = Fun4AllServer::instance();
   auto mm_clus = new MicromegasClusterizer;
-
   const auto calibrationFile = CDBInterface::instance()->getUrl("TPOT_Pedestal");
   mm_clus->set_calibration_file(calibrationFile);
 
