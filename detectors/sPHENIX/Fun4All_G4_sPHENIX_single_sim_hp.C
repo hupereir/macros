@@ -1,4 +1,3 @@
-#include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllDummyInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
@@ -36,7 +35,6 @@ int Fun4All_G4_sPHENIX_single_sim_hp(
   Enable::MBDFAKE = true;
   Enable::PLUGDOOR = false;
 
-  // enable all absorbers
   // this is equivalent to the old "absorberactive" flag
   Enable::ABSORBER = false;
 
@@ -47,6 +45,7 @@ int Fun4All_G4_sPHENIX_single_sim_hp(
   Enable::MICROMEGAS = true;
   Enable::BLACKHOLE = true;
 
+  // calorimeters
   Enable::CEMC = true;
   Enable::HCALIN = true;
   Enable::MAGNET = true;
@@ -59,7 +58,6 @@ int Fun4All_G4_sPHENIX_single_sim_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  // se->Verbosity(1);
 
   // make sure to printout random seeds for reproducibility
   PHRandomSeed::Verbosity(1);

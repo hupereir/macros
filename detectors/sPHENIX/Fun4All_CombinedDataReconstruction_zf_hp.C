@@ -47,12 +47,18 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
+#include "make_filelist.C"
+
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_zf_hp(
-  const int nEvents = 200,
-  const char* inputFile = "/sphenix/lustre01/sphnxpro/physics/slurp/streaming/physics/ana441_2024p007/run_00052000_00052100/DST_STREAMING_EVENT_run2pp_ana441_2024p007-00052077-00000.root",
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction_zf_test/dst_eval-00052077-0000_corrected.root",
-  const char* residualFile = "DST/CONDOR_CombinedDataReconstruction_zf_test/TrackResiduals-00052077-0000_corrected.root"
+  const int nEvents = 10,
+  const int nSkipEvents = 0,
+  const char* tag = "ana464_nocdbtag_v001",
+  const int runnumber = 53534,
+  const int segment = 0,
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053756-0000_corrected.root",
+  const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053285-0000.root"
+
   )
 {
   // print inputs

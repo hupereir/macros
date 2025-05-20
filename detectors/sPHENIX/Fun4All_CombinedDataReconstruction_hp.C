@@ -17,6 +17,9 @@
 #include <intt/InttCombinedRawDataDecoder.h>
 #include <intt/InttClusterizer.h>
 
+// mvtx
+#include <mvtx/MvtxClusterPruner.h>
+
 // TPC
 #include <tpc/TpcCombinedRawDataUnpacker.h>
 
@@ -46,19 +49,25 @@ R__LOAD_LIBRARY(libg4eval_hp.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 
-// tag = "ana464_nocdbtag_v001/"
-
 #include "make_filelist.C"
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 10,
+  const int nEvents = 20,
   const int nSkipEvents = 0,
   const char* tag = "ana464_nocdbtag_v001",
-  const int runnumber = 53534,
+  const int runnumber = 53877,
   const int segment = 0,
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053756-0000_corrected.root",
-  const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053285-0000.root"
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053877-0000_corrected.root",
+  const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053877-0000.root"
+
+//   const int nEvents = 100,
+//   const int nSkipEvents = 2000,
+//   const char* tag = "ana478_nocdbtag_v001",
+//   const int runnumber = 53687,
+//   const int segment = 19,
+//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053687-0000_corrected.root",
+//   const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053687-0000.root"
 
   )
 {
@@ -72,7 +81,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   std::cout << "Fun4All_CombinedDataReconstruction - tpcResidualsFile: " << tpcResidualsFile << std::endl;
 
   TRACKING::pp_mode = true;
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::convert_seeds_to_svtxtracks = false;
 
   // condition database
@@ -95,7 +104,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 
   // server
   auto se = Fun4AllServer::instance();
-  se->Verbosity();
+  // se->Verbosity();
 
   PHRandomSeed::Verbosity(1);
 
@@ -119,20 +128,16 @@ int Fun4All_CombinedDataReconstruction_hp(
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
 
-//     // average distortions
-//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
-
+    // average distortions
     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
-    G4TPC::average_correction_filename = "/sphenix/u/xyu3/workarea/TPCdistortion/Si_TPOT_fit/staticCorrOn_scale1/jobB/Rootfiles/Distortions_2D_mm_53534_rz.root";
-    G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
-
-//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
-//     G4TPC::average_correction_filename = "/sphenix/tg/tg01/jets/bkimelman/BenProduction/Feb21_2025/Laminations_run2pp_ana464_2024p011_v001-00053534.root";
-//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
+    G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
+    G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
   }
 
   // tpc zero suppression
   TRACKING::tpc_zero_supp = true;
+  Enable::MVTX_APPLYMISALIGNMENT = true;
+  ACTSGEOM::mvtx_applymisalignment = Enable::MVTX_APPLYMISALIGNMENT;
 
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
@@ -187,6 +192,15 @@ int Fun4All_CombinedDataReconstruction_hp(
   }
 
   Mvtx_Clustering();
+
+  if( false )
+  {
+    // cluster pruner
+    auto mvtxClusterPruner = new MvtxClusterPruner;
+    mvtxClusterPruner->set_use_strict_matching(true);
+    se->registerSubsystem(mvtxClusterPruner);
+  }
+
   Intt_Clustering();
 
   // tpc clustering
@@ -206,9 +220,10 @@ int Fun4All_CombinedDataReconstruction_hp(
     // silicon seeding
     auto silicon_Seeding = new PHActsSiliconSeeding;
     silicon_Seeding->Verbosity(0);
-    silicon_Seeding->setinttRPhiSearchWindow(1.0);
-    silicon_Seeding->setinttZSearchWindow(7.0);
+    silicon_Seeding->setStrobeRange(-5,5);
     silicon_Seeding->seedAnalysis(false);
+    silicon_Seeding->setinttRPhiSearchWindow(0.2);
+    silicon_Seeding->setinttZSearchWindow(1.0);
     se->registerSubsystem(silicon_Seeding);
   }
 
@@ -236,6 +251,7 @@ int Fun4All_CombinedDataReconstruction_hp(
       seeder->magFieldFile(G4MAGNET::magfield_tracking);  // to get charge sign right
     }
     seeder->Verbosity(0);
+    seeder->reject_zsize1_clusters(true);
     seeder->SetLayerRange(7, 55);
     seeder->SetSearchWindow(2.,0.05); // z-width and phi-width, default in macro at 1.5 and 0.05
     seeder->SetClusAdd_delta_window(3.0,0.06); //  (0.5, 0.005) are default; sdzdr_cutoff, d2/dr2(phi)_cutoff
@@ -262,6 +278,7 @@ int Fun4All_CombinedDataReconstruction_hp(
     }
     cprop->useFixedClusterError(true);
     cprop->set_max_window(5.);
+    cprop->set_max_seeds(5000);
     cprop->Verbosity(0);
     cprop->set_pp_mode(true);
     se->registerSubsystem(cprop);
@@ -282,16 +299,16 @@ int Fun4All_CombinedDataReconstruction_hp(
     // matching to silicons
     auto silicon_match = new PHSiliconTpcTrackMatching;
     silicon_match->Verbosity(0);
-
-    // narrow matching windows
-    silicon_match->set_x_search_window(0.36);
-    silicon_match->set_y_search_window(0.36);
-    silicon_match->set_z_search_window(2.5);
-    silicon_match->set_phi_search_window(0.014);
-    silicon_match->set_eta_search_window(0.0091);
-    silicon_match->set_test_windows_printout(false);
-
+    silicon_match->set_use_legacy_windowing(false);
     silicon_match->set_pp_mode(TRACKING::pp_mode);
+    if(G4TPC::ENABLE_AVERAGE_CORRECTIONS)
+    {
+      // reset phi matching window to be centered on zero
+      // it defaults to being centered on -0.1 radians for the case of static corrections only
+      std::array<double,3> arrlo = {-0.15,0,0};
+      std::array<double,3> arrhi = {0.15,0,0};
+      silicon_match->window_dphi.set_QoverpT_range(arrlo, arrhi);
+    }
     se->registerSubsystem(silicon_match);
   }
 
@@ -344,14 +361,19 @@ int Fun4All_CombinedDataReconstruction_hp(
     // vertex finding
     auto finder = new PHSimpleVertexFinder;
     finder->Verbosity(0);
-    finder->setDcaCut(0.5);
-    finder->setTrackPtCut(-99999.);
+    finder->setDcaCut(0.05);
+    finder->setTrackPtCut(0.1);
     finder->setBeamLineCut(1);
-    finder->setTrackQualityCut(100);
+    finder->setTrackQualityCut(300);
     finder->setNmvtxRequired(3);
-    finder->setOutlierPairCut(1);
-
+    finder->setOutlierPairCut(0.1);
     se->registerSubsystem(finder);
+
+    // acts propagation to vertex
+    auto vtxProp = new PHActsVertexPropagator;
+    vtxProp->Verbosity(0);
+    vtxProp->fieldMap(G4MAGNET::magfield_tracking);
+    se->registerSubsystem(vtxProp);
   }
 
   if (G4TRACKING::SC_CALIBMODE)
@@ -377,30 +399,15 @@ int Fun4All_CombinedDataReconstruction_hp(
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
-      TrackingEvaluator_hp::EvalEvent
-      |TrackingEvaluator_hp::EvalTracks
-//       |TrackingEvaluator_hp::MicromegasOnly
+      0
+//       |TrackingEvaluator_hp::PrintSeeds
+      |TrackingEvaluator_hp::PrintTracks
       );
 
     if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
 
     se->registerSubsystem(trackingEvaluator);
-  }
-
-  // own evaluator
-  if( true )
-  {
-
-    auto micromegasTrackEvaluator = new MicromegasTrackEvaluator_hp;
-
-    // silicon only extrapolation
-    micromegasTrackEvaluator->set_use_silicon(false);
-
-    if( G4TRACKING::SC_CALIBMODE )
-    { micromegasTrackEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
-
-    se->registerSubsystem(micromegasTrackEvaluator);
   }
 
   // output manager

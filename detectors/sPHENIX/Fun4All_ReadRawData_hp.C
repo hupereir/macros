@@ -22,7 +22,6 @@
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
-R__LOAD_LIBRARY(libqa_modules.so)
 
 R__LOAD_LIBRARY(libmicromegas.so)
 R__LOAD_LIBRARY(libTrackingDiagnostics.so)
