@@ -15,7 +15,7 @@
 
 #include <intt/InttClusterizer.h>
 #include <mvtx/MvtxClusterizer.h>
-#include <mvtx/MvtxHitPruner.h>
+#include <mvtx/MvtxClusterPruner.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundefined-internal"
@@ -63,16 +63,17 @@ void Mvtx_Clustering()
   int verbosity = std::max(Enable::VERBOSITY, Enable::MVTX_VERBOSITY);
   auto se = Fun4AllServer::instance();
 
-//   // prune the extra MVTX hits due to multiple strobes per hit
-//   auto mvtxhitpruner = new MvtxHitPruner;
-//   mvtxhitpruner->Verbosity(verbosity);
-//   se->registerSubsystem(mvtxhitpruner);
-
   // For the Mvtx layers
   //================
   auto mvtxclusterizer = new MvtxClusterizer("MvtxClusterizer");
   mvtxclusterizer->Verbosity(verbosity);
   se->registerSubsystem(mvtxclusterizer);
+
+  // cluster pruner
+  auto mvtxclusterpruner = new MvtxClusterPruner;
+  mvtxclusterpruner->set_use_strict_matching(true);
+  se->registerSubsystem(mvtxclusterpruner);
+
 }
 void Intt_HitUnpacking(const std::string& server="")
 {
