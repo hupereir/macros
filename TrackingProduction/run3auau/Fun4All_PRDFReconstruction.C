@@ -98,30 +98,54 @@ void Fun4All_PRDFReconstruction(
     const string &input_mvtxfile03 = "mvtx3.list",
     const string &input_mvtxfile04 = "mvtx4.list",
     const string &input_mvtxfile05 = "mvtx5.list",
-    const string &input_tpcfile00 = "ebdc00.list",
-    const string &input_tpcfile01 = "ebdc01.list",
-    const string &input_tpcfile02 = "ebdc02.list",
-    const string &input_tpcfile03 = "ebdc03.list",
-    const string &input_tpcfile04 = "ebdc04.list",
-    const string &input_tpcfile05 = "ebdc05.list",
-    const string &input_tpcfile06 = "ebdc06.list",
-    const string &input_tpcfile07 = "ebdc07.list",
-    const string &input_tpcfile08 = "ebdc08.list",
-    const string &input_tpcfile09 = "ebdc09.list",
-    const string &input_tpcfile10 = "ebdc10.list",
-    const string &input_tpcfile11 = "ebdc11.list",
-    const string &input_tpcfile12 = "ebdc12.list",
-    const string &input_tpcfile13 = "ebdc13.list",
-    const string &input_tpcfile14 = "ebdc14.list",
-    const string &input_tpcfile15 = "ebdc15.list",
-    const string &input_tpcfile16 = "ebdc16.list",
-    const string &input_tpcfile17 = "ebdc17.list",
-    const string &input_tpcfile18 = "ebdc18.list",
-    const string &input_tpcfile19 = "ebdc19.list",
-    const string &input_tpcfile20 = "ebdc20.list",
-    const string &input_tpcfile21 = "ebdc21.list",
-    const string &input_tpcfile22 = "ebdc22.list",
-    const string &input_tpcfile23 = "ebdc23.list",
+    const string &input_tpcfile00_0 = "tpc00_0.list",
+    const string &input_tpcfile00_1 = "tpc00_1.list",
+    const string &input_tpcfile01_0 = "tpc01_0.list",
+    const string &input_tpcfile01_1 = "tpc01_1.list",
+    const string &input_tpcfile02_0 = "tpc02_0.list",
+    const string &input_tpcfile02_1 = "tpc02_1.list",   
+    const string &input_tpcfile03_0 = "tpc03_0.list",
+    const string &input_tpcfile03_1 = "tpc03_1.list",   
+    const string &input_tpcfile04_0 = "tpc04_0.list",
+    const string &input_tpcfile04_1 = "tpc04_1.list",   
+    const string &input_tpcfile05_0 = "tpc05_0.list",
+    const string &input_tpcfile05_1 = "tpc05_1.list",
+    const string &input_tpcfile06_0 = "tpc06_0.list",
+    const string &input_tpcfile06_1 = "tpc06_1.list",
+    const string &input_tpcfile07_0 = "tpc07_0.list",
+    const string &input_tpcfile07_1 = "tpc07_1.list",    
+    const string &input_tpcfile08_0 = "tpc08_0.list",
+    const string &input_tpcfile08_1 = "tpc08_1.list",
+    const string &input_tpcfile09_0 = "tpc09_0.list",
+    const string &input_tpcfile09_1 = "tpc09_1.list",
+    const string &input_tpcfile10_0 = "tpc10_0.list",
+    const string &input_tpcfile10_1 = "tpc10_1.list",   
+    const string &input_tpcfile11_0 = "tpc11_0.list",
+    const string &input_tpcfile11_1 = "tpc11_1.list",   
+    const string &input_tpcfile12_0 = "tpc12_0.list",
+    const string &input_tpcfile12_1 = "tpc12_1.list",   
+    const string &input_tpcfile13_0 = "tpc13_0.list",
+    const string &input_tpcfile13_1 = "tpc13_1.list",   
+    const string &input_tpcfile14_0 = "tpc14_0.list",
+    const string &input_tpcfile14_1 = "tpc14_1.list",  
+    const string &input_tpcfile15_0 = "tpc15_0.list",
+    const string &input_tpcfile15_1 = "tpc15_1.list",
+    const string &input_tpcfile16_0 = "tpc16_0.list",
+    const string &input_tpcfile16_1 = "tpc16_1.list",
+    const string &input_tpcfile17_0 = "tpc17_0.list",
+    const string &input_tpcfile17_1 = "tpc17_1.list",    
+    const string &input_tpcfile18_0 = "tpc18_0.list",
+    const string &input_tpcfile18_1 = "tpc18_1.list",    
+    const string &input_tpcfile19_0 = "tpc19_0.list",
+    const string &input_tpcfile19_1 = "tpc19_1.list",
+    const string &input_tpcfile20_0 = "tpc20_0.list",
+    const string &input_tpcfile20_1 = "tpc20_1.list",
+    const string &input_tpcfile21_0 = "tpc21_0.list",
+    const string &input_tpcfile21_1 = "tpc21_1.list",
+    const string &input_tpcfile22_0 = "tpc22_0.list",
+    const string &input_tpcfile22_1 = "tpc22_1.list",
+    const string &input_tpcfile23_0 = "tpc23_0.list",
+    const string &input_tpcfile23_1 = "tpc23_1.list",
     const string &input_tpotfile = "tpot.list"
 )
 {
@@ -149,30 +173,54 @@ void Fun4All_PRDFReconstruction(
   intt_infile.push_back(input_inttfile07);
 
   vector<string> tpc_infile;
-  tpc_infile.push_back(input_tpcfile00);
-  tpc_infile.push_back(input_tpcfile01);
-  tpc_infile.push_back(input_tpcfile02);
-  tpc_infile.push_back(input_tpcfile03);
-  tpc_infile.push_back(input_tpcfile04);
-  tpc_infile.push_back(input_tpcfile05);
-  tpc_infile.push_back(input_tpcfile06);
-  tpc_infile.push_back(input_tpcfile07);
-  tpc_infile.push_back(input_tpcfile08);
-  tpc_infile.push_back(input_tpcfile09);
-  tpc_infile.push_back(input_tpcfile10);
-  tpc_infile.push_back(input_tpcfile11);
-  tpc_infile.push_back(input_tpcfile12);
-  tpc_infile.push_back(input_tpcfile13);
-  tpc_infile.push_back(input_tpcfile14);
-  tpc_infile.push_back(input_tpcfile15);
-  tpc_infile.push_back(input_tpcfile16);
-  tpc_infile.push_back(input_tpcfile17);
-  tpc_infile.push_back(input_tpcfile18);
-  tpc_infile.push_back(input_tpcfile19);
-  tpc_infile.push_back(input_tpcfile20);
-  tpc_infile.push_back(input_tpcfile21);
-  tpc_infile.push_back(input_tpcfile22);
-  tpc_infile.push_back(input_tpcfile23);
+  tpc_infile.push_back(input_tpcfile00_0);
+  tpc_infile.push_back(input_tpcfile01_0);
+  tpc_infile.push_back(input_tpcfile02_0);
+  tpc_infile.push_back(input_tpcfile03_0);
+  tpc_infile.push_back(input_tpcfile04_0);
+  tpc_infile.push_back(input_tpcfile05_0);
+  tpc_infile.push_back(input_tpcfile06_0);
+  tpc_infile.push_back(input_tpcfile07_0);
+  tpc_infile.push_back(input_tpcfile08_0);
+  tpc_infile.push_back(input_tpcfile09_0);
+  tpc_infile.push_back(input_tpcfile10_0);
+  tpc_infile.push_back(input_tpcfile11_0);
+  tpc_infile.push_back(input_tpcfile12_0);
+  tpc_infile.push_back(input_tpcfile13_0);
+  tpc_infile.push_back(input_tpcfile14_0);
+  tpc_infile.push_back(input_tpcfile15_0);
+  tpc_infile.push_back(input_tpcfile16_0);
+  tpc_infile.push_back(input_tpcfile17_0);
+  tpc_infile.push_back(input_tpcfile18_0);
+  tpc_infile.push_back(input_tpcfile19_0);
+  tpc_infile.push_back(input_tpcfile20_0);
+  tpc_infile.push_back(input_tpcfile21_0);
+  tpc_infile.push_back(input_tpcfile22_0);
+  tpc_infile.push_back(input_tpcfile23_0);
+  tpc_infile.push_back(input_tpcfile00_1);
+  tpc_infile.push_back(input_tpcfile01_1);
+  tpc_infile.push_back(input_tpcfile02_1);
+  tpc_infile.push_back(input_tpcfile03_1);
+  tpc_infile.push_back(input_tpcfile04_1);
+  tpc_infile.push_back(input_tpcfile05_1);
+  tpc_infile.push_back(input_tpcfile06_1);
+  tpc_infile.push_back(input_tpcfile07_1);
+  tpc_infile.push_back(input_tpcfile08_1);
+  tpc_infile.push_back(input_tpcfile09_1);
+  tpc_infile.push_back(input_tpcfile10_1);
+  tpc_infile.push_back(input_tpcfile11_1);
+  tpc_infile.push_back(input_tpcfile12_1);
+  tpc_infile.push_back(input_tpcfile13_1);
+  tpc_infile.push_back(input_tpcfile14_1);
+  tpc_infile.push_back(input_tpcfile15_1);
+  tpc_infile.push_back(input_tpcfile16_1);
+  tpc_infile.push_back(input_tpcfile17_1);
+  tpc_infile.push_back(input_tpcfile18_1);
+  tpc_infile.push_back(input_tpcfile19_1);
+  tpc_infile.push_back(input_tpcfile20_1);
+  tpc_infile.push_back(input_tpcfile21_1);
+  tpc_infile.push_back(input_tpcfile22_1);
+  tpc_infile.push_back(input_tpcfile23_1);
 
 // TPOT
   vector<string> tpot_infile;
@@ -191,7 +239,6 @@ void Fun4All_PRDFReconstruction(
   //! flags to set
   Enable::QA = true;
   TRACKING::tpc_zero_supp = true;
-  TRACKING::pp_mode = true;
   G4TRACKING::convert_seeds_to_svtxtracks = false;
 
   Enable::MVTX_APPLYMISALIGNMENT = true;
@@ -339,7 +386,7 @@ void Fun4All_PRDFReconstruction(
   Micromegas_HitUnpacking();
 
   MvtxClusterizer* mvtxclusterizer = new MvtxClusterizer("MvtxClusterizer");
-  mvtxclusterizer->Verbosity(0);
+
   se->registerSubsystem(mvtxclusterizer);
 
   Intt_Clustering();
@@ -538,7 +585,10 @@ void Fun4All_PRDFReconstruction(
   resid->Verbosity(0);
   resid->outfileName(residstring);
   resid->alignment(false);
+  resid->clusterTree();
+  //resid->failedTree();
   //resid->hitTree();
+  resid->noEventTree();
   resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
 
 
@@ -546,7 +596,7 @@ void Fun4All_PRDFReconstruction(
   {
     resid->zeroField();
   }
-  //se->registerSubsystem(resid);
+  se->registerSubsystem(resid);
 
   // Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", "/sphenix/tg/tg01/hf/jdosbo/tracking_development/onlineoffline/hitsets.root");
   // se->registerOutputManager(out);

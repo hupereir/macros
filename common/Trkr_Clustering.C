@@ -58,23 +58,23 @@ void Mvtx_HitUnpacking(const std::string& felix="")
     }
   se->registerSubsystem(mvtxunpacker);
 }
+
 void Mvtx_Clustering()
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::MVTX_VERBOSITY);
   auto se = Fun4AllServer::instance();
 
-  // For the Mvtx layers
-  //================
-  auto mvtxclusterizer = new MvtxClusterizer("MvtxClusterizer");
+  // clusterizer
+  auto mvtxclusterizer = new MvtxClusterizer;
   mvtxclusterizer->Verbosity(verbosity);
   se->registerSubsystem(mvtxclusterizer);
 
   // cluster pruner
-  auto mvtxclusterpruner = new MvtxClusterPruner;
-  mvtxclusterpruner->set_use_strict_matching(true);
-  se->registerSubsystem(mvtxclusterpruner);
-
+  auto mvtxClusterPruner = new MvtxClusterPruner;
+  mvtxClusterPruner->set_use_strict_matching(true);
+  se->registerSubsystem(mvtxClusterPruner);
 }
+
 void Intt_HitUnpacking(const std::string& server="")
 {
   int verbosity = std::max(Enable::VERBOSITY, Enable::INTT_VERBOSITY);
