@@ -115,6 +115,14 @@ void ExportTpotAcceptanceRange()
 
     for( unsigned int itile = 0; itile < tile_count; ++itile )
     {
+
+      if( true )
+      {
+        // generate hitset key and print
+        const auto hsk = MicromegasDefs::genHitSetKey(layer, segmentation, itile);
+        std::cout << "ExportTpotAcceptanceRange - layer: " << layer << " tile: " << itile << " hitsetkey: " << hsk << std::endl;
+      }
+
       switch(segmentation)
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
