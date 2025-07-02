@@ -91,7 +91,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runnumber);
   rc->set_IntFlag("RUNSEGMENT", segment);
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
 
   // tpc readout initialization
