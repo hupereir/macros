@@ -116,7 +116,7 @@ void Fun4All_FullReconstruction(
 
  
   Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
   std::string geofile = CDBInterface::instance()->getUrl("Tracking_Geometry");
 
@@ -277,7 +277,6 @@ void Fun4All_FullReconstruction(
   // Match the TPC track stubs from the CA seeder to silicon track stubs from PHSiliconTruthTrackSeeding
   auto silicon_match = new PHSiliconTpcTrackMatching;
   silicon_match->Verbosity(0);
-  silicon_match->set_use_legacy_windowing(false);
   silicon_match->set_pp_mode(TRACKING::pp_mode);
   if(G4TPC::ENABLE_AVERAGE_CORRECTIONS)
   {
@@ -397,6 +396,12 @@ void Fun4All_FullReconstruction(
   finder->setNmvtxRequired(3);
   finder->setOutlierPairCut(0.1);
   se->registerSubsystem(finder);
+
+  // Propagate track positions to the vertex position
+  auto vtxProp = new PHActsVertexPropagator;
+  vtxProp->Verbosity(0);
+  vtxProp->fieldMap(G4MAGNET::magfield_tracking);
+  se->registerSubsystem(vtxProp);
 
   TString residoutfile = theOutfile + "_resid.root";
   std::string residstring(residoutfile.Data());
