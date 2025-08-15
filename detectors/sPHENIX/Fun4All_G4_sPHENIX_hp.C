@@ -172,7 +172,7 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( true )
+  if( false )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
@@ -207,7 +207,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  out->AddNode("MicromegasTrackEvaluator_hp::Container");
+  // out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
