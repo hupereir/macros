@@ -181,28 +181,16 @@ void TPC_Clustering()
 
   // For the Tpc
   //==========
+  auto tpcclusterizer = new TpcClusterizer;
+  tpcclusterizer->Verbosity(verbosity);
+  tpcclusterizer->set_do_hit_association(G4TPC::DO_HIT_ASSOCIATION);
+  tpcclusterizer->set_min_err_squared(0.000001);
+  se->registerSubsystem(tpcclusterizer);
 
-  if( G4TPC::USE_SIMPLE_CLUSTERIZER )
-  {
-
-    std::cout << "TPC_Clustering - using simple clusterizer" << std::endl;
-    auto tpcclusterizer = new TpcSimpleClusterizer;
-    tpcclusterizer->Verbosity(verbosity);
-    tpcclusterizer->set_do_hit_association( G4TPC::DO_HIT_ASSOCIATION );
-    se->registerSubsystem(tpcclusterizer);
-
-  } else {
-
-    auto tpcclusterizer = new TpcClusterizer;
-    tpcclusterizer->Verbosity(verbosity);
-    tpcclusterizer->set_do_hit_association(G4TPC::DO_HIT_ASSOCIATION);
-    se->registerSubsystem(tpcclusterizer);
-
-    auto tpcclustercleaner = new TpcClusterCleaner;
-    tpcclustercleaner->Verbosity(verbosity);
-    se->registerSubsystem(tpcclustercleaner);
-
-  }
+  auto tpcclustercleaner = new TpcClusterCleaner;
+  tpcclustercleaner->Verbosity(verbosity);
+  tpcclustercleaner->set_rphi_error_low_cut(0.001);
+  se->registerSubsystem(tpcclustercleaner);
 }
 
 void Micromegas_HitUnpacking()
