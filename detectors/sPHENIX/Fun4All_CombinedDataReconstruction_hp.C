@@ -29,8 +29,6 @@
 
 // own modules
 #include <g4eval_hp/EventCounter_hp.h>
-#include <g4eval_hp/MicromegasEvaluator_hp.h>
-#include <g4eval_hp/MicromegasClusterEvaluator_hp.h>
 #include <g4eval_hp/MicromegasTrackEvaluator_hp.h>
 #include <g4eval_hp/TrackingEvaluator_hp.h>
 
@@ -53,21 +51,13 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 20,
+  const int nEvents = 0,
   const int nSkipEvents = 0,
-  const char* tag = "ana464_nocdbtag_v001",
+  const char* tag = "ana479_nocdbtag_v001",
   const int runnumber = 53877,
   const int segment = 0,
   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053877-0000_corrected.root",
   const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053877-0000.root"
-
-//   const int nEvents = 100,
-//   const int nSkipEvents = 2000,
-//   const char* tag = "ana478_nocdbtag_v001",
-//   const int runnumber = 53687,
-//   const int segment = 19,
-//   const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053687-0000_corrected.root",
-//   const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053687-0000.root"
 
   )
 {
@@ -81,7 +71,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   std::cout << "Fun4All_CombinedDataReconstruction - tpcResidualsFile: " << tpcResidualsFile << std::endl;
 
   TRACKING::pp_mode = true;
-  G4TRACKING::SC_CALIBMODE = true;
+  G4TRACKING::SC_CALIBMODE = false;
   G4TRACKING::convert_seeds_to_svtxtracks = false;
 
   // condition database
@@ -148,6 +138,7 @@ int Fun4All_CombinedDataReconstruction_hp(
     for( size_t i = 0; i < filelist.size(); ++i )
     {
       const auto& inputfile = filelist[i];
+      std::cout << "Fun4All_CombinedDataReconstruction_hp - adding " << inputfile << std::endl;
       auto in = new Fun4AllDstInputManager(Form("DSTin_%zu", i));
       in->fileopen(inputfile);
       se->registerInputManager(in);
@@ -208,7 +199,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     auto tpcclusterizer = new TpcClusterizer;
     tpcclusterizer->Verbosity(0);
     tpcclusterizer->set_rawdata_reco();
-    tpcclusterizer->set_sampa_tbias(0);
     se->registerSubsystem(tpcclusterizer);
   }
 
@@ -299,7 +289,6 @@ int Fun4All_CombinedDataReconstruction_hp(
     // matching to silicons
     auto silicon_match = new PHSiliconTpcTrackMatching;
     silicon_match->Verbosity(0);
-    silicon_match->set_use_legacy_windowing(false);
     silicon_match->set_pp_mode(TRACKING::pp_mode);
     if(G4TPC::ENABLE_AVERAGE_CORRECTIONS)
     {
@@ -398,16 +387,17 @@ int Fun4All_CombinedDataReconstruction_hp(
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags(
-      0
-//       |TrackingEvaluator_hp::PrintSeeds
-      |TrackingEvaluator_hp::PrintTracks
-      );
+    trackingEvaluator->set_flags( TrackingEvaluator_hp::EvalTracks );
 
     if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
 
     se->registerSubsystem(trackingEvaluator);
+  }
+
+  if( true )
+  {
+    se->registerSubsystem(new MicromegasTrackEvaluator_hp );
   }
 
   // output manager
