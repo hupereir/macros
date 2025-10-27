@@ -51,7 +51,7 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 0,
+  const int nEvents = 2000,
   const int nSkipEvents = 0,
   const char* tag = "ana479_nocdbtag_v001",
   const int runnumber = 53877,
@@ -87,6 +87,14 @@ int Fun4All_CombinedDataReconstruction_hp(
   // tpc readout initialization
   TpcReadoutInit( runnumber );
 
+  // manually overwrite drift velocity reco and propagate
+  // G4TPC::tpc_drift_velocity_reco = 0.00742525;
+  G4TPC::tpc_drift_velocity_reco = 0.00745455;
+  TpcClusterZCrossingCorrection::_vdrift = G4TPC::tpc_drift_velocity_reco;
+
+  // manually overwrite t0
+  G4TPC::tpc_tzero_reco = -203.8238;
+
   // printout
   std::cout<< "Fun4All_CombinedDataReconstruction - samples: " << TRACKING::reco_tpc_maxtime_sample << std::endl;
   std::cout<< "Fun4All_CombinedDataReconstruction - pre: " << TRACKING::reco_tpc_time_presample << std::endl;
@@ -118,11 +126,19 @@ int Fun4All_CombinedDataReconstruction_hp(
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
 
-    // average distortions
+    // average distortions (lamination)
     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
     G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
+
+//     // average distortions (track-based)
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
+//     G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction-new.root";
+
   }
+
+  std::cout << "Fun4All_CombinedDataReconstruction_hp - G4TPC::average_correction_filename: " << G4TPC::average_correction_filename << std::endl;
 
   // tpc zero suppression
   TRACKING::tpc_zero_supp = true;
@@ -387,7 +403,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags( TrackingEvaluator_hp::EvalTracks );
+    trackingEvaluator->set_flags( TrackingEvaluator_hp::EvalTracks|TrackingEvaluator_hp::EvalTrackClusters );
 
     if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
