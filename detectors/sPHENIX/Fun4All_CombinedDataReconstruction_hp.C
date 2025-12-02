@@ -51,13 +51,12 @@ R__LOAD_LIBRARY(libmicromegas.so)
 
 //____________________________________________________________________
 int Fun4All_CombinedDataReconstruction_hp(
-  const int nEvents = 2000,
+  const int nEvents = 10,
   const int nSkipEvents = 0,
   const char* tag = "ana479_nocdbtag_v001",
   const int runnumber = 53877,
   const int segment = 0,
-  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053877-0000_corrected.root",
-  const char* tpcResidualsFile = "DST/CONDOR_CombinedDataReconstruction/PHTpcResiduals-00053877-0000.root"
+  const char* outputFile =  "DST/CONDOR_CombinedDataReconstruction/dst_eval-00053877-0000_corrected.root"
 
   )
 {
@@ -68,7 +67,6 @@ int Fun4All_CombinedDataReconstruction_hp(
   std::cout << "Fun4All_CombinedDataReconstruction - runnumber: " << runnumber << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - segment: " << segment << std::endl;
   std::cout << "Fun4All_CombinedDataReconstruction - outputFile: " << outputFile << std::endl;
-  std::cout << "Fun4All_CombinedDataReconstruction - tpcResidualsFile: " << tpcResidualsFile << std::endl;
 
   TRACKING::pp_mode = true;
   G4TRACKING::SC_CALIBMODE = false;
@@ -126,15 +124,28 @@ int Fun4All_CombinedDataReconstruction_hp(
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
 
-    // average distortions (lamination)
+//     // average distortions (lamination)
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
+//     G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
+
+    // average distortions (central membrane)
     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
-    G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
+    G4TPC::average_correction_filename = "/sphenix/tg/tg01/jets/bkimelman/BenProduction/Nov14_2025_CMMatchingAvg_rotatedLams/CMDistortionCorrections-00053877-all.root";
 
 //     // average distortions (track-based)
 //     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
 //     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
-//     G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction-new.root";
+//
+//     // Silicon-TPC map, as reconstructed in TPOT acceptance
+//     // G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction.root";
+//
+//     /*
+//      * Silicon-TPC map, as reconstructed in TPOT acceptance, extrapolated to full acceptance, using CM lamination from CDB.
+//      * this is the first extrapolation method which seems largely broken in the north side, (z>0) because Si-TPOT and CM distortions do not match
+//      */
+//     G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction_extrapolated_cm.root";
 
   }
 
@@ -239,23 +250,9 @@ int Fun4All_CombinedDataReconstruction_hp(
     se->registerSubsystem(merger);
   }
 
-  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
-  const bool ConstField = isConstantField(G4MAGNET::magfield_tracking, fieldstrength);
-
   {
     // TPC seeding
     auto seeder = new PHCASeeding("PHCASeeding");
-    if (ConstField)
-    {
-      seeder->useConstBField(true);
-      seeder->constBField(fieldstrength);
-    }
-    else
-    {
-      seeder->set_field_dir(-1 * G4MAGNET::magfield_rescale);
-      seeder->useConstBField(false);
-      seeder->magFieldFile(G4MAGNET::magfield_tracking);  // to get charge sign right
-    }
     seeder->Verbosity(0);
     seeder->reject_zsize1_clusters(true);
     seeder->SetLayerRange(7, 55);
@@ -271,17 +268,7 @@ int Fun4All_CombinedDataReconstruction_hp(
   {
     // expand stubs in the TPC using simple kalman filter
     auto cprop = new PHSimpleKFProp("PHSimpleKFProp");
-    cprop->set_field_dir(G4MAGNET::magfield_rescale);
-    if (ConstField)
-    {
-      cprop->useConstBField(true);
-      cprop->setConstBField(fieldstrength);
-    }
-    else
-    {
-      cprop->magFieldFile(G4MAGNET::magfield_tracking);
-      cprop->set_field_dir(-1 * G4MAGNET::magfield_rescale);
-    }
+    cprop->magFieldFile(G4MAGNET::magfield_tracking);
     cprop->useFixedClusterError(true);
     cprop->set_max_window(5.);
     cprop->set_max_seeds(5000);
@@ -356,54 +343,14 @@ int Fun4All_CombinedDataReconstruction_hp(
     se->registerSubsystem(actsFit);
   }
 
-  {
-    auto cleaner = new PHTrackCleaner();
-    cleaner->Verbosity(0);
-    se->registerSubsystem(cleaner);
-  }
-
-  {
-    // vertex finding
-    auto finder = new PHSimpleVertexFinder;
-    finder->Verbosity(0);
-    finder->setDcaCut(0.05);
-    finder->setTrackPtCut(0.1);
-    finder->setBeamLineCut(1);
-    finder->setTrackQualityCut(300);
-    finder->setNmvtxRequired(3);
-    finder->setOutlierPairCut(0.1);
-    se->registerSubsystem(finder);
-
-    // acts propagation to vertex
-    auto vtxProp = new PHActsVertexPropagator;
-    vtxProp->Verbosity(0);
-    vtxProp->fieldMap(G4MAGNET::magfield_tracking);
-    se->registerSubsystem(vtxProp);
-  }
-
-  if (G4TRACKING::SC_CALIBMODE)
-  {
-    /*
-    * in calibration mode, calculate residuals between TPC and fitted tracks,
-    * store in dedicated structure for distortion correction
-    */
-    auto residuals = new PHTpcResiduals;
-    residuals->setOutputfile(tpcResidualsFile);
-    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
-
-    // matches Tony's analysis
-    residuals->setMinPt( 0.2 );
-
-    // reconstructed distortion grid size (phi, r, z)
-    residuals->setGridDimensions(36, 48, 80);
-    se->registerSubsystem(residuals);
-  }
-
   // own evaluator
   if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
-    trackingEvaluator->set_flags( TrackingEvaluator_hp::EvalTracks|TrackingEvaluator_hp::EvalTrackClusters );
+//     trackingEvaluator->set_flags(
+//       TrackingEvaluator_hp::EvalTracks|
+//       TrackingEvaluator_hp::EvalTrackClusters );
+    trackingEvaluator->set_flags( TrackingEvaluator_hp::PrintTracks );
 
     if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
@@ -425,10 +372,9 @@ int Fun4All_CombinedDataReconstruction_hp(
     se->registerOutputManager(out);
   }
 
-  // process events
-  if( nSkipEvents > 0 ) {
-    se->skip(nSkipEvents);
-  }
+  // skip events if any specified
+  if( nSkipEvents > 0 )
+  { se->skip( nSkipEvents ); }
 
   se->run(nEvents);
 
