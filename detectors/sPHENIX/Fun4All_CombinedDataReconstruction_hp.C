@@ -124,23 +124,22 @@ int Fun4All_CombinedDataReconstruction_hp(
     // static distortions
     G4TPC::ENABLE_STATIC_CORRECTIONS = true;
 
-//     // average distortions (lamination)
-//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
-//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
-//     G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
-
-    // average distortions (central membrane)
+    // average distortions (lamination)
     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
-    G4TPC::average_correction_filename = "/sphenix/tg/tg01/jets/bkimelman/BenProduction/Nov14_2025_CMMatchingAvg_rotatedLams/CMDistortionCorrections-00053877-all.root";
+    G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
+
+//     // average distortions (central membrane)
+//     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+//     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
+//     G4TPC::average_correction_filename = "/sphenix/tg/tg01/jets/bkimelman/BenProduction/Nov14_2025_CMMatchingAvg_rotatedLams/CMDistortionCorrections-00053877-all.root";
 
 //     // average distortions (track-based)
 //     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
 //     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
-//
+// 
 //     // Silicon-TPC map, as reconstructed in TPOT acceptance
-//     // G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction.root";
-//
+//     G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction-new.root";
 //     /*
 //      * Silicon-TPC map, as reconstructed in TPOT acceptance, extrapolated to full acceptance, using CM lamination from CDB.
 //      * this is the first extrapolation method which seems largely broken in the north side, (z>0) because Si-TPOT and CM distortions do not match
@@ -350,7 +349,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 //     trackingEvaluator->set_flags(
 //       TrackingEvaluator_hp::EvalTracks|
 //       TrackingEvaluator_hp::EvalTrackClusters );
-    trackingEvaluator->set_flags( TrackingEvaluator_hp::PrintTracks );
+    trackingEvaluator->set_flags( TrackingEvaluator_hp::EvalTracks );
 
     if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
