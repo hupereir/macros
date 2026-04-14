@@ -88,13 +88,6 @@ int Fun4All_CombinedDataReconstruction_zf_hp(
 
   TpcReadoutInit( runnumber );
 
-  // Ar/CF4
-  // G4TPC::tpc_drift_velocity_reco = 0.00815238095238;
-
-  // Ar/iC4H10/CF4 (default)
-  // G4TPC::tpc_drift_velocity_reco = 0.00714;
-  // G4TPC::tpc_drift_velocity_reco = 0.00726182; // from run 50015
-
   // try get drift velocity from CDB
   auto cdb = CDBInterface::instance();
   const auto tpc_dv_calib_dir = cdb->getUrl("TPC_DRIFT_VELOCITY");
