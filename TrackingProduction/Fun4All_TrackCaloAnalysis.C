@@ -66,7 +66,7 @@ void Fun4All_TrackCaloAnalysis(
 
   Enable::MVTX_APPLYMISALIGNMENT = true;
   ACTSGEOM::mvtx_applymisalignment = Enable::MVTX_APPLYMISALIGNMENT;
-  TRACKING::pp_mode = true;
+  TRACKING::streaming_mode = true;
 
   auto *se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -76,7 +76,7 @@ void Fun4All_TrackCaloAnalysis(
   rc->set_IntFlag("RUNSEGMENT", segment);
 
   Enable::CDB = true;
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
   std::string geofile = CDBInterface::instance()->getUrl("Tracking_Geometry");
 

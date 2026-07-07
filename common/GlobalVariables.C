@@ -25,7 +25,8 @@ namespace Input
   //! nominal beam parameter configuration choices for BEAM_CONFIGURATION
   enum BeamConfiguration
   {
-    AA_COLLISION = 0,
+    AuAu_COLLISION = 0,
+    AA_COLLISION = AuAu_COLLISION,
     pA_COLLISION = 1,
     pp_COLLISION = 2,
     pp_ZEROANGLE = 3,
@@ -35,7 +36,8 @@ namespace Input
     mRad_10 = 7,
     mRad_15 = 8,
     mRad_075 = 9,
-    OOdNdEta = 10
+    OOdNdEta = 10,
+    OO_COLLISION = 11
   };
 
   BeamConfiguration BEAM_CONFIGURATION = AA_COLLISION;
@@ -80,8 +82,8 @@ namespace G4P6DECAYER
 namespace TRACKING
 {
   std::string TrackNodeName = "SvtxTrackMap";
-  bool pp_mode = false;
-  double pp_extended_readout_time = 24900.0;  // ns
+  bool streaming_mode = false;
+  double extended_readout_time = 24900.0;  // ns
   bool reco_tpc_is_configured = false;
   int reco_tpc_maxtime_sample = 425;
   int reco_tpc_time_presample = 40;  // 120 - 80

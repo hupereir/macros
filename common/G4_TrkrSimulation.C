@@ -114,7 +114,7 @@ void Mvtx_Cells()
 
   double maps_readout_window = 9900.0;  // ns
   double extended_readout_time = 0.0;
-  if (TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
+  if (TRACKING::streaming_mode) extended_readout_time = TRACKING::extended_readout_time;
   // override the default timing window - default is +/- 5000 ns
   maps_hits->set_double_param("mvtx_tmin", -maps_readout_window);
   maps_hits->set_double_param("mvtx_tmax", maps_readout_window + extended_readout_time);
@@ -220,7 +220,7 @@ void Intt_Cells()
 
   // The timing window defaults are set in the INTT ladder model, they can be overridden here
   double extended_readout_time = 0.0;
-  if (TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
+  if (TRACKING::streaming_mode) extended_readout_time = TRACKING::extended_readout_time;
   reco->set_double_param("tmax", 80.0 + extended_readout_time);
   reco->set_double_param("tmin", -20.0);
   std::cout << "INTT readout window is set to -20 to " << 80.0 + extended_readout_time << std::endl;
@@ -318,6 +318,13 @@ void TPC_Endcaps(PHG4Reco* g4Reco)
 
   //  tpc_endcap->set_int_param("construction_verbosity", 2);
 
+  // set the TPC tilt in sPHENIX
+  tpc_endcap->set_double_param("rot_x", G4TPC::rot_x);
+  tpc_endcap->set_double_param("rot_y", G4TPC::rot_y);
+  tpc_endcap->set_double_param("rot_z", G4TPC::rot_z);
+  std::cout << "G4_TrkrSimulation: Setting TPC endcap tilt angles to rot_x = " << G4TPC::rot_x
+	    << " roty = " << G4TPC::rot_y << " rot_z = " << G4TPC::rot_z << std::endl;
+  
   g4Reco->registerSubsystem(tpc_endcap);
 
   return;
@@ -357,6 +364,12 @@ double TPC(PHG4Reco* g4Reco,
   tpc->set_double_param("tpc_length", G4TPC::maxDriftLength * 2 + G4TPC::CM_halfwidth * 2);
   tpc->set_double_param("maxdriftlength", G4TPC::maxDriftLength);
   tpc->set_double_param("CM_halfwidth", G4TPC::CM_halfwidth);
+  // set the TPC tilt in sPHENIX
+  tpc->set_double_param("rot_x", G4TPC::rot_x);
+  tpc->set_double_param("rot_y", G4TPC::rot_y);
+  tpc->set_double_param("rot_z", G4TPC::rot_z);
+  std::cout << "G4_TrkrSimulation: Setting TPC tilt angles to rot_x = " << G4TPC::rot_x
+	    << " roty = " << G4TPC::rot_y << " rot_z = " << G4TPC::rot_z << std::endl;
   tpc->set_int_param("tpc_minlayer_inner", G4MVTX::n_maps_layer + G4INTT::n_intt_layer);
   tpc->set_int_param("ntpc_layers_inner", G4TPC::n_tpc_layer_inner);
   tpc->set_int_param("ntpc_phibins_inner", G4TPC::tpc_layer_rphi_count_inner);
@@ -367,9 +380,9 @@ double TPC(PHG4Reco* g4Reco,
   }
 
   double extended_readout_time = 0.0;
-  if (TRACKING::pp_mode)
+  if (TRACKING::streaming_mode)
   {
-    extended_readout_time = TRACKING::pp_extended_readout_time;
+    extended_readout_time = TRACKING::extended_readout_time;
   }
 
   tpc->set_double_param("extended_readout_time", extended_readout_time);
@@ -418,7 +431,7 @@ double TPC(PHG4Reco* g4Reco,
   std::cout << "    drift_velocity_sim " << drift_vel << std::endl;
   std::cout << "    max_driftlength " << G4TPC::maxDriftLength << std::endl;
   std::cout << "    CM_halfwidth " << G4TPC::CM_halfwidth << std::endl;
-  std::cout << "    pp_extended_readout_time " << TRACKING::pp_extended_readout_time << std::endl;
+  std::cout << "    extended_readout_time " << TRACKING::extended_readout_time << std::endl;
 
   g4Reco->registerSubsystem(tpc);
 
@@ -659,7 +672,7 @@ void Micromegas_Cells()
   auto* reco = new PHG4MicromegasHitReco;
   reco->Verbosity(verbosity);
   double extended_readout_time = 0.0;
-  if (TRACKING::pp_mode) extended_readout_time = TRACKING::pp_extended_readout_time;
+  if (TRACKING::streaming_mode) extended_readout_time = TRACKING::extended_readout_time;
 
   reco->set_double_param("micromegas_tmax", 800.0 + extended_readout_time);
 
