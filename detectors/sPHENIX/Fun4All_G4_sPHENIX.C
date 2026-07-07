@@ -65,7 +65,7 @@ int Fun4All_G4_sPHENIX(
   //Opt to print all random seed used for debugging reproducibility. Comment out to reduce stdout prints.
   PHRandomSeed::Verbosity(1);
   CDBInterface::instance()->Verbosity(1);
-  
+
   // just if we set some flags somewhere in this macro
   recoConsts *rc = recoConsts::instance();
   // By default every random number generator uses
@@ -365,7 +365,7 @@ int Fun4All_G4_sPHENIX(
   // G4TRACKING::use_alignment = true;
 
   // enable pp mode and set extended readout time
-  // TRACKING::pp_mode = true;
+  // TRACKING::streaming_mode = true;
   // TRACKING::pp_extended_readout_time = 20000;
 
   // Place to set TPC tilt angles for envelope and endcaps, if desired
@@ -373,7 +373,7 @@ int Fun4All_G4_sPHENIX(
   G4TPC::rot_y = 0.0;
   G4TPC::rot_z = 0.0;
   std::cout << "Fun4All macro: Setting TPC tilt angles to rot_x = " << G4TPC::rot_x << " roty = " << G4TPC::rot_y << " rot_z = " << G4TPC::rot_z << std::endl;
-  
+
   // set flags to simulate and correct TPC distortions, specify distortion and correction files
   //G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   //G4TPC::static_distortion_filename = std::string("/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX180961051_0.distortion_map.hist.root");
