@@ -126,8 +126,6 @@ int Fun4All_CombinedDataReconstruction_hp(
 
     // average distortions (lamination)
     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
-    G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
-    G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
 
 //     // average distortions (central membrane)
 //     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
@@ -137,7 +135,7 @@ int Fun4All_CombinedDataReconstruction_hp(
 //     // average distortions (track-based)
 //     G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
 //     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = true;
-// 
+//
 //     // Silicon-TPC map, as reconstructed in TPOT acceptance
 //     G4TPC::average_correction_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/Rootfiles/Distortions-00053877_CombinedDataReconstruction-new.root";
 //     /*
