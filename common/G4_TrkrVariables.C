@@ -242,9 +242,6 @@ namespace G4TRACKING
   // genfit track fitter
   bool use_genfit_track_fitter = false;
 
-  // alignment parameter
-  std::string alignmentParamsFile = "./localAlignmentParamsFile.txt";
-
   // Runs a converter from TrackSeed object to SvtxTrack object to enable
   // use of the various evaluation tools already available
   bool convert_seeds_to_svtxtracks = false;
