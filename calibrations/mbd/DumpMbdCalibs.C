@@ -5,6 +5,8 @@
 #ifndef DUMPMBDCALIBS_C
 #define DUMPMBDCALIBS_C
 
+#include <TSystem.h>
+
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllServer.h>

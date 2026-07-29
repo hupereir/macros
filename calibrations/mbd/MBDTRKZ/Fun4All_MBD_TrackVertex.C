@@ -59,8 +59,8 @@ void Fun4All_MBD_TrackVertex(
     const std::string& outfilename = "mbd_trkvtx",
     const std::string& outdir = "./")
 {
-  std::string inputTrackFile = trackfilename;
-  std::string inputCaloFile = calofilename;
+  std::string& inputTrackFile = trackfilename;
+  std::string& inputCaloFile = calofilename;
 
   std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(trackfilename);
   int runnumber = runseg.first;

@@ -15,8 +15,8 @@
 
 #include <fun4all/Fun4AllUtils.h>
 
-#include <mbd/MbdGeomV2.h>
 #include <mbd/MbdCalib.h>
+#include <mbd/MbdGeomV2.h>
 #include "get_runstr.h"
 
 R__LOAD_LIBRARY(libmbd.so)
@@ -87,7 +87,7 @@ void average_timecorr(const std::string& listfile = "tcorr.list")
   }
 
   // Determine LUT size from first file
-  int min_tdc, max_tdc, step;
+  int min_tdc, max_tdc, step; // NOLINT(readability-isolate-declaration)
   calibs[0]->get_tcorr_range(0, min_tdc, max_tdc, step);
   int ntdc = (max_tdc - min_tdc) / step + 1;
   std::cout << "LUT size: " << ntdc << " bins  [" << min_tdc << ", " << max_tdc << "]  step=" << step << std::endl;
@@ -334,7 +334,7 @@ void timecorr_all(const std::string& listfile = "tcorr.list")
   }
 
   // --- LUT geometry from first file ---
-  int min_tdc, max_tdc, step;
+  int min_tdc, max_tdc, step; // NOLINT(readability-isolate-declaration)
   calibs[0]->get_tcorr_range(0, min_tdc, max_tdc, step);
   int ntdc = (max_tdc - min_tdc) / step + 1;
   std::cout << "LUT: " << ntdc << " entries  tdc=[" << min_tdc << "," << max_tdc << "]  step=" << step << std::endl;
@@ -409,8 +409,8 @@ void comp_timecorr(const std::string &file1 = "00065735-0000/mbd_timecorr.calib"
   calib1->Download_TimeCorr(file1);
   calib2->Download_TimeCorr(file2);
 
-  int step1, min1, max1;
-  int step2, min2, max2;
+  int step1, min1, max1;  // NOLINT(readability-isolate-declaration)
+  int step2, min2, max2;  // NOLINT(readability-isolate-declaration)
   calib1->get_tcorr_range(0,min1,max1,step1);
   calib2->get_tcorr_range(0,min2,max2,step2);
   if ( (step1 != step2) || (min1!=min2) || (max1!=max2) )
@@ -430,7 +430,7 @@ void comp_timecorr(const std::string &file1 = "00065735-0000/mbd_timecorr.calib"
   TString name;
   TString title;
 
-  int nbins = static_cast<int>( ((max1-min1)/step1) + 1 );
+  int nbins = ((max1-min1)/step1) + 1;
   std::cout << nbins << std::endl;
   for (int ipmt = 0; ipmt < NPMT; ++ipmt)
   {
@@ -502,6 +502,7 @@ void comp_timecorr(const std::string &file1 = "00065735-0000/mbd_timecorr.calib"
   TString pdfname = "comp_timecorr_"; pdfname += runno1; pdfname += "_"; pdfname += runno2; pdfname += ".pdf";
   ac[icv]->Print(pdfname + "[");
 
+  // NOLINTBEGIN(modernize-loop-convert)
   for (int ipmt = 0; ipmt < NPMT; ++ipmt)
   {
     h_tdiff[ipmt]->Draw("hist");
@@ -510,6 +511,7 @@ void comp_timecorr(const std::string &file1 = "00065735-0000/mbd_timecorr.calib"
     gPad->Update();
     ac[icv]->Print(pdfname);
   }
+  // NOLINTEND(modernize-loop-convert)
 
   h_tdifftot->Draw();
   ac[icv]->Print(pdfname);

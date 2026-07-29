@@ -10,6 +10,7 @@
 
 #include <TF1.h>
 #include <TFile.h>
+#include <TGraph.h>
 #include <TGraphErrors.h>
 #include <TPad.h>
 #include <TSystem.h>

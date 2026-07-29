@@ -174,7 +174,7 @@ void plot_mbdtrkzdiff(const std::string &filelist = "MBDTRKZ/f.list")
   TLatex tex;
   tex.SetNDC();
   tex.SetTextSize(0.035);
-  tex.DrawLatex(0.15, 0.85, Form("pol0 fit: %.3f #pm %.3f cm", fpol0->GetParameter(0), fpol0->GetParError(0)));
+  tex.DrawLatex(0.15, 0.85, Form("pol0 fit: %.3f #pm %.3f cm", fpol0->GetParameter(0), fpol0->GetParError(0)));  // NOLINT(cppcoreguidelines-pro-type-vararg)
 
   c->SaveAs("mbdtrkzdiff.pdf");
   std::cout << "Saved mbdtrkzdiff.pdf" << std::endl;
