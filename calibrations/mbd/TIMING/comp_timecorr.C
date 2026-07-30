@@ -6,6 +6,8 @@
 #include <TStyle.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <TGraph.h>
+#include <TMultiGraph.h>
 
 #include <iostream>
 #include <fstream>
