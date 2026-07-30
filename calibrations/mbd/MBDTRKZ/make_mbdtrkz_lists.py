@@ -8,7 +8,6 @@ N events starting at block S (each block is N events).
 
   --nevents N          events per block (default 1000, must be a multiple of
                        EVT_PER_SEED=1000)
-  --skip S             number of N-event blocks to skip (default 0)
   --trkdst clus|tracks source DST type: 'clus' reads from dst_clus/<runnumber>.list
                        and writes clus.list; 'tracks' reads from dst_tracks/<runnumber>.list
                        and writes tracks.list (default: tracks)
@@ -16,9 +15,9 @@ N events starting at block S (each block is N events).
                        (default: ~/sphenix/sphenix_bbc/run2025/lists/run3pp)
 
 Example:
-  --nevents 100000 --skip 0 --trkdst clus    ->  clus segs   0-99,  fit seg 0
-  --nevents 100000 --skip 1 --trkdst tracks  ->  tracks segs 100-199, fit seg 1
-  --nevents 200000 --skip 1                  ->  tracks segs 200-399, fit segs 2-3
+  --nevents 100000 --trkdst clus    ->  clus segs   0-99,  fit seg 0
+  --nevents 100000 --trkdst tracks  ->  tracks segs 100-199, fit seg 1
+  --nevents 200000                  ->  tracks segs 200-399, fit segs 2-3
 
 Returns 0 on success, 1 if any expected DSTs are missing.
 """

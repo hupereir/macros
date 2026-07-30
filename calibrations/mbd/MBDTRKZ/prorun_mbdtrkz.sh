@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# prorun_mbdtrkz.sh <runnumber> [--skip S] [--nevents N] [-n fun4all_nevents]
+# prorun_mbdtrkz.sh <runnumber> [--nevents N] [-n fun4all_nevents]
 #                               [--trkdst clus|tracks] [--listdir DIR]
 #
-# Creates MBDTRKZ/<runnumber>_<skip>/, generates seed/clus/fit lists there,
+# Creates MBDTRKZ/<runnumber>/<zero-padded trkseg>/, generates seed/clus/fit lists there,
 # and runs Fun4All_MBD_TrackVertex.C (tracks mode) or Fun4All_MBD_TrackFitting.C
 # once per clus file (clus mode).
 #
@@ -18,7 +18,8 @@
 #
 
 usage() {
-  echo "Usage: $0 <runnumber> [--skip S] [--nevents N] [-n fun4all_nevents] [--trkdst clus|tracks] [--listdir DIR]" >&2
+  #echo "Usage: $0 <runnumber> [--skip S] [--nevents N] [-n fun4all_nevents] [--trkdst clus|tracks] [--listdir DIR]" >&2
+  echo "Usage: $0 <runnumber> [--nevents N] [-n fun4all_nevents] [--trkdst clus|tracks] [--listdir DIR]" >&2
   exit 1
 }
 
@@ -31,7 +32,7 @@ ulimit -c 0   # no core files
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 runnumber=""
-skip=0
+#skip=0
 trkseg=0
 list_nevents=1000
 nevents=0
@@ -40,9 +41,9 @@ listdir=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --skip|--skip=*)
-      if [[ "$1" == *=* ]]; then skip="${1#*=}"; shift
-      else [[ $# -lt 2 ]] && usage; skip=$2; shift 2; fi ;;
+#    --skip|--skip=*)
+#      if [[ "$1" == *=* ]]; then skip="${1#*=}"; shift
+#      else [[ $# -lt 2 ]] && usage; skip=$2; shift 2; fi ;;
     --trkseg|--trkseg=*)
       if [[ "$1" == *=* ]]; then trkseg="${1#*=}"; shift
       else [[ $# -lt 2 ]] && usage; trkseg=$2; shift 2; fi ;;
@@ -110,10 +111,13 @@ else
   fi
 fi
 
+[[ -s tracks.list ]] || { echo "ERROR: tracks.list is empty" >&2; exit 1; }
+[[ -s fit.list ]] || { echo "ERROR: fit.list is empty" >&2; exit 1; }
+
 tracks_dst_file=$(head -1 tracks.list)
 mbd_dst_file=$(head -1 fit.list)
 echo root.exe -b -q Fun4All_MBD_TrackVertex.C\(${nevents},\"${tracks_dst_file}\",\"${mbd_dst_file}\"\)
-root.exe -b -q Fun4All_MBD_TrackVertex.C\(${nevents},\"${tracks_dst_file}\",\"${mbd_dst_file}\"\)
+root.exe -b -q Fun4All_MBD_TrackVertex.C\(${nevents},\"${tracks_dst_file}\",\"${mbd_dst_file}\"\) || exit 1
 
 if [[ -n "${_CONDOR_SCRATCH_DIR}" ]]; then
   pwd

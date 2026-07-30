@@ -2,7 +2,7 @@
 //
 // Reads a list of mbdtrk_vertex.root files, fits the highest peak in
 // h_mbdtrkz with a Gaussian, and plots the mean vs run number.
-// Run number is extracted from the parent directory name (<run>_<skip>).
+// Run number is extracted from the parent directory name
 //
 // Usage:
 //   root -b -q 'plot_mbdtrkzdiff.C("MBDTRKZ/f.list")'
@@ -20,7 +20,7 @@
 #include <TLatex.h>
 #include <TStyle.h>
 
-// Extract the run number from a path of the form .../MBDTRKZ/<run>_<skip>/filename
+// Extract the run number from a path of the form .../MBDTRKZ/<run>/<seg>/filename
 // Returns -1 on failure.
 int run_from_path(const std::string &path)
 {
@@ -31,7 +31,6 @@ int run_from_path(const std::string &path)
   std::string rundir = (slash1 != std::string::npos)
                        ? path.substr(slash1 + 1, slash2 - slash1 - 1)
                        : path.substr(0, slash2);
-  // rundir is "<run>_<skip>"
   size_t us = rundir.find('_');
   if (us == std::string::npos) return -1;
   try { return std::stoi(rundir.substr(0, us)); }
@@ -174,7 +173,7 @@ void plot_mbdtrkzdiff(const std::string &filelist = "MBDTRKZ/f.list")
   TLatex tex;
   tex.SetNDC();
   tex.SetTextSize(0.035);
-  tex.DrawLatex(0.15, 0.85, Form("pol0 fit: %.3f #pm %.3f cm", fpol0->GetParameter(0), fpol0->GetParError(0)));  // NOLINT(cppcoreguidelines-pro-type-vararg)
+  tex.DrawLatex(0.15, 0.85, std::format("pol0 fit: {:.3f} #pm {:.3f} cm", fpol0->GetParameter(0), fpol0->GetParError(0)).c_str() );
 
   c->SaveAs("mbdtrkzdiff.pdf");
   std::cout << "Saved mbdtrkzdiff.pdf" << std::endl;
