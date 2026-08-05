@@ -2,8 +2,7 @@
 #+AUTHOR: Charles Hughes
 #+STARTUP: overview
 
-Last Modified: <2026-08-05 Wed 16:04:00>
-# Time-stamp: <>
+Last Modified: 16:26:19 08/05/26
 
 * Overview
 
