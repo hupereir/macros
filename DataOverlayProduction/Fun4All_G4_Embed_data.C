@@ -502,14 +502,14 @@ int Fun4All_G4_Embed_data(
   truthjets8->set_input_node("TRUTH");
   truthjets8->Verbosity(verbosity);
   se->registerSubsystem(truthjets8);
-
+// looking at this - this statement is based on a misconception how the cdb works not a bug
    std::string test = CDBInterface::instance()->getUrl("CEMC_meanTime");// calling this line somehow prevents CDB bug when switching global tag 
    std::cout << "line to avoid CDB bug " << test << std::endl;
 
   std::string save_globaltag = rc->get_StringFlag("CDB_GLOBALTAG");
   int save_timestamp    = rc->get_uint64Flag("TIMESTAMP");
 
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", dataRunNumber);
 
   std::string cemc_datacalib = CDBInterface::instance()->getUrl("CEMC_calib_ADC_to_ETower");
@@ -525,8 +525,7 @@ int Fun4All_G4_Embed_data(
   CaloWaveformSim *caloWaveformSim = new CaloWaveformSim();
   caloWaveformSim->set_detector_type(CaloTowerDefs::CEMC);
   caloWaveformSim->set_detector("CEMC");
-  caloWaveformSim->set_nsamples(12);
-  caloWaveformSim->set_pedestalsamples(12);
+  // caloWaveformSim->set_nsamples(12); // 12 like real data is default
   caloWaveformSim->set_timewidth(0.2);
   caloWaveformSim->set_peakpos(6);
   caloWaveformSim->set_noise_type(CaloWaveformSim::NOISE_NONE);
@@ -536,8 +535,7 @@ int Fun4All_G4_Embed_data(
   caloWaveformSim = new CaloWaveformSim();
   caloWaveformSim->set_detector_type(CaloTowerDefs::HCALIN);
   caloWaveformSim->set_detector("HCALIN");
-  caloWaveformSim->set_nsamples(12);
-  caloWaveformSim->set_pedestalsamples(12);
+  // caloWaveformSim->set_nsamples(12); // 12 like real data is default
   caloWaveformSim->set_timewidth(0.2);
   caloWaveformSim->set_peakpos(6);
   caloWaveformSim->set_noise_type(CaloWaveformSim::NOISE_NONE);
@@ -547,8 +545,7 @@ int Fun4All_G4_Embed_data(
   caloWaveformSim = new CaloWaveformSim();
   caloWaveformSim->set_detector_type(CaloTowerDefs::HCALOUT);
   caloWaveformSim->set_detector("HCALOUT");
-  caloWaveformSim->set_nsamples(12);
-  caloWaveformSim->set_pedestalsamples(12);
+  // caloWaveformSim->set_nsamples(12); // 12 like real data is default
   caloWaveformSim->set_timewidth(0.2);
   caloWaveformSim->set_peakpos(6);
   caloWaveformSim->set_noise_type(CaloWaveformSim::NOISE_NONE);
