@@ -162,6 +162,12 @@ The resulting traces reproduce the expected behaviour observed online in
 Grafana, including the gradual decrease in GEM current over the course of a
 physics run.
 
+#+CAPTION: Grafana
+[[file:Grafana_GEM_Current.png]]
+
+#+CAPTION: ROOT output
+[[file:ROOT_TTree_GEM_Current_Output.png]]
+
 Agreement between the CDB output and the Grafana monitoring confirms that the
 
 - DAQ database query,
