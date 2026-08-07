@@ -68,7 +68,7 @@ R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 class SkipFirstN : public SubsysReco {
  public:
   explicit SkipFirstN(int n) : SubsysReco("SkipFirstN"), target_(n) {}
-  int process_event(PHCompositeNode*) override {
+  int process_event(PHCompositeNode* /*unused*/) override {
     if (count_ < target_) { ++count_; return Fun4AllReturnCodes::ABORTEVENT; }
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -95,12 +95,12 @@ void Fun4All_raw_hit_TPC_Matched_reco(
     const int nEvents = 10,
     const int runnumber = 79513,
     const int segment = 0,
-    const std::string outdir = ".",
+    const std::string& outdir = ".",
     const int nSkip = 0,
-    const std::string collision = "run3pp",
-    const std::string production = "ana532_nocdbtag_v001",
+    const std::string& collision = "run3pp",
+    const std::string& production = "ana532_nocdbtag_v001",
     const std::string& outfilename = "ppFieldOn",
-    const std::string datatype = "physics")
+    const std::string& datatype = "physics")
 {
   const bool convertSeeds = false;
   auto *se = Fun4AllServer::instance();
@@ -144,7 +144,7 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   }
 
   // TPOT
-  streams.push_back("ebdc39");
+  streams.emplace_back("ebdc39");
 
   // INTT streams
   for (int server = 0; server < 8; ++server)
@@ -175,10 +175,8 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   std::stringstream nice_rounded_down;
   nice_rounded_down << std::setw(8) << std::setfill('0') << std::to_string(rounded_down);
 
-  for (unsigned int is = 0; is < streams.size(); ++is)
+  for (auto stream : streams)
   {
-    const std::string stream = streams[is];
-
     std::string filename = "DST_" + dsttype + "_" + stream + "_" + collision + "_" + production + "-" +  runstr.str() + "-" + segstr.str() + ".root";
     std::string filepath = "/sphenix/lustre01/sphnxpro/production/" + collision + "/"+datatype+"/" + production + "/DST_" + dsttype + "_" + stream + "/run_" + nice_rounded_down.str()  + "_" + nice_rounded_up.str()  + "/" + filename;
     std::cout << "Adding DST: " << filepath << std::endl;
@@ -300,14 +298,14 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   se->registerSubsystem(new Tpc_ModuleTrackReco()); // makes TPC_MODULETRACKS
   se->registerSubsystem(new Tpc_AssembledTrackReco()); // makes TPC_ASSEMBLEDTRACKS
 
-  auto crossingFinder = new TpcCrossingFinder();
+  auto *crossingFinder = new TpcCrossingFinder();
   crossingFinder->Verbosity(0);
   crossingFinder->setInputNodeName("TPC_ASSEMBLEDTRACKS");
   crossingFinder->setOutputNodeName("TPC_CROSSING_DECISIONS");
   crossingFinder->setVertexMapNodeName("SiliconSvtxVertexMap");  // optional, configurable
   se->registerSubsystem(crossingFinder);
  
-  auto cluster = new Tpc_PolyClusterizer(); // makes TPC_POLYCLUSTERS
+  auto *cluster = new Tpc_PolyClusterizer(); // makes TPC_POLYCLUSTERS
   cluster->setUseSurveyGeometry(false);
   cluster->setKEffSide0(1.00);//OO 82626 - 4.5, AuAu 6x6 76905 -0, pp 79513 - 1.0, 75391 5.8 75405 4.8
   cluster->setKEffSide1(1.60);//OO 82626 - 5.0, AuAu 6x6 76905 -0, pp 79513 - 1.6, 75391 5.6 75408 4.8
@@ -377,7 +375,7 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   se->registerSubsystem(finder);
     
   auto *resid = new TrackResiduals("TrackResiduals");
-  resid->outfileName(outdir + "/TrackResiduals_" + outfilename + "_" + to_string(runnumber)  + "_" + to_string(segment) + ".root");
+  resid->outfileName(outdir + "/TrackResiduals_" + outfilename + "_" + std::to_string(runnumber)  + "_" + std::to_string(segment) + ".root");
   resid->alignment(false);
   resid->clusterTree();
   resid->vertexTree();
