@@ -4,6 +4,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 R__LOAD_LIBRARY(libcdbobjects.so)
 
