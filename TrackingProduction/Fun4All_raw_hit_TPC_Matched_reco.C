@@ -1,5 +1,5 @@
 /*
- * This macro shows a minimum working example of running the 
+ * This macro shows a minimum working example of running the
  * TPC track reconstruction starting with hit unpackers
  */
 
@@ -31,23 +31,22 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllUtils.h>
 
-#include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/recoConsts.h>
 
-
-#include <tpctrackreco/Tpc_ModuleTrackReco.h>
+#include <tpctrackreco/TpcCrossingFinder.h>
+#include <tpctrackreco/TpcPolyClusterTrkrClusterConverter.h>
+#include <tpctrackreco/TpcPolyTrackSeedConverter.h>
 #include <tpctrackreco/Tpc_AssembledTrackReco.h>
+#include <tpctrackreco/Tpc_ModuleTrackReco.h>
+#include <tpctrackreco/Tpc_PolyClusterizer.h>
 #include <tpctrackreco/Tpc_PolyTrackReco.h>
 #include <tpctrackreco/Tpc_PolyTrackVertexer.h>
-#include <tpctrackreco/TpcCrossingFinder.h>
-#include <tpctrackreco/Tpc_PolyClusterizer.h>
-#include <tpctrackreco/TpcPolyTrackSeedConverter.h>
-#include <tpctrackreco/TpcPolyClusterTrkrClusterConverter.h>
 
-#include <trackingdiagnostics/Tpc_ModuleTrackDisplay.h>
 #include <trackingdiagnostics/Tpc_AssembledTrackDisplay.h>
+#include <trackingdiagnostics/Tpc_ModuleTrackDisplay.h>
 #include <trackingdiagnostics/Tpc_PolyClusterDisplay.h>
 #include <trackingdiagnostics/Tpc_PolyClusterResiduals.h>
 #include <trackingdiagnostics/TrackResiduals.h>
@@ -64,17 +63,27 @@ R__LOAD_LIBRARY(libPHGarfield.so)
 R__LOAD_LIBRARY(libtpctrackreco.so)
 R__LOAD_LIBRARY(libTrackingDiagnostics.so)
 
-
-class SkipFirstN : public SubsysReco {
+class SkipFirstN : public SubsysReco
+{
  public:
-  explicit SkipFirstN(int n) : SubsysReco("SkipFirstN"), target_(n) {}
-  int process_event(PHCompositeNode* /*unused*/) override {
-    if (count_ < target_) { ++count_; return Fun4AllReturnCodes::ABORTEVENT; }
+  explicit SkipFirstN(int n)
+    : SubsysReco("SkipFirstN")
+    , target_(n)
+  {
+  }
+  int process_event(PHCompositeNode * /*unused*/) override
+  {
+    if (count_ < target_)
+    {
+      ++count_;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
     return Fun4AllReturnCodes::EVENT_OK;
   }
+
  private:
   int target_ = 0;
-  int count_  = 0;
+  int count_ = 0;
 };
 // 'Golden' store of p+p
 //.x Fun4All_raw_hit_TPC_reco.C(2, 79513, 0, ".", 0, "run3pp", "ana532_nocdbtag_v001","HITS_ppFieldOn")
@@ -95,12 +104,12 @@ void Fun4All_raw_hit_TPC_Matched_reco(
     const int nEvents = 10,
     const int runnumber = 79513,
     const int segment = 0,
-    const std::string& outdir = ".",
+    const std::string &outdir = ".",
     const int nSkip = 0,
-    const std::string& collision = "run3pp",
-    const std::string& production = "ana532_nocdbtag_v001",
-    const std::string& outfilename = "ppFieldOn",
-    const std::string& datatype = "physics")
+    const std::string &collision = "run3pp",
+    const std::string &production = "ana532_nocdbtag_v001",
+    const std::string &outfilename = "ppFieldOn",
+    const std::string &datatype = "physics")
 {
   const bool convertSeeds = false;
   auto *se = Fun4AllServer::instance();
@@ -113,7 +122,7 @@ void Fun4All_raw_hit_TPC_Matched_reco(
 
   G4TPC::sampa_tzero_bias = 0;
 
-  //First order corrections will be applied from PHGarfield
+  // First order corrections will be applied from PHGarfield
   G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = false;
   G4TPC::ENABLE_STATIC_CORRECTIONS = false;
   G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
@@ -162,7 +171,6 @@ void Fun4All_raw_hit_TPC_Matched_reco(
     streams.push_back(s.str());
   }
 
-
   int i = 0;
   std::stringstream nice_runnumber;
   nice_runnumber << std::setw(8) << std::setfill('0') << std::to_string(runnumber);
@@ -177,8 +185,8 @@ void Fun4All_raw_hit_TPC_Matched_reco(
 
   for (auto stream : streams)
   {
-    std::string filename = "DST_" + dsttype + "_" + stream + "_" + collision + "_" + production + "-" +  runstr.str() + "-" + segstr.str() + ".root";
-    std::string filepath = "/sphenix/lustre01/sphnxpro/production/" + collision + "/"+datatype+"/" + production + "/DST_" + dsttype + "_" + stream + "/run_" + nice_rounded_down.str()  + "_" + nice_rounded_up.str()  + "/" + filename;
+    std::string filename = "DST_" + dsttype + "_" + stream + "_" + collision + "_" + production + "-" + runstr.str() + "-" + segstr.str() + ".root";
+    std::string filepath = "/sphenix/lustre01/sphnxpro/production/" + collision + "/" + datatype + "/" + production + "/DST_" + dsttype + "_" + stream + "/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/" + filename;
     std::cout << "Adding DST: " << filepath << std::endl;
     if (i == 0)
     {
@@ -202,8 +210,6 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
 
- 
-
   G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
 
   G4MAGNET::magfield_rescale = 1;
@@ -225,8 +231,6 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   ingeo->AddFile(geofile);
   se->registerInputManager(ingeo);
 
-
-
   TpcReadoutInit(runnumber);
   G4TPC::REJECT_LASER_EVENTS = true;
   // Flag for running the tpc hit unpacker with zero suppression on
@@ -246,21 +250,20 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   for (int ebdc = 0; ebdc < 24; ebdc++)
   {
     for (int endpoint = 0; endpoint < 2; endpoint++)
+    {
+      ebdcname.str("");
+      if (ebdc < 10)
       {
-        ebdcname.str("");
-        if (ebdc < 10)
-	  {
-	    ebdcname << "0";
-	  }
-        ebdcname << ebdc << "_" << endpoint;
-        Tpc_HitUnpacking(ebdcname.str());
+        ebdcname << "0";
       }
+      ebdcname << ebdc << "_" << endpoint;
+      Tpc_HitUnpacking(ebdcname.str());
+    }
   }
   Micromegas_HitUnpacking();
 
-
   //==============================================================
-  
+
   Mvtx_Clustering();
   Intt_Clustering();
   Micromegas_Clustering();
@@ -293,10 +296,8 @@ void Fun4All_raw_hit_TPC_Matched_reco(
 
   //==============================================================
 
-
-
-  se->registerSubsystem(new Tpc_ModuleTrackReco()); // makes TPC_MODULETRACKS
-  se->registerSubsystem(new Tpc_AssembledTrackReco()); // makes TPC_ASSEMBLEDTRACKS
+  se->registerSubsystem(new Tpc_ModuleTrackReco());     // makes TPC_MODULETRACKS
+  se->registerSubsystem(new Tpc_AssembledTrackReco());  // makes TPC_ASSEMBLEDTRACKS
 
   auto *crossingFinder = new TpcCrossingFinder();
   crossingFinder->Verbosity(0);
@@ -304,21 +305,19 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   crossingFinder->setOutputNodeName("TPC_CROSSING_DECISIONS");
   crossingFinder->setVertexMapNodeName("SiliconSvtxVertexMap");  // optional, configurable
   se->registerSubsystem(crossingFinder);
- 
-  auto *cluster = new Tpc_PolyClusterizer(); // makes TPC_POLYCLUSTERS
+
+  auto *cluster = new Tpc_PolyClusterizer();  // makes TPC_POLYCLUSTERS
   cluster->setUseSurveyGeometry(false);
-  cluster->setKEffSide0(1.00);//OO 82626 - 4.5, AuAu 6x6 76905 -0, pp 79513 - 1.0, 75391 5.8 75405 4.8
-  cluster->setKEffSide1(1.60);//OO 82626 - 5.0, AuAu 6x6 76905 -0, pp 79513 - 1.6, 75391 5.6 75408 4.8
+  cluster->setKEffSide0(1.00);  // OO 82626 - 4.5, AuAu 6x6 76905 -0, pp 79513 - 1.0, 75391 5.8 75405 4.8
+  cluster->setKEffSide1(1.60);  // OO 82626 - 5.0, AuAu 6x6 76905 -0, pp 79513 - 1.6, 75391 5.6 75408 4.8
   se->registerSubsystem(cluster);
 
   se->registerSubsystem(new Tpc_PolyTrackReco());      // makes TPC_POLYTRACKS
   se->registerSubsystem(new Tpc_PolyTrackVertexer());  // makes TPC_POLYTRACKVERTICES
 
+  se->registerSubsystem(new TpcPolyTrackSeedConverter());           // converts TPC_POLYTRACKS to TpcTrackSeed
+  se->registerSubsystem(new TpcPolyClusterTrkrClusterConverter());  // converts TPC_POLYCLUSTERS to TRKR_CLUSTER
 
-  se->registerSubsystem(new TpcPolyTrackSeedConverter());   // converts TPC_POLYTRACKS to TpcTrackSeed
-  se->registerSubsystem(new TpcPolyClusterTrkrClusterConverter()); // converts TPC_POLYCLUSTERS to TRKR_CLUSTER
-
-          
   auto *silicon_match = new PHSiliconTpcTrackMatching;
   silicon_match->Verbosity(0);
   silicon_match->set_pp_mode(TRACKING::streaming_mode);
@@ -336,7 +335,6 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   silicon_match->set_test_windows_printout(false);
   silicon_match->set_use_tpc_crossing(true);  // use crossing information from TPC SA seed
   se->registerSubsystem(silicon_match);
-
 
   auto *deltazcorr = new PHTpcDeltaZCorrection;
   deltazcorr->Verbosity(0);
@@ -373,9 +371,9 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   finder->setTrackMapName("SvtxTrackMap");
   finder->setVertexMapName("SvtxVertexMap");
   se->registerSubsystem(finder);
-    
+
   auto *resid = new TrackResiduals("TrackResiduals");
-  resid->outfileName(outdir + "/TrackResiduals_" + outfilename + "_" + std::to_string(runnumber)  + "_" + std::to_string(segment) + ".root");
+  resid->outfileName(outdir + "/TrackResiduals_" + outfilename + "_" + std::to_string(runnumber) + "_" + std::to_string(segment) + ".root");
   resid->alignment(false);
   resid->clusterTree();
   resid->vertexTree();
@@ -383,31 +381,27 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   resid->convertSeeds(G4TRACKING::convert_seeds_to_svtxtracks);
   resid->Verbosity(0);
   se->registerSubsystem(resid);
-    
 
-
-
-  Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", Form("%s/output_DST/DST_%s_%s_%s-%d-%d.root",outdir.c_str(), dsttype_to_save.c_str(), collision.c_str(), production.c_str(), runnumber, segment));
+  Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", Form("%s/output_DST/DST_%s_%s_%s-%d-%d.root", outdir.c_str(), dsttype_to_save.c_str(), collision.c_str(), production.c_str(), runnumber, segment));
 
   out->AddNode("Sync");
   out->AddNode("EventHeader");
   out->AddRunNode("TPCGEOMCONTAINER");
-  //out->AddNode("TRKR_HITSET");
-  //out->AddNode("TPC_MODULETRACKS");
-  //out->AddNode("TPC_ASSEMBLEDTRACKS");
+  // out->AddNode("TRKR_HITSET");
+  // out->AddNode("TPC_MODULETRACKS");
+  // out->AddNode("TPC_ASSEMBLEDTRACKS");
   out->AddNode("TPC_CROSSING_DECISIONS");
   out->AddNode("TPC_POLYCLUSTERS");
   out->AddNode("TPC_POLYTRACKS");
   out->AddNode("TPC_POLYTRACKVERTICES");
   out->AddNode("TRKR_CLUSTER");
 
-  //se->registerOutputManager(out);
-  
-  se->run(nEvents+nSkip);
+  // se->registerOutputManager(out);
+
+  se->run(nEvents + nSkip);
   se->Print("NODETREE");
   se->End();
   se->PrintTimer();
-
 
   CDBInterface::instance()->Print();
   delete se;
