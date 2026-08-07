@@ -51,6 +51,8 @@
 #include <trackingdiagnostics/Tpc_PolyClusterResiduals.h>
 #include <trackingdiagnostics/TrackResiduals.h>
 
+#include <format>
+
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libffamodules.so)
 R__LOAD_LIBRARY(libphool.so)
@@ -183,10 +185,16 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   std::stringstream nice_rounded_down;
   nice_rounded_down << std::setw(8) << std::setfill('0') << std::to_string(rounded_down);
 
-  for (auto stream : streams)
+  for (const auto& stream : streams)
   {
-    std::string filename = "DST_" + dsttype + "_" + stream + "_" + collision + "_" + production + "-" + runstr.str() + "-" + segstr.str() + ".root";
-    std::string filepath = "/sphenix/lustre01/sphnxpro/production/" + collision + "/" + datatype + "/" + production + "/DST_" + dsttype + "_" + stream + "/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/" + filename;
+    std::string filename = std::format(
+    "DST_{}_{}_{}_{}-{}-{}.root",
+    dsttype, stream, collision, production, runstr.str(), segstr.str());
+
+    std::string filepath = std::format(
+    "/sphenix/lustre01/sphnxpro/production/{}/{}/{}/DST_{}_{}/run_{}_{}/{}",
+    collision, datatype, production, dsttype, stream,
+    nice_rounded_down.str(), nice_rounded_up.str(), filename);
     std::cout << "Adding DST: " << filepath << std::endl;
     if (i == 0)
     {
@@ -382,7 +390,13 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   resid->Verbosity(0);
   se->registerSubsystem(resid);
 
-  Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", Form("%s/output_DST/DST_%s_%s_%s-%d-%d.root", outdir.c_str(), dsttype_to_save.c_str(), collision.c_str(), production.c_str(), runnumber, segment));
+  Fun4AllOutputManager *out = new Fun4AllDstOutputManager("out", std::format("{}/output_DST/DST_{}_{}_{}-{}-{}.root",
+            outdir,
+            dsttype_to_save,
+            collision,
+            production,
+            runnumber,
+            segment));
 
   out->AddNode("Sync");
   out->AddNode("EventHeader");
