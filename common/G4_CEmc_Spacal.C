@@ -342,22 +342,27 @@ void CEMC_Towers()
     CaloWaveformSim *caloWaveformSim = new CaloWaveformSim("CEMCCaloWaveformSim");
     caloWaveformSim->set_detector_type(CaloTowerDefs::CEMC);
     caloWaveformSim->set_detector("CEMC");
-    caloWaveformSim->set_nsamples(12);
+    //  caloWaveformSim->set_nsamples(12); // default is 12 like in real data - if we ever want a different number of samples
     caloWaveformSim->set_timewidth(0.2);
     caloWaveformSim->set_peakpos(6);
     caloWaveformSim->get_light_collection_model().load_data_file(
         std::string(getenv("CALIBRATIONROOT")) +
             std::string("/CEMC/LightCollection/Prototype3Module.xml"),
         "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
-    // pedestal scale down for different beam configurations according to Blair
+    
     if (Input::BEAM_CONFIGURATION == Input::pp_ZEROANGLE)
     {
       caloWaveformSim->set_pedestal_scale(0.75);
     }
-    if (Input::BEAM_CONFIGURATION == Input::pp_COLLISION)
+    else if (Input::BEAM_CONFIGURATION == Input::pp_COLLISION)
     {
       caloWaveformSim->set_pedestal_scale(0.77);
     }
+    else if (Input::BEAM_CONFIGURATION == Input::OO_COLLISION)
+    {
+      caloWaveformSim->set_pedestal_scale(0.73);
+    }
+
     // caloWaveformSim->Verbosity(2);
     // caloWaveformSim->set_noise_type(CaloWaveformSim::NOISE_NONE);
 
