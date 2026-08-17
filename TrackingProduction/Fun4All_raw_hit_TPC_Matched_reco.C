@@ -342,7 +342,10 @@ void Fun4All_raw_hit_TPC_Matched_reco(
   silicon_match->set_crossing_deltaz_max(10);
   silicon_match->set_crossing_deltaz_min(0);
   silicon_match->set_test_windows_printout(false);
-  silicon_match->set_use_tpc_crossing(true);  // use crossing information from TPC SA seed
+  silicon_match->set_max_crossing_diff(10); // good for poly seeding case  
+  // these are for testing. and default to false. The seed matcher will choose the crossing that works best
+  //  silicon_match->set_use_tpc_crossing_only(false);  // use crossing information from TPC SA seed
+  //  silicon_match->set_use_silicon_crossing_only(false);  // use crossing information from silicon seed
   se->registerSubsystem(silicon_match);
 
   auto *deltazcorr = new PHTpcDeltaZCorrection;
