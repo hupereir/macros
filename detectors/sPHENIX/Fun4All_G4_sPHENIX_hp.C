@@ -27,16 +27,25 @@
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4eval_hp.so)
 
+#define USE_ACTS
+
 //____________________________________________________________________
 int Fun4All_G4_sPHENIX_hp(
   const int nEvents = 10,
-  const char* outputFile = "DST/dst_eval.root"
+#ifdef USE_ACTS
+  const char* outputFile = "DST/CONDOR_sim_default/TRACKEVAL/TRACKEVAL_sim_default_test_0000.root",
+  const char* residualsFile = "DST/CONDOR_sim_default/TpcResiduals/TpcResiduals_sim_default_test_0000.root"
+#else
+  const char* outputFile = "DST/CONDOR_sim_default/TRACKEVAL/TRACKEVAL_sim_default_genfit_test_0000.root",
+  const char* residualsFile = "DST/CONDOR_sim_default/TpcResiduals/TpcResiduals_genfit_sim_default_test_0000.root"
+#endif
   )
 {
 
   // print inputs
   std::cout << "Fun4All_G4_sPHENIX_hp - nEvents: " << nEvents << std::endl;
   std::cout << "Fun4All_G4_sPHENIX_hp - outputFile: " << outputFile << std::endl;
+  std::cout << "Fun4All_G4_sPHENIX_hp - residualsFile: " << residualsFile << std::endl;
 
   // options
   Enable::PIPE = true;
@@ -58,15 +67,16 @@ int Fun4All_G4_sPHENIX_hp(
 
   // TPC
   // space charge distortions
+  G4TPC::ENABLE_STATIC_DISTORTIONS = true;
   G4TPC::DISTORTIONS_USE_PHI_AS_RADIANS = false;
-  G4TPC::ENABLE_REACHES_READOUT = false;
-  G4TPC::ENABLE_STATIC_DISTORTIONS = false;
+  G4TPC::static_distortion_filename = "/phenix/u/hpereira/sphenix/work/g4simulations/distortion_maps/average_minus_static_distortion_converted.root";
+  // G4TPC::static_distortion_filename = "/cvmfs/sphenix.sdcc.bnl.gov/calibrations/sphnxpro/cdb/TPC_STATIC_CORRECTION_MODEL/ec/7b/ec7bd756f9fc7274af6b479ee39580e3_static_only_inverted_10-new.root";
 
-  // space charge corrections
+  G4TPC::ENABLE_REACHES_READOUT = false;
   G4TPC::ENABLE_STATIC_CORRECTIONS = false;
 
   // distortion reconstruction
-  G4TRACKING::SC_CALIBMODE = false;
+  G4TRACKING::SC_CALIBMODE = true;
   G4TRACKING::SC_USE_MICROMEGAS = true;
 
   std::cout<< "Fun4All_CombinedDataReconstruction - tpc_drift_velocity_sim: " << G4TPC::tpc_drift_velocity_sim << std::endl;
@@ -99,7 +109,7 @@ int Fun4All_G4_sPHENIX_hp(
     gen->set_eta_range(-1.0, 1.0);
     gen->set_phi_range(-M_PI, M_PI);
 
-    if( false )
+    if( true )
     {
 
       // use specific distribution to generate pt
@@ -139,8 +149,7 @@ int Fun4All_G4_sPHENIX_hp(
   G4Setup();
 
   // BBC
-  // MbdInit();
-  Mbd_Reco();
+  // Mbd_Reco();
 
   // cells
   Mvtx_Cells();
@@ -157,8 +166,141 @@ int Fun4All_G4_sPHENIX_hp(
   TPC_Clustering();
   Micromegas_Clustering();
 
-  Tracking_Reco();
-  Global_Reco();
+  // silicon seeding
+  auto silicon_Seeding = new PHActsSiliconSeeding;
+  silicon_Seeding->Verbosity(0);
+  silicon_Seeding->setStrobeRange(-5,5);
+  silicon_Seeding->seedAnalysis(false);
+  silicon_Seeding->setinttRPhiSearchWindow(0.2);
+  silicon_Seeding->setinttZSearchWindow(1.0);
+  se->registerSubsystem(silicon_Seeding);
+
+  auto merger = new PHSiliconSeedMerger;
+  merger->Verbosity(0);
+  se->registerSubsystem(merger);
+
+  // TPC seeding
+  auto seeder = new PHCASeeding("PHCASeeding");
+  seeder->Verbosity(0);
+  seeder->SetLayerRange(7, 55);
+  seeder->SetSearchWindow(2.,0.05); // z-width and phi-width, default in macro at 1.5 and 0.05
+  seeder->SetClusAdd_delta_window(3.0,0.06); //  (0.5, 0.005) are default; sdzdr_cutoff, d2/dr2(phi)_cutoff
+  seeder->SetMinHitsPerCluster(0);
+  seeder->SetMinClustersPerTrack(3);
+  seeder->useFixedClusterError(true);
+  se->registerSubsystem(seeder);
+
+  // expand stubs in the TPC using simple kalman filter
+  auto cprop = new PHSimpleKFProp("PHSimpleKFProp");
+  cprop->useFixedClusterError(true);
+  cprop->set_max_window(5.);
+  cprop->Verbosity(0);
+  se->registerSubsystem(cprop);
+
+  // matching to silicons
+  auto silicon_match = new PHSiliconTpcTrackMatching;
+  silicon_match->Verbosity(0);
+
+  // narrow matching windows
+  silicon_match->set_x_search_window(0.36);
+  silicon_match->set_y_search_window(0.36);
+  silicon_match->set_z_search_window(2.5);
+  silicon_match->set_phi_search_window(0.014);
+  silicon_match->set_eta_search_window(0.0091);
+  silicon_match->set_test_windows_printout(false);
+  se->registerSubsystem(silicon_match);
+
+  // matching with micromegas
+  auto mm_match = new PHMicromegasTpcTrackMatching;
+  mm_match->Verbosity(0);
+  mm_match->set_rphi_search_window_lyr1(3.0);
+  mm_match->set_rphi_search_window_lyr2(15.0);
+
+  mm_match->set_z_search_window_lyr1(30.0);
+  mm_match->set_z_search_window_lyr2(3.0);
+
+  mm_match->set_min_tpc_layer(38);             // layer in TPC to start projection fit
+  mm_match->set_test_windows_printout(false);  // used for tuning search windows only
+  se->registerSubsystem(mm_match);
+
+  // track fit
+  se->registerSubsystem(new PHTpcDeltaZCorrection);
+
+  #ifdef USE_ACTS
+  // perform final track fit with ACTS
+  auto actsFit = new PHActsTrkFitter;
+  actsFit->Verbosity(0);
+  actsFit->commissioning(G4TRACKING::use_alignment);
+
+  // fit with Micromegas and Silicon ONLY
+  actsFit->fitSiliconMMs(G4TRACKING::SC_CALIBMODE);
+  actsFit->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+
+  actsFit->set_use_clustermover(true);
+  actsFit->useActsEvaluator(false);
+  actsFit->useOutlierFinder(false);
+  actsFit->setFieldMap(G4MAGNET::magfield_tracking);
+
+  actsFit->setExtrapolationMode(PHActsTrkFitter::ExtrapolationMode::Bidirectional);
+
+  se->registerSubsystem(actsFit);
+
+  auto cleaner = new PHTrackCleaner();
+  cleaner->Verbosity(0);
+  se->registerSubsystem(cleaner);
+
+  if (G4TRACKING::SC_CALIBMODE)
+  {
+    /*
+    * in calibration mode, calculate residuals between TPC and fitted tracks,
+    * store in dedicated structure for distortion correction
+    */
+    auto residuals = new PHTpcResiduals;
+    residuals->setOutputfile(residualsFile);
+    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+
+    // matches Tony's analysis
+    residuals->setMinPt( 0.2 );
+
+    // reconstructed distortion grid size (phi, r, z)
+    // residuals->setGridDimensions(36, 48, 80);
+    residuals->setGridDimensions(36, 16, 80);
+    se->registerSubsystem(residuals);
+  }
+
+  #else
+
+  // perform final track fit with GENFIT
+  auto genfitFit = new PHGenFitTrkFitter;
+  genfitFit->set_fit_silicon_mms(G4TRACKING::SC_CALIBMODE);
+  genfitFit->set_use_micromegas(G4TRACKING::SC_USE_MICROMEGAS);
+
+  genfitFit->setExtrapolationMode(PHGenFitTrkFitter::ExtrapolationMode::Bidirectional);
+
+  se->registerSubsystem(genfitFit);
+
+  if (G4TRACKING::SC_CALIBMODE)
+  {
+    /*
+    * in calibration mode, calculate residuals between TPC and fitted tracks,
+    * store in dedicated structure for distortion correction
+    */
+    auto residuals = new PHTpcResiduals;
+    residuals->setOutputfile(residualsFile);
+    residuals->setUseMicromegas(G4TRACKING::SC_USE_MICROMEGAS);
+    residuals->setTrackMapName("SvtxTrackMap");
+
+    // matches Tony's analysis
+    residuals->setMinPt( 0.2 );
+
+    // reconstructed distortion grid size (phi, r, z)
+    // residuals->setGridDimensions(36, 48, 80);
+    residuals->setGridDimensions(36, 16, 80);
+
+    se->registerSubsystem(residuals);
+  }
+
+  #endif
 
   // local evaluation
   if( false )
@@ -172,33 +314,22 @@ int Fun4All_G4_sPHENIX_hp(
     se->registerSubsystem(simEvaluator);
   }
 
-  if( false )
+  if( true )
   {
     auto trackingEvaluator = new TrackingEvaluator_hp;
     trackingEvaluator->set_flags(
-      0
-      |TrackingEvaluator_hp::EvalTracks
-//       |TrackingEvaluator_hp::PrintTracks
+      TrackingEvaluator_hp::EvalTracks|
+      TrackingEvaluator_hp::EvalTrackClusters|
+      TrackingEvaluator_hp::MicromegasOnly
       );
 
-    // special track map is used for space charge calibrations
-    if( G4TRACKING::SC_CALIBMODE && !G4TRACKING::use_genfit_track_fitter)
+    #ifdef USE_ACTS
+    if( G4TRACKING::SC_CALIBMODE )
     { trackingEvaluator->set_trackmapname( "SvtxSiliconMMTrackMap" ); }
+    #endif
 
     se->registerSubsystem(trackingEvaluator);
   }
-
-  if( false )
-  {
-    // Micromegas evaluation
-    auto micromegasEvaluator = new MicromegasEvaluator_hp;
-    // micromegasEvaluator->set_flags( MicromegasEvaluator_hp::EvalG4Hits|MicromegasEvaluator_hp::EvalHits|MicromegasEvaluator_hp::PrintGeometry );
-    micromegasEvaluator->set_flags( MicromegasEvaluator_hp::PrintGeometry );
-    se->registerSubsystem(micromegasEvaluator);
-  }
-
-  if( false )
-  { se->registerSubsystem(new MicromegasTrackEvaluator_hp); }
 
   // for single particle generators we just need something which drives
   // the event loop, the Dummy Input Mgr does just that
@@ -207,7 +338,7 @@ int Fun4All_G4_sPHENIX_hp(
 
   // output manager
   auto out = new Fun4AllDstOutputManager("DSTOUT", outputFile);
-  // out->AddNode("TrackingEvaluator_hp::Container");
+  out->AddNode("TrackingEvaluator_hp::Container");
   se->registerOutputManager(out);
 
   // process events
